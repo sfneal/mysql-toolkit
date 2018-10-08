@@ -1,138 +1,14 @@
 import mysql.connector
 from differentiate import differentiate
-from mysql.connector import errorcode
 from mysql.toolkit.execute import ExecuteScript
 from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
+from mysql.toolkit.query import Query
+from mysql.toolkit.results import Results
 
 
-class Query:
-    """
-    Query execution helper methods for the MySQL class.
-
-    Handles opening and closing a connection to a database source, fetching results
-    from a query, executing a query and batch executing multiple queries.
-    """
-    def __init__(self, config, enable_printing):
-        self.enable_printing = enable_printing
-        self._cursor = None
-        self._cnx = None
-        self._connect(config)
-
-    def _connect(self, config):
-        """Establish a connection with a MySQL database."""
-        print('\tMySQL connecting')
-        try:
-            self._cnx = mysql.connector.connect(**config)
-            self._cursor = self._cnx.cursor()
-            self._printer('\tMySQL DB connection established')
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print("Something is wrong with your user name or password")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print("Database does not exist")
-            raise err
-
-    def _printer(self, *msg):
-        """Printing method for internal use."""
-        if self.enable_printing:
-            print(*msg)
-
-    def _close(self):
-        """Close MySQL database connection."""
-        self._cursor.close()
-        self._cnx.close()
-
-    def _commit(self):
-        """Commit the changes made during the current connection."""
-        self._cnx.commit()
-
-    def _fetch(self, statement, _print=False):
-        """Execute a SQL query and return values."""
-        # Execute statement
-        self._cursor.execute(statement)
-        rows = []
-        for row in self._cursor:
-            if len(row) == 1:
-                rows.append(row[0])
-            else:
-                rows.append(list(row))
-        if _print:
-            self._printer('\tMySQL rows successfully queried', len(rows))
-
-        # Return a single item if the list only has one item
-        return rows[0] if len(rows) == 1 else rows
-
-    def execute(self, command):
-        self._cursor.execute(command)
-        self._commit()
-
-    def executemany(self, command):
-        self._cursor.executemany(command)
-        self._commit()
-
-
-class Results:
-    """
-    Result retrieval helper methods for the MySQL class.
-
-    Capable of fetching list of available tables/databases, the primary for a table,
-    primary key values for a table, number of rows in a table, number of rows of all
-    tables in a database.
-    """
+class Core:
     def __init__(self):
         pass
-
-    @property
-    def tables(self):
-        """Retrieve a list of tables in the connected database"""
-        statement = 'show tables'
-        return self._fetch(statement)
-
-    @property
-    def databases(self):
-        """Retrieve a list of databases that are accessible under the current connection"""
-        return self._fetch('show databases')
-
-    def get_primary_key(self, table):
-        """Retrieve the column which is the primary key for a table."""
-        for column in self.get_schema(table):
-            if 'pri' in column[3].lower():
-                return column[0]
-
-    def get_primary_key_values(self, table):
-        """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table), _print=False)
-
-    def count_rows(self, table):
-        """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
-
-    def count_rows_all(self):
-        """Get the number of rows for every table in the database."""
-        return {table: self.count_rows(table) for table in self.tables}
-
-
-class MySQL(Query, Results):
-    def __init__(self, config, enable_printing=True):
-        """
-        Connect to MySQL database and execute queries
-        :param config: MySQL server configuration settings
-        """
-        # Initialize inherited classes
-        Query.__init__(self, config, enable_printing)
-        Results.__init__(self)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print('\tMySQL disconnecting')
-        try:
-            self._commit()
-            self._close()
-        except mysql.connector.errors as e:
-            print('\tError: ' + str(e))
-            print('\tMySQL disconnected')
 
     def select(self, table, cols, _print=True):
         """Query only certain columns from a table and every row."""
@@ -222,6 +98,35 @@ class MySQL(Query, Results):
         self.execute(statement)
         self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
 
+    def drop_table(self, table):
+        """Drop a table from a database."""
+        self.execute('DROP TABLE ' + wrap(table))
+        return table
+
+
+class MySQL(Query, Core, Results):
+    def __init__(self, config, enable_printing=True):
+        """
+        Connect to MySQL database and execute queries
+        :param config: MySQL server configuration settings
+        """
+        # Initialize inherited classes
+        Query.__init__(self, config, enable_printing)
+        Core.__init__(self)
+        Results.__init__(self)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print('\tMySQL disconnecting')
+        try:
+            self._commit()
+            self._close()
+        except mysql.connector.errors as e:
+            print('\tError: ' + str(e))
+            print('\tMySQL disconnected')
+
     def truncate_database(self):
         """Drop all tables in a database."""
         # Get list of tables
@@ -233,11 +138,6 @@ class MySQL(Query, Results):
             self._printer('\t' + str(len(tables)), 'tables truncated')
         return tables
 
-    def drop_table(self, table):
-        """Drop a table from a database."""
-        self.execute('DROP TABLE ' + wrap(table))
-        return table
-
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
         f = self._fetch('desc ' + wrap(table))
@@ -246,13 +146,8 @@ class MySQL(Query, Results):
         if with_headers:
             f.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return f
-    # ------------------------------------------------------------------------------
-    # |                 END METHODS THAT CONCATENATE SQL QUERIES                   |
-    # ------------------------------------------------------------------------------
 
-    # ------------------------------------------------------------------------------
-    # |                 METHODS THAT UTILIZE CONCAT METHODS                        |
-    # ------------------------------------------------------------------------------
+
     def insert_uniques(self, table, columns, values):
         """
         Insert multiple rows into a table that do not already exist.
