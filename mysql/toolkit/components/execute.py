@@ -5,10 +5,13 @@ from tqdm import tqdm
 
 
 class ExecuteScript:
-    def __init__(self, mysql_instance, sql_script, commands=None):
+    def __init__(self, mysql_instance, sql_script, commands=None, split_func=True, split_char=';'):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self.MySQL = mysql_instance
+
+        # split_func boolean and splitter character
+        self.split_func, self.split_char = split_func, split_char
 
         # SQL script to be executed
         self.sql_script = sql_script
@@ -27,16 +30,17 @@ class ExecuteScript:
         if len(self.fail) > 1:
             self.dump_fails()
 
-    @staticmethod
-    def _get_commands(sql_script):
+    def _get_commands(self, sql_script):
         print('\tRetrieving commands')
         # Open and read the file as a single buffer
         with open(sql_script, 'r') as fd:
             sql_file = fd.read()
 
-        # all SQL commands (split on ';')
+        # Retrieve all commands via split function or splitting on ';'
+        commands = split_sql_commands(sql_file) if self.split_func else sql_file.split(self.split_char)
+
         # remove dbo. prefixes from table names
-        return [com.replace("dbo.", '') for com in split_sql_commands(sql_file)]
+        return [com.replace("dbo.", '') for com in commands]
 
     def execute_commands(self):
         # Execute every command from the input file
