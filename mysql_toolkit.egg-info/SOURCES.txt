@@ -1,9 +1,17 @@
+MANIFEST.in
 README.md
 setup.py
 mysql/__init__.py
 mysql/toolkit/__init__.py
 mysql/toolkit/_version.py
+mysql/toolkit/connector.py
 mysql/toolkit/toolkit.py
+mysql/toolkit/utils.py
+mysql/toolkit/components/__init__.py
+mysql/toolkit/components/advanced.py
+mysql/toolkit/components/core.py
+mysql/toolkit/components/execute.py
+mysql/toolkit/components/results.py
 mysql_toolkit.egg-info/PKG-INFO
 mysql_toolkit.egg-info/SOURCES.txt
 mysql_toolkit.egg-info/dependency_links.txt
