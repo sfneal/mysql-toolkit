@@ -23,5 +23,5 @@ class MySQL(Connector, Core, Results, Advanced):
             self._commit()
             self._close()
         except:
-            print('\tError: ' + str(e))
-            print('\tMySQL disconnected')
+            print('\tError raised during disconnection')
+        print('\tMySQL disconnected')
