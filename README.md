@@ -1,5 +1,7 @@
 # MySQL-toolkit
 
+[![GuardRails badge](https://badges.production.guardrails.io/mrstephenneal/mysql-toolkit.svg)](https://www.guardrails.io)
+
 Development toolkit for building applications that interact with a MySQL database.
 
 ## Getting Started
