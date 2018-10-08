@@ -5,7 +5,6 @@ import mysql.connector
 from mysql.connector import errorcode
 from tqdm import tqdm
 from differentiate import differentiate
-from databasetools.sqlprep import prepare_sql
 
 
 def get_column_value_strings(columns, query_type='insert'):
