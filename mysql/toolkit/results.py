@@ -1,3 +1,6 @@
+from mysql.toolkit.utils import wrap
+
+
 class Results:
     """
     Result retrieval helper methods for the MySQL class.
@@ -37,3 +40,12 @@ class Results:
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""
         return {table: self.count_rows(table) for table in self.tables}
+
+    def get_schema(self, table, with_headers=False):
+        """Retrieve the database schema for a particular table."""
+        f = self._fetch('desc ' + wrap(table))
+
+        # If with_headers is True, insert headers to first row before returning
+        if with_headers:
+            f.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
+        return f

@@ -138,16 +138,6 @@ class MySQL(Query, Core, Results):
             self._printer('\t' + str(len(tables)), 'tables truncated')
         return tables
 
-    def get_schema(self, table, with_headers=False):
-        """Retrieve the database schema for a particular table."""
-        f = self._fetch('desc ' + wrap(table))
-
-        # If with_headers is True, insert headers to first row before returning
-        if with_headers:
-            f.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
-        return f
-
-
     def insert_uniques(self, table, columns, values):
         """
         Insert multiple rows into a table that do not already exist.
