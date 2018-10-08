@@ -6,15 +6,18 @@ from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
 class Query:
+    """
+    Query execution helper methods for the MySQL class.
+
+    Handles opening and closing a connection to a database source, fetching results
+    from a query, executing a query and batch executing multiple queries.
+    """
     def __init__(self, config, enable_printing):
         self.enable_printing = enable_printing
         self._cursor = None
         self._cnx = None
         self._connect(config)
 
-    # ------------------------------------------------------------------------------
-    # |                            HELPER METHODS                                  |
-    # ------------------------------------------------------------------------------
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
         print('\tMySQL connecting')
@@ -66,18 +69,19 @@ class Query:
     def executemany(self, command):
         self._cursor.executemany(command)
         self._commit()
-    # ------------------------------------------------------------------------------
-    # |                            END HELPER METHODS                              |
-    # ------------------------------------------------------------------------------
 
 
 class Results:
+    """
+    Result retrieval helper methods for the MySQL class.
+
+    Capable of fetching list of available tables/databases, the primary for a table,
+    primary key values for a table, number of rows in a table, number of rows of all
+    tables in a database.
+    """
     def __init__(self):
         pass
 
-    # ------------------------------------------------------------------------------
-    #                                GETTER METHODS                                |
-    # ------------------------------------------------------------------------------
     @property
     def tables(self):
         """Retrieve a list of tables in the connected database"""
@@ -106,9 +110,6 @@ class Results:
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""
         return {table: self.count_rows(table) for table in self.tables}
-    # ------------------------------------------------------------------------------
-    #                                END GETTER METHODS                            |
-    # ------------------------------------------------------------------------------
 
 
 class MySQL(Query, Results):
@@ -133,9 +134,6 @@ class MySQL(Query, Results):
             print('\tError: ' + str(e))
             print('\tMySQL disconnected')
 
-    # ------------------------------------------------------------------------------
-    # |                 METHODS THAT CONCATENATE SQL QUERIES                       |
-    # ------------------------------------------------------------------------------
     def select(self, table, cols, _print=True):
         """Query only certain columns from a table and every row."""
         # Concatenate statement
@@ -333,16 +331,7 @@ class MySQL(Query, Results):
                 self._printer('Dropped table', table)
                 drops.append(table)
         return drops
-    # ------------------------------------------------------------------------------
-    # |                 END METHODS THAT UTILIZE CONCAT METHODS                    |
-    # ------------------------------------------------------------------------------
 
-    # ------------------------------------------------------------------------------
-    #                               STANDALONE METHODS                             |
-    # ------------------------------------------------------------------------------
     def execute_script(self, sql_script, commands=None):
         """Wrapper method for ExecuteScript class."""
         ExecuteScript(self, sql_script, commands)
-    # ------------------------------------------------------------------------------
-    #                             END STANDALONE METHODS                           |
-    # ------------------------------------------------------------------------------
