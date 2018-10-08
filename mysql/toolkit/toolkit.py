@@ -1,4 +1,3 @@
-from mysql.connector import errors
 from mysql.toolkit.connector import Connector
 from mysql.toolkit.components import Core, Results, Advanced
 
