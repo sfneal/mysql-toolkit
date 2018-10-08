@@ -1,9 +1,9 @@
 import os
+import mysql.connector
 from time import time
 from datetime import datetime
 from tqdm import tqdm
 from differentiate import differentiate
-import mysql.connector
 from mysql.connector import errorcode
 
 
