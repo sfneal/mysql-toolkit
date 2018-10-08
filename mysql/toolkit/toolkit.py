@@ -1,10 +1,10 @@
 import os
 from time import time
 from datetime import datetime
-import mysql.connector
-from mysql.connector import errorcode
 from tqdm import tqdm
 from differentiate import differentiate
+import mysql.connector
+from mysql.connector import errorcode
 
 
 def get_column_value_strings(columns, query_type='insert'):

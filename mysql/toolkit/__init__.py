@@ -1,4 +1,4 @@
-from mysql.toolkit import MySQL
+from mysql.toolkit.toolkit import MySQL
 
 
 __all__ = ['MySQL']
