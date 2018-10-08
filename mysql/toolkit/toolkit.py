@@ -1,44 +1,51 @@
-import os
 import mysql.connector
-from time import time
-from datetime import datetime
-from tqdm import tqdm
 from differentiate import differentiate
 from mysql.connector import errorcode
+from mysql.toolkit.execute import ExecuteScript
+from mysql.toolkit.utils import get_column_value_strings, join_columns, wrap
 
 
-def get_column_value_strings(columns, query_type='insert'):
-    cols = ""
-    vals = ""
-    if query_type == 'insert':
-        for c in columns:
-            cols = cols + c + ', '
-            vals = vals + '%s' + ', '
+class Results:
+    def __init__(self):
+        pass
 
-        # Remove last comma and space
-        cols = cols[:-2]
-        vals = vals[:-2]
-        return cols, vals
-    if query_type == 'update':
-        for c in columns:
-            cols = str(cols + c + '=%s, ')
+    # ------------------------------------------------------------------------------
+    #                                GETTER METHODS                                |
+    # ------------------------------------------------------------------------------
+    @property
+    def tables(self):
+        """Retrieve a list of tables in the connected database"""
+        statement = 'show tables'
+        return self._fetch(statement)
 
-        # Remove last comma and space
-        cols = cols[:-2]
-        return cols
+    @property
+    def databases(self):
+        """Retrieve a list of databases that are accessible under the current connection"""
+        return self._fetch('show databases')
+
+    def get_primary_key(self, table):
+        """Retrieve the column which is the primary key for a table."""
+        for column in self.get_schema(table):
+            if 'pri' in column[3].lower():
+                return column[0]
+
+    def get_primary_key_values(self, table):
+        """Retrieve a list of primary key values in a table"""
+        return self.select(table, self.get_primary_key(table), _print=False)
+
+    def count_rows(self, table):
+        """Get the number of rows in a particular table"""
+        return self.select(table, 'COUNT(*)', False)
+
+    def count_rows_all(self):
+        """Get the number of rows for every table in the database."""
+        return {table: self.count_rows(table) for table in self.tables}
+    # ------------------------------------------------------------------------------
+    #                                END GETTER METHODS                            |
+    # ------------------------------------------------------------------------------
 
 
-def join_columns(cols):
-    """Join list of columns into a string for a SQL query"""
-    return ", ".join([i for i in cols]) if isinstance(cols, list) else cols
-
-
-def wrap(item):
-    """Wrap a string with `` characters for SQL queries."""
-    return '`' + str(item) + '`'
-
-
-class MySQL:
+class MySQL(Results):
     def __init__(self, config, enable_printing=True):
         """
         Connect to MySQL database and execute queries
@@ -48,6 +55,7 @@ class MySQL:
         self._cursor = None
         self._cnx = None
         self._connect(config)
+        Results.__init__(self)
 
     def __enter__(self):
         print('\tMySQL connecting')
@@ -117,41 +125,6 @@ class MySQL:
         self._commit()
     # ------------------------------------------------------------------------------
     # |                            END HELPER METHODS                              |
-    # ------------------------------------------------------------------------------
-
-    # ------------------------------------------------------------------------------
-    #                                GETTER METHODS                                |
-    # ------------------------------------------------------------------------------
-    @property
-    def tables(self):
-        """Retrieve a list of tables in the connected database"""
-        statement = 'show tables'
-        return self._fetch(statement)
-
-    @property
-    def databases(self):
-        """Retrieve a list of databases that are accessible under the current connection"""
-        return self._fetch('show databases')
-
-    def get_primary_key(self, table):
-        """Retrieve the column which is the primary key for a table."""
-        for column in self.get_schema(table):
-            if 'pri' in column[3].lower():
-                return column[0]
-
-    def get_primary_key_values(self, table):
-        """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table), _print=False)
-
-    def count_rows(self, table):
-        """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
-
-    def count_rows_all(self):
-        """Get the number of rows for every table in the database."""
-        return {table: self.count_rows(table) for table in self.tables}
-    # ------------------------------------------------------------------------------
-    #                                END GETTER METHODS                            |
     # ------------------------------------------------------------------------------
 
     # ------------------------------------------------------------------------------
@@ -367,161 +340,3 @@ class MySQL:
     # ------------------------------------------------------------------------------
     #                             END STANDALONE METHODS                           |
     # ------------------------------------------------------------------------------
-
-
-class ExecuteScript:
-    def __init__(self, mysql_instance, sql_script, commands=None):
-        """Execute a sql file one command at a time."""
-        # Pass MySQL instance from execute_script method to ExecuteScript class
-        self.MySQL = mysql_instance
-
-        # SQL script to be executed
-        self.sql_script = sql_script
-
-        # Retrieve commands from sql_script if no commands are provided
-        self.commands = self._get_commands(sql_script) if not commands else commands
-
-        # Save failed commands to list
-        self.fail = []
-        self.success = 0
-
-        # Execute commands
-        self.execute_commands()
-
-        # Dump failed commands to text file
-        if len(self.fail) > 1:
-            self.dump_fails()
-
-    @staticmethod
-    def _get_commands(sql_script):
-        print('\tRetrieving commands')
-        # Open and read the file as a single buffer
-        with open(sql_script, 'r') as fd:
-            sql_file = fd.read()
-
-        # all SQL commands (split on ';')
-        # remove dbo. prefixes from table names
-        return [com.replace("dbo.", '') for com in split_sql_commands(sql_file)]
-
-    def execute_commands(self):
-        # Execute every command from the input file
-        print('\t' + str(len(self.commands)), 'commands')
-        for command in tqdm(self.commands, total=len(self.commands), desc='Executing SQL Commands'):
-            # This will skip and report errors
-            # For example, if the tables do not yet exist, this will skip over
-            # the DROP TABLE commands
-            try:
-                self.MySQL.execute(command)
-                self.success += 1
-            except:
-                self.fail.append(command)
-
-        # Write fail commands to a text file
-        print('\t' + str(self.success), 'successful commands')
-
-    def dump_fails(self):
-        # Re-add semi-colon separator
-        fails = [com + ';\n' for com in self.fail]
-        print('\t' + str(len(fails)), 'failed commands')
-
-        # Create a directory to save fail SQL scripts
-        fails_dir = os.path.join(os.path.dirname(self.sql_script), 'fails')
-        if not os.path.exists(fails_dir):
-            os.mkdir(fails_dir)
-        fails_dir = os.path.join(fails_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
-        if not os.path.exists(fails_dir):
-            os.mkdir(fails_dir)
-        print('\tDumping failed commands to', fails_dir)
-
-        # Dump failed commands to text file in the same directory as the script
-        for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
-            fails_fname = str(os.path.basename(self.sql_script).rsplit('.')[0]) + str(count) + '.sql'
-            txt_file = os.path.join(fails_dir, fails_fname)
-
-            # Dump to text file
-            with open(txt_file, 'w') as txt:
-                txt.writelines(fail)
-
-
-def split_sql_commands(text):
-    results = []
-    current = ''
-    state = None
-    for c in tqdm(text, total=len(text), desc='Parsing SQL script file', unit='chars'):
-        if state is None:  # default state, outside of special entity
-            current += c
-            if c in '"\'':
-                # quoted string
-                state = c
-            elif c == '-':
-                # probably "--" comment
-                state = '-'
-            elif c == '/':
-                # probably '/*' comment
-                state = '/'
-            elif c == ';':
-                # remove it from the statement
-                current = current[:-1].strip()
-                # and save current stmt unless empty
-                if current:
-                    results.append(current)
-                current = ''
-        elif state == '-':
-            if c != '-':
-                # not a comment
-                state = None
-                current += c
-                continue
-            # remove first minus
-            current = current[:-1]
-            # comment until end of line
-            state = '--'
-        elif state == '--':
-            if c == '\n':
-                # end of comment
-                # and we do include this newline
-                current += c
-                state = None
-            # else just ignore
-        elif state == '/':
-            if c != '*':
-                state = None
-                current += c
-                continue
-            # remove starting slash
-            current = current[:-1]
-            # multiline comment
-            state = '/*'
-        elif state == '/*':
-            if c == '*':
-                # probably end of comment
-                state = '/**'
-        elif state == '/**':
-            if c == '/':
-                state = None
-            else:
-                # not an end
-                state = '/*'
-        elif state[0] in '"\'':
-            current += c
-            if state.endswith('\\'):
-                # prev was backslash, don't check for ender
-                # just revert to regular state
-                state = state[0]
-                continue
-            elif c == '\\':
-                # don't check next char
-                state += '\\'
-                continue
-            elif c == state[0]:
-                # end of quoted string
-                state = None
-        else:
-            raise Exception('Illegal state %s' % state)
-
-    if current:
-        current = current.rstrip(';').strip()
-        if current:
-            results.append(current)
-
-    return results
