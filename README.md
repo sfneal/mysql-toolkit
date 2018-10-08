@@ -24,6 +24,20 @@ The entire MySQL-toolkit module can be utilized through a single import.
 from mysql.toolkit import MySQL
 ```
 
+The MySQL class's methods are broken down into three categories and inherited via sub-modules.
+
+**core**
+
+* select
+* select_all
+* select_all_join (coming soon)
+* select_where
+* insert
+* insert_many
+* update
+* truncate
+* drop
+
 ## Built With
 
 * [differentiate](https://github.com/mrstephenneal/differentiate) - Compare multiple data sets and retrieve the unique, non-repeated elements.

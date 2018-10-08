@@ -12,6 +12,17 @@ class Core:
         statement = "SELECT " + cols_str + " FROM " + wrap(table)
         return self._fetch(statement, _print)
 
+    def select_all(self, table):
+        """Query all rows and columns from a table."""
+        # Concatenate statement
+        statement = "SELECT * FROM " + wrap(table)
+        return self._fetch(statement)
+
+    def select_all_join(self, table1, table2, key):
+        """Left join all rows and columns from two tables where a common value is shared."""
+        # TODO: Write function to run a select * left join query
+        pass
+
     def select_where(self, table, cols, where):
         """Query certain columns from a table where a particular value is found."""
         # Either join list of columns into string or set columns to * (all)
@@ -25,17 +36,6 @@ class Core:
 
         statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
         self._fetch(statement)
-
-    def select_all(self, table):
-        """Query all rows and columns from a table."""
-        # Concatenate statement
-        statement = "SELECT * FROM " + wrap(table)
-        return self._fetch(statement)
-
-    def select_all_join(self, table1, table2, key):
-        """Left join all rows and columns from two tables where a common value is shared."""
-        # TODO: Write function to run a select * left join query
-        pass
 
     def insert(self, table, columns, values):
         """Insert a singular row into a table"""

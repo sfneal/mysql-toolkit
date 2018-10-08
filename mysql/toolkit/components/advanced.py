@@ -92,7 +92,7 @@ class Advanced:
         for table, count in counts.items():
             if count < 1:
                 # Drop table if it contains no rows
-                self.drop_table(table)
+                self.drop(table)
                 self._printer('Dropped table', table)
                 drops.append(table)
         return drops
