@@ -2,7 +2,7 @@ import mysql.connector
 from differentiate import differentiate
 from mysql.connector import errorcode
 from mysql.toolkit.execute import ExecuteScript
-from mysql.toolkit.utils import get_column_value_strings, join_columns, wrap
+from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
 class Results:
@@ -133,7 +133,7 @@ class MySQL(Results):
     def select(self, table, cols, _print=True):
         """Query only certain columns from a table and every row."""
         # Concatenate statement
-        cols_str = join_columns(cols)
+        cols_str = join_cols(cols)
         statement = "SELECT " + cols_str + " FROM " + wrap(table)
         return self._fetch(statement, _print)
 
@@ -141,7 +141,7 @@ class MySQL(Results):
         """Query certain columns from a table where a particular value is found."""
         # Either join list of columns into string or set columns to * (all)
         if isinstance(cols, list):
-            cols_str = join_columns(cols)
+            cols_str = join_cols(cols)
         else:
             cols_str = "*"
 
@@ -165,7 +165,7 @@ class MySQL(Results):
     def insert(self, table, columns, values):
         """Insert a singular row into a table"""
         # Concatenate statement
-        cols, vals = get_column_value_strings(columns)
+        cols, vals = get_col_val_str(columns)
         statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
 
         # Execute statement
@@ -183,7 +183,7 @@ class MySQL(Results):
             self.insert(table, columns, values[0])
         else:
             # Concatenate statement
-            cols, vals = get_column_value_strings(columns)
+            cols, vals = get_col_val_str(columns)
             statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
 
             # Execute statement
@@ -203,7 +203,7 @@ class MySQL(Results):
         where_col, where_val = where
 
         # Create column string from list of values
-        cols = get_column_value_strings(columns, query_type='update')
+        cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
         statement = "UPDATE " + str(table) + " SET " + str(cols) + ' WHERE ' + str(where_col) + '=' + str(where_val)

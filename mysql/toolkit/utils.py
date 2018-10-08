@@ -1,4 +1,4 @@
-def get_column_value_strings(columns, query_type='insert'):
+def get_col_val_str(columns, query_type='insert'):
     cols = ""
     vals = ""
     if query_type == 'insert':
@@ -19,7 +19,7 @@ def get_column_value_strings(columns, query_type='insert'):
         return cols
 
 
-def join_columns(cols):
+def join_cols(cols):
     """Join list of columns into a string for a SQL query"""
     return ", ".join([i for i in cols]) if isinstance(cols, list) else cols
 
