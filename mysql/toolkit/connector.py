@@ -29,6 +29,11 @@ class Connector:
                 print("Database does not exist")
             raise err
 
+    def _disconnect(self):
+        """Destroy connection with MySQL database."""
+        self._commit()
+        self._close()
+
     def _printer(self, *msg):
         """Printing method for internal use."""
         if self.enable_printing:
