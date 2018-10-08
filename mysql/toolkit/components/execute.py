@@ -31,7 +31,7 @@ class ExecuteScript:
             self.dump_fails()
 
     def _get_commands(self, sql_script):
-        print('\tRetrieving commands')
+        print('\tRetrieving commands from', sql_script)
         # Open and read the file as a single buffer
         with open(sql_script, 'r') as fd:
             sql_file = fd.read()
