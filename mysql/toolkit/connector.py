@@ -21,7 +21,7 @@ class Connector:
         try:
             self._cnx = connect(**config)
             self._cursor = self._cnx.cursor()
-            self._printer('\tMySQL DB connection established')
+            self._printer('\tMySQL DB connection established with db', config['database'])
         except Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
