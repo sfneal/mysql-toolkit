@@ -5,16 +5,16 @@ from setuptools import setup, find_packages
 name = 'mysql-toolkit'
 
 
-def get_version(package_name, version_file='_version.py'):
+def get_version(version_file='_version.py'):
     """Retrieve the package version from a version file in the package root."""
-    filename = os.path.join(os.path.dirname(__file__), package_name, 'toolkit', version_file)
+    filename = os.path.join(os.path.dirname(__file__), 'mysql', 'toolkit', version_file)
     with open(filename, 'rb') as fp:
         return fp.read().decode('utf8').split('=')[1].strip(" \n'")
 
 
 setup(
     name=name,
-    version=get_version(name),
+    version=get_version(),
     packages=find_packages(),
     namespace_packages=['mysql'],
     install_requires=[
