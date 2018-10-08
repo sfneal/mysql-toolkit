@@ -1,10 +1,10 @@
 from differentiate import differentiate
 from mysql.connector import errors
 from mysql.toolkit.utils import wrap
-from mysql.toolkit.query import Query
-from mysql.toolkit.core import Core
-from mysql.toolkit.results import Results
-from mysql.toolkit.execute import ExecuteScript
+from mysql.toolkit.components.query import Query
+from mysql.toolkit.components.core import Core
+from mysql.toolkit.components.results import Results
+from mysql.toolkit.components.execute import ExecuteScript
 
 
 class MySQL(Query, Core, Results):
