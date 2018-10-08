@@ -23,6 +23,6 @@ class MySQL(Connector, Core, Results, Advanced):
         try:
             self._commit()
             self._close()
-        except errors as e:
+        except:
             print('\tError: ' + str(e))
             print('\tMySQL disconnected')
