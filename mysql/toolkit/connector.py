@@ -44,7 +44,7 @@ class Connector:
         self._cnx.commit()
 
     def _fetch(self, statement, _print=False):
-        """Execute a SQL query and return values."""
+        """Execute a SQL query and return a result."""
         # Execute statement
         self._cursor.execute(statement)
         rows = []
@@ -60,9 +60,11 @@ class Connector:
         return rows[0] if len(rows) == 1 else rows
 
     def execute(self, command):
+        """Execute a single SQL query without returning a result."""
         self._cursor.execute(command)
         self._commit()
 
     def executemany(self, command):
+        """Execute multiple SQL queries without returning a result."""
         self._cursor.executemany(command)
         self._commit()
