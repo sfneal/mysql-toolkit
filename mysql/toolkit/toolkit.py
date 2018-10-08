@@ -1,20 +1,20 @@
 from differentiate import differentiate
 from mysql.connector import errors
 from mysql.toolkit.utils import wrap
-from mysql.toolkit.components.query import Query
+from mysql.toolkit.connector import Connector
 from mysql.toolkit.components.core import Core
 from mysql.toolkit.components.results import Results
 from mysql.toolkit.components.execute import ExecuteScript
 
 
-class MySQL(Query, Core, Results):
+class MySQL(Connector, Core, Results):
     def __init__(self, config, enable_printing=True):
         """
         Connect to MySQL database and execute queries
         :param config: MySQL server configuration settings
         """
         # Initialize inherited classes
-        Query.__init__(self, config, enable_printing)
+        Connector.__init__(self, config, enable_printing)
         Core.__init__(self)
         Results.__init__(self)
 

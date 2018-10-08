@@ -2,7 +2,7 @@ from mysql.connector import connect, Error
 from mysql.connector import errorcode
 
 
-class Query:
+class Connector:
     """
     Query execution helper methods for the MySQL class.
 

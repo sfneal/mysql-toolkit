@@ -14,11 +14,15 @@ PyPi distribution
 pip install mysql-toolkit
 ```
 
-## Example Usage
+## Usage
 
-Outlined below are basic uses of the main modules of the MySQL-toolkit python package.
+MySQL-tookit aims to provide an easy to use MySQL dependency that allows developers to integrate MySQL database's with their Python applications.
 
-* MySQL - Connect to MySQL database and execute queries
+The entire MySQL-toolkit module can be utilized through a single import.
+
+```python
+from mysql.toolkit import MySQL
+```
 
 ## Built With
 
