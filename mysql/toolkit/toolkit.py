@@ -5,76 +5,19 @@ from mysql.toolkit.execute import ExecuteScript
 from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
-class Results:
-    def __init__(self):
-        pass
-
-    # ------------------------------------------------------------------------------
-    #                                GETTER METHODS                                |
-    # ------------------------------------------------------------------------------
-    @property
-    def tables(self):
-        """Retrieve a list of tables in the connected database"""
-        statement = 'show tables'
-        return self._fetch(statement)
-
-    @property
-    def databases(self):
-        """Retrieve a list of databases that are accessible under the current connection"""
-        return self._fetch('show databases')
-
-    def get_primary_key(self, table):
-        """Retrieve the column which is the primary key for a table."""
-        for column in self.get_schema(table):
-            if 'pri' in column[3].lower():
-                return column[0]
-
-    def get_primary_key_values(self, table):
-        """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table), _print=False)
-
-    def count_rows(self, table):
-        """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
-
-    def count_rows_all(self):
-        """Get the number of rows for every table in the database."""
-        return {table: self.count_rows(table) for table in self.tables}
-    # ------------------------------------------------------------------------------
-    #                                END GETTER METHODS                            |
-    # ------------------------------------------------------------------------------
-
-
-class MySQL(Results):
-    def __init__(self, config, enable_printing=True):
-        """
-        Connect to MySQL database and execute queries
-        :param config: MySQL server configuration settings
-        """
+class Query:
+    def __init__(self, config, enable_printing):
         self.enable_printing = enable_printing
         self._cursor = None
         self._cnx = None
         self._connect(config)
-        Results.__init__(self)
-
-    def __enter__(self):
-        print('\tMySQL connecting')
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        print('\tMySQL disconnecting')
-        try:
-            self._commit()
-            self._close()
-        except mysql.connector.errors as e:
-            print('\tError: ' + str(e))
-            print('\tMySQL disconnected')
 
     # ------------------------------------------------------------------------------
     # |                            HELPER METHODS                                  |
     # ------------------------------------------------------------------------------
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
+        print('\tMySQL connecting')
         try:
             self._cnx = mysql.connector.connect(**config)
             self._cursor = self._cnx.cursor()
@@ -126,6 +69,69 @@ class MySQL(Results):
     # ------------------------------------------------------------------------------
     # |                            END HELPER METHODS                              |
     # ------------------------------------------------------------------------------
+
+
+class Results:
+    def __init__(self):
+        pass
+
+    # ------------------------------------------------------------------------------
+    #                                GETTER METHODS                                |
+    # ------------------------------------------------------------------------------
+    @property
+    def tables(self):
+        """Retrieve a list of tables in the connected database"""
+        statement = 'show tables'
+        return self._fetch(statement)
+
+    @property
+    def databases(self):
+        """Retrieve a list of databases that are accessible under the current connection"""
+        return self._fetch('show databases')
+
+    def get_primary_key(self, table):
+        """Retrieve the column which is the primary key for a table."""
+        for column in self.get_schema(table):
+            if 'pri' in column[3].lower():
+                return column[0]
+
+    def get_primary_key_values(self, table):
+        """Retrieve a list of primary key values in a table"""
+        return self.select(table, self.get_primary_key(table), _print=False)
+
+    def count_rows(self, table):
+        """Get the number of rows in a particular table"""
+        return self.select(table, 'COUNT(*)', False)
+
+    def count_rows_all(self):
+        """Get the number of rows for every table in the database."""
+        return {table: self.count_rows(table) for table in self.tables}
+    # ------------------------------------------------------------------------------
+    #                                END GETTER METHODS                            |
+    # ------------------------------------------------------------------------------
+
+
+class MySQL(Query, Results):
+    def __init__(self, config, enable_printing=True):
+        """
+        Connect to MySQL database and execute queries
+        :param config: MySQL server configuration settings
+        """
+        # Initialize inherited classes
+        Query.__init__(self, config, enable_printing)
+        Results.__init__(self)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print('\tMySQL disconnecting')
+        try:
+            self._commit()
+            self._close()
+        except mysql.connector.errors as e:
+            print('\tError: ' + str(e))
+            print('\tMySQL disconnected')
 
     # ------------------------------------------------------------------------------
     # |                 METHODS THAT CONCATENATE SQL QUERIES                       |
