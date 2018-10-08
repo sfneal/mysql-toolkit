@@ -1,4 +1,4 @@
-import mysql.connector
+from mysql.connector import errors
 from differentiate import differentiate
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.query import Query
@@ -26,7 +26,7 @@ class MySQL(Query, Core, Results):
         try:
             self._commit()
             self._close()
-        except mysql.connector.errors as e:
+        except errors as e:
             print('\tError: ' + str(e))
             print('\tMySQL disconnected')
 
