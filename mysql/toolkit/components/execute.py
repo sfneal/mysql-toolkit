@@ -43,6 +43,11 @@ class ExecuteScript:
         return [com.replace("dbo.", '') for com in commands]
 
     def execute_commands(self):
+        # Remove 'DROP' commands
+        commands_with_drops = len(self.commands)
+        self.commands = [c for c in self.commands if not c.startswith('DROP')]
+        print("\tDROP commands removed", commands_with_drops - len(self.commands))
+
         # Execute every command from the input file
         print('\t' + str(len(self.commands)), 'commands')
         for command in tqdm(self.commands, total=len(self.commands), desc='Executing SQL Commands'):
