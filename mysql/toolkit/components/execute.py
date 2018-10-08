@@ -66,27 +66,33 @@ class ExecuteScript:
         print('\t' + str(self.success), 'successful commands')
 
     def dump_fails(self):
-        # Re-add semi-colon separator
-        fails = [com + ';\n' for com in self.fail]
-        print('\t' + str(len(fails)), 'failed commands')
+        """Dump failed commands to .sql files in the fails directory."""
+        dump_commands(self.fail, self.sql_script)
 
-        # Create a directory to save fail SQL scripts
-        fails_dir = os.path.join(os.path.dirname(self.sql_script), 'fails')
-        if not os.path.exists(fails_dir):
-            os.mkdir(fails_dir)
-        fails_dir = os.path.join(fails_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
-        if not os.path.exists(fails_dir):
-            os.mkdir(fails_dir)
-        print('\tDumping failed commands to', fails_dir)
 
-        # Dump failed commands to text file in the same directory as the script
-        for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
-            fails_fname = str(os.path.basename(self.sql_script).rsplit('.')[0]) + str(count) + '.sql'
-            txt_file = os.path.join(fails_dir, fails_fname)
+def dump_commands(commands, sql_script):
+    """Dump SQL commands to .sql files."""
+    # Re-add semi-colon separator
+    fails = [com + ';\n' for com in commands]
+    print('\t' + str(len(fails)), 'failed commands')
 
-            # Dump to text file
-            with open(txt_file, 'w') as txt:
-                txt.writelines(fail)
+    # Create a directory to save fail SQL scripts
+    fails_dir = os.path.join(os.path.dirname(sql_script), 'fails')
+    if not os.path.exists(fails_dir):
+        os.mkdir(fails_dir)
+    fails_dir = os.path.join(fails_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
+    if not os.path.exists(fails_dir):
+        os.mkdir(fails_dir)
+    print('\tDumping failed commands to', fails_dir)
+
+    # Dump failed commands to text file in the same directory as the script
+    for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
+        fails_fname = str(os.path.basename(sql_script).rsplit('.')[0]) + str(count) + '.sql'
+        txt_file = os.path.join(fails_dir, fails_fname)
+
+        # Dump to text file
+        with open(txt_file, 'w') as txt:
+            txt.writelines(fail)
 
 
 def split_sql_commands(text):
