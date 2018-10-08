@@ -29,17 +29,9 @@ class Results:
             if 'pri' in column[3].lower():
                 return column[0]
 
-    def get_primary_key_values(self, table):
+    def get_primary_key_vals(self, table):
         """Retrieve a list of primary key values in a table"""
         return self.select(table, self.get_primary_key(table), _print=False)
-
-    def count_rows(self, table):
-        """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
-
-    def count_rows_all(self):
-        """Get the number of rows for every table in the database."""
-        return {table: self.count_rows(table) for table in self.tables}
 
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
@@ -49,3 +41,11 @@ class Results:
         if with_headers:
             f.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return f
+
+    def count_rows(self, table):
+        """Get the number of rows in a particular table"""
+        return self.select(table, 'COUNT(*)', False)
+
+    def count_rows_all(self):
+        """Get the number of rows for every table in the database."""
+        return {table: self.count_rows(table) for table in self.tables}

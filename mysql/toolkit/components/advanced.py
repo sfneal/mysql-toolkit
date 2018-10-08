@@ -7,16 +7,40 @@ class Advanced:
     def __init__(self):
         pass
 
-    def truncate_database(self):
-        """Drop all tables in a database."""
-        # Get list of tables
-        tables = self.tables if isinstance(self.tables, list) else [self.tables]
-        if len(tables) > 0:
-            # Join list of tables into comma separated string
-            tables_str = ', '.join([wrap(table) for table in tables])
-            self.execute('DROP TABLE ' + tables_str)
-            self._printer('\t' + str(len(tables)), 'tables truncated')
-        return tables
+    # def create_table(self, table, data, headers=None):
+    #     """Generate and execute a create table query by parsing a 2D dataset"""
+    #     # TODO: Fix
+    #     # Set headers list
+    #     if not headers:
+    #         headers = data[0]
+    #
+    #     # Create dictionary columns and data types from headers list
+    #     data_types = {header: None for header in headers}
+    #
+    #     # Confirm that each row of the dataset is the same length
+    #     for row in data:
+    #         assert len(row) == len(headers)
+    #
+    #     # Create list of columns
+    #     columns = [header + ' ' + data_type for header, data_type in data_types]
+    #     self._printer(columns)
+    #     statement = "create table " + table + " ("
+    #     self._printer(statement)
+
+    def drop_empty_tables(self):
+        """Drop all empty tables in a database."""
+        # Count number of rows in each table
+        counts = self.count_rows_all()
+        drops = []
+
+        # Loop through each table key and validate that rows count is not 0
+        for table, count in counts.items():
+            if count < 1:
+                # Drop table if it contains no rows
+                self.drop(table)
+                self._printer('Dropped table', table)
+                drops.append(table)
+        return drops
 
     def insert_uniques(self, table, columns, values):
         """
@@ -62,40 +86,16 @@ class Advanced:
         for row in values:
             self.update(table, columns, row, (where_col, row[where_index]))
 
-    # def create_table(self, table, data, headers=None):
-    #     """Generate and execute a create table query by parsing a 2D dataset"""
-    #     # TODO: Fix
-    #     # Set headers list
-    #     if not headers:
-    #         headers = data[0]
-    #
-    #     # Create dictionary columns and data types from headers list
-    #     data_types = {header: None for header in headers}
-    #
-    #     # Confirm that each row of the dataset is the same length
-    #     for row in data:
-    #         assert len(row) == len(headers)
-    #
-    #     # Create list of columns
-    #     columns = [header + ' ' + data_type for header, data_type in data_types]
-    #     self._printer(columns)
-    #     statement = "create table " + table + " ("
-    #     self._printer(statement)
-
-    def drop_empty_tables(self):
-        """Drop all empty tables in a database."""
-        # Count number of rows in each table
-        counts = self.count_rows_all()
-        drops = []
-
-        # Loop through each table key and validate that rows count is not 0
-        for table, count in counts.items():
-            if count < 1:
-                # Drop table if it contains no rows
-                self.drop(table)
-                self._printer('Dropped table', table)
-                drops.append(table)
-        return drops
+    def truncate_database(self):
+        """Drop all tables in a database."""
+        # Get list of tables
+        tables = self.tables if isinstance(self.tables, list) else [self.tables]
+        if len(tables) > 0:
+            # Join list of tables into comma separated string
+            tables_str = ', '.join([wrap(table) for table in tables])
+            self.execute('DROP TABLE ' + tables_str)
+            self._printer('\t' + str(len(tables)), 'tables truncated')
+        return tables
 
     def execute_script(self, sql_script, commands=None):
         """Wrapper method for ExecuteScript class."""

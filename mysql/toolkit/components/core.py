@@ -6,7 +6,7 @@ class Core:
         pass
 
     def select(self, table, cols, _print=True):
-        """Query only certain columns from a table and every row."""
+        """Query every row and only certain columns from a table."""
         # Concatenate statement
         cols_str = join_cols(cols)
         statement = "SELECT " + cols_str + " FROM " + wrap(table)
@@ -38,7 +38,7 @@ class Core:
         self._fetch(statement)
 
     def insert(self, table, columns, values):
-        """Insert a singular row into a table"""
+        """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
         statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
@@ -93,7 +93,7 @@ class Core:
         self.execute(statement)
         self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
 
-    def drop_table(self, table):
+    def drop(self, table):
         """Drop a table from a database."""
         self.execute('DROP TABLE ' + wrap(table))
         return table
