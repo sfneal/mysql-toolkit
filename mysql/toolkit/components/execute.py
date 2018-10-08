@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 
 class ExecuteScript:
-    def __init__(self, mysql_instance, sql_script, commands=None, split_func=True, split_char=';'):
+    def __init__(self, mysql_instance, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self.MySQL = mysql_instance
@@ -27,7 +27,7 @@ class ExecuteScript:
         self.execute_commands()
 
         # Dump failed commands to text file
-        if len(self.fail) > 1:
+        if len(self.fail) > 1 and dump_fails:
             self.dump_fails()
 
     def _get_commands(self, sql_script):
@@ -46,7 +46,9 @@ class ExecuteScript:
         # Remove 'DROP' commands
         commands_with_drops = len(self.commands)
         self.commands = [c for c in self.commands if not c.startswith('DROP')]
-        print("\tDROP commands removed", commands_with_drops - len(self.commands))
+        removed = commands_with_drops - len(self.commands)
+        if removed > 0:
+            print("\tDROP commands removed", removed)
 
         # Execute every command from the input file
         print('\t' + str(len(self.commands)), 'commands')

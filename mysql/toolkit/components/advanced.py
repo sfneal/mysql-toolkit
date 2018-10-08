@@ -97,6 +97,6 @@ class Advanced:
             self._printer('\t' + str(len(tables)), 'tables truncated')
         return tables
 
-    def execute_script(self, sql_script, commands=None, split_func=True, split_char=';'):
+    def execute_script(self, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
         """Wrapper method for ExecuteScript class."""
-        ExecuteScript(self, sql_script, commands, split_func, split_char)
+        ExecuteScript(self, sql_script, commands, split_func, split_char, dump_fails)
