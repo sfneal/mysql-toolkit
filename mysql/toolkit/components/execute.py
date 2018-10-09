@@ -142,8 +142,8 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
         pool.close()
         print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing)')
     else:
-        for command, txt_file in command_filepath:
-            dump(command, txt_file)
+        for tup in command_filepath:
+            dump(tup)
         print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing)')
 
     # Return base directory of dumped commands
