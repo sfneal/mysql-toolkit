@@ -25,14 +25,18 @@ class SplitCommands:
 
     @property
     def parse(self):
-        return sqlparse.split(self.sql_data)
+        commands = []
+        for command in sqlparse.split(self.sql_data):
+            commands.extend(self.split(command))
+        return commands
 
-    @property
-    def split(self):
+    def split(self, text=None):
+        data = self.sql_data if not text else text
+
         results = []
         current = ''
         state = None
-        for c in tqdm(self.sql_data, total=len(self.sql_data), desc='Parsing SQL script file', unit='chars'):
+        for c in tqdm(data, total=len(data), desc='Parsing SQL script file', unit='chars'):
             if state is None:  # default state, outside of special entity
                 current += c
                 if c in '"\'':
