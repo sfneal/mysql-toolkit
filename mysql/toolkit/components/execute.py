@@ -90,7 +90,7 @@ class SQLScript:
 
         # Dump failed commands to text files
         if len(fail) > 1 and self._dump_fails:
-            dump_commands(fail, self.sql_script)
+            self.dump_commands(fail)
         return fail, success
 
     def _execute_commands(self, commands):
@@ -105,6 +105,10 @@ class SQLScript:
             except:
                 fail.append(command)
         return fail, success
+
+    def dump_commands(self, commands):
+        """Dump commands wrapper for external access."""
+        dump_commands(commands, self.sql_script)
 
 
 def dump_commands(commands, sql_script, sub_folder='fails'):
