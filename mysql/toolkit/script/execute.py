@@ -62,7 +62,7 @@ class SQLScript:
         setattr(self, 'fetched_commands', cleaned_commands)
         return cleaned_commands
 
-    def execute(self, commands=None, skip_drops=True):
+    def execute(self, commands=None, skip_drops=True, execute_fails=True):
         """
         Sequentially execute a list of SQL commands.
 
@@ -89,7 +89,12 @@ class SQLScript:
         # Dump failed commands to text files
         if len(fail) > 1 and self._dump_fails:
             self.dump_commands(fail)
-        return fail, success
+
+        # Execute failed commands
+        if execute_fails:
+            self._execute_failed_commands(fail)
+        else:
+            return fail, success
 
     def _execute_commands(self, commands):
         """Execute commands and get list of failed commands and count of successful commands"""
@@ -103,6 +108,15 @@ class SQLScript:
             except:
                 fail.append(command)
         return fail, success
+
+    def _execute_failed_commands(self, fails):
+        """Re-attempt to split and execute the failed commands"""
+        commands = []
+        for failed in fails:
+            f = SplitCommands(failed)
+            print(len(f))
+            commands.extend(f)
+        self.execute(commands, execute_fails=False)
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
