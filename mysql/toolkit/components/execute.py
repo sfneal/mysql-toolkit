@@ -82,7 +82,19 @@ class SQLScript:
         if skip_drops:
             commands = filter_commands(commands, 'DROP')
 
-        # Execute commands get list of failed commands and count of successful commands
+        # Execute list of commands
+        fail, success = self._execute_commands(commands)
+
+        # Write fail commands to a text file
+        print('\t' + str(success), 'successful commands')
+
+        # Dump failed commands to text files
+        if len(fail) > 1 and self._dump_fails:
+            dump_commands(fail, self.sql_script)
+        return fail, success
+
+    def _execute_commands(self, commands):
+        """Execute commands and get list of failed commands and count of successful commands"""
         print('\t' + str(len(commands)), 'commands')
         fail, success = [], 0
         for command in tqdm(commands, total=len(commands), desc='Executing SQL Commands'):
@@ -92,13 +104,6 @@ class SQLScript:
                 success += 1
             except:
                 fail.append(command)
-
-        # Write fail commands to a text file
-        print('\t' + str(success), 'successful commands')
-
-        # Dump failed commands to text files
-        if len(fail) > 1 and self._dump_fails:
-            dump_commands(fail, self.sql_script)
         return fail, success
 
 
