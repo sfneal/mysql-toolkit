@@ -51,8 +51,8 @@ class SQLScript:
 
         :return: List of commands
         """
-        print('\tRetrieving commands from', self.sql_script)
         # Open and read the file as a single buffer
+        print('\tRetrieving commands from', self.sql_script)
         with open(self.sql_script, 'r') as fd:
             sql_file = fd.read()
 
@@ -80,7 +80,10 @@ class SQLScript:
 
         # Remove 'DROP' commands
         if skip_drops:
+            print('Skipping Drops')
             filter_commands(commands, 'DROP')
+        else:
+            print('NOT Skipping Drops')
 
         # Execute commands get list of failed commands and count of successful commands
         print('\t' + str(len(commands)), 'commands')
