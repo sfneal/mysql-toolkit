@@ -40,7 +40,7 @@ class SQLScript:
         self.split_func, self.split_char = split_func, split_char
 
         # Dump failed SQL commands boolean
-        self.dump_fails = dump_fails
+        self._dump_fails = dump_fails
 
     @property
     def commands(self):
@@ -62,7 +62,7 @@ class SQLScript:
         setattr(self, 'fetched_commands', cleaned_commands)
         return cleaned_commands
 
-    def execute_commands(self, commands=None, skip_drops=True):
+    def execute(self, commands=None, skip_drops=True):
         """
         Sequentially execute a list of SQL commands.
 
@@ -95,11 +95,11 @@ class SQLScript:
         print('\t' + str(success), 'successful commands')
 
         # Dump failed commands to text files
-        if len(fail) > 1 and self.dump_fails:
-            self.dump_failed_commands(fail)
+        if len(fail) > 1 and self._dump_fails:
+            self.dump_fails(fail)
         return fail, success
 
-    def dump_failed_commands(self, fails):
+    def dump_fails(self, fails):
         """Dump failed commands to .sql files in the fails directory."""
         dump_commands(fails, self.sql_script)
 
