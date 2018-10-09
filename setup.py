@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'mysql-connector>=2.1.6',
         'differentiate',
+        'sqlparse',
         'looptools',
         'tqdm',
     ],
