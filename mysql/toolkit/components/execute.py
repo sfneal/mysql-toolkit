@@ -23,8 +23,8 @@ def filter_commands(commands, query_type):
     """
     commands_with_drops = len(commands)
     filtered_commands = [c for c in commands if not c.startswith(query_type)]
-    if commands_with_drops - len(commands) > 0:
-        print("\tDROP commands removed", commands_with_drops - len(filtered_commands))
+    if commands_with_drops - len(filtered_commands) > 0:
+        print("\t" + query_type + " commands removed", commands_with_drops - len(filtered_commands))
         print("\tFiltered commands", len(filtered_commands))
     return filtered_commands
 
@@ -80,10 +80,7 @@ class SQLScript:
 
         # Remove 'DROP' commands
         if skip_drops:
-            print('Skipping Drops')
-            filter_commands(commands, 'DROP')
-        else:
-            print('NOT Skipping Drops')
+            commands = filter_commands(commands, 'DROP')
 
         # Execute commands get list of failed commands and count of successful commands
         print('\t' + str(len(commands)), 'commands')
@@ -129,7 +126,7 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
 
     # Create list of (path, content) tuples
     command_filepath = []
-    for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
+    for count, fail in enumerate(fails):
         txt_file = os.path.join(dump_dir, str(os.path.basename(sql_script).rsplit('.')[0]) + str(count) + '.sql')
         command_filepath.append((fail, txt_file))
 
