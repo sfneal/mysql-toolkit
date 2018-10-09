@@ -7,9 +7,10 @@ class Advanced:
     def __init__(self):
         pass
 
-    # def create_table(self, table, data, headers=None):
-    #     """Generate and execute a create table query by parsing a 2D dataset"""
-    #     # TODO: Fix
+    def create_table(self, table, data, headers=None):
+        """Generate and execute a create table query by parsing a 2D dataset"""
+        # TODO: Finish writing method
+        pass
     #     # Set headers list
     #     if not headers:
     #         headers = data[0]
@@ -26,6 +27,10 @@ class Advanced:
     #     self._printer(columns)
     #     statement = "create table " + table + " ("
     #     self._printer(statement)
+
+    def backup_database(self, structure=True, data=True):
+        # TODO: Create method
+        pass
 
     def drop_empty_tables(self):
         """Drop all empty tables in a database."""
