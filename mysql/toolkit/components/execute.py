@@ -2,6 +2,7 @@ import os
 from time import time
 from datetime import datetime
 from tqdm import tqdm
+from looptools import Timer
 
 # Conditional import of multiprocessing module
 try:
@@ -134,13 +135,16 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
 
     # Dump failed commands to text file in the same directory as the script
     # Utilize's multiprocessing module if it is available
+    timer = Timer()
     if MULTIPROCESS:
         pool = Pool(cpu_count())
         pool.map(dump, command_filepath)
         pool.close()
+        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing)')
     else:
         for command, txt_file in command_filepath:
             dump(command, txt_file)
+        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing)')
 
     # Return base directory of dumped commands
     return dump_dir
