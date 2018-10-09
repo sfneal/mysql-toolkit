@@ -36,7 +36,11 @@ class SplitCommands:
         commands = []
         for command in sqlparse.split(self.sql_data):
             commands.extend(self.split(command, False))
-        return commands
+        try:
+            return set(commands)
+        except:
+            print('\tSet error in script.split.SplitCommands.parse')
+            return {c for c in commands}
 
     def split(self, text=None, disable_tqdm=True):
         data = self.sql_data if not text else text
