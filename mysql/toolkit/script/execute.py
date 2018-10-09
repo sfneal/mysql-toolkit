@@ -115,7 +115,11 @@ class SQLScript:
         timer = Timer()
         if MULTIPROCESS:
             pool = Pool(cpu_count())
-            commands = pool.map(SplitCommands, fails)
+            _commands = pool.map(SplitCommands, fails)
+
+            commands = []
+            for each in _commands:
+                commands.extend(each)
             pool.close()
             print('\tParsed ', len(commands), 'commands in', timer.end, '(multiprocessing)')
         else:
