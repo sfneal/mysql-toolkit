@@ -22,10 +22,10 @@ def filter_commands(commands, query_type):
     :return: Filtered list of SQL commands
     """
     commands_with_drops = len(commands)
-    commands = [c for c in commands if not c.startswith(query_type)]
+    filtered_commands = [c for c in commands if not c.startswith(query_type)]
     if commands_with_drops - len(commands) > 0:
-        print("\tDROP commands removed", commands_with_drops - len(commands))
-    return commands
+        print("\tDROP commands removed", commands_with_drops - len(filtered_commands))
+    return filtered_commands
 
 
 class SQLScript:
