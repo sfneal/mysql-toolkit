@@ -3,6 +3,14 @@ from time import time
 from datetime import datetime
 from tqdm import tqdm
 
+# Conditional import of multiprocessing module
+try:
+    from multiprocessing import cpu_count
+    from multiprocessing.pool import Pool
+    MULTIPROCESS = True
+except ImportError:
+    pass
+
 
 def filter_commands(commands, query_type):
     """
@@ -96,12 +104,13 @@ class SQLScript:
         dump_commands(fails, self.sql_script)
 
 
-def dump_commands(commands, sql_script):
+def dump_commands(commands, sql_script, sub_folder='fails'):
     """
     Dump SQL commands to .sql files.
 
     :param commands: List of SQL commands
     :param sql_script: Path to SQL script
+    :param sub_folder: Sub folder to dump commands to
     :return: Directory failed commands were dumped to
     """
     # Re-add semi-colon separator
@@ -109,23 +118,44 @@ def dump_commands(commands, sql_script):
     print('\t' + str(len(fails)), 'failed commands')
 
     # Create a directory to save fail SQL scripts
-    fails_dir = os.path.join(os.path.dirname(sql_script), 'fails')
-    if not os.path.exists(fails_dir):
-        os.mkdir(fails_dir)
-    fails_dir = os.path.join(fails_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
-    if not os.path.exists(fails_dir):
-        os.mkdir(fails_dir)
-    print('\tDumping failed commands to', fails_dir)
+    dump_dir = os.path.join(os.path.dirname(sql_script), sub_folder)
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    dump_dir = os.path.join(dump_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    print('\tDumping failed commands to', dump_dir)
+
+    # Create list of (path, content) tuples
+    command_filepath = []
+    for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
+        txt_file = os.path.join(dump_dir, str(os.path.basename(sql_script).rsplit('.')[0]) + str(count) + '.sql')
+        command_filepath.append((fail, txt_file))
 
     # Dump failed commands to text file in the same directory as the script
-    for count, fail in tqdm(enumerate(fails), total=len(fails), desc='Dumping failed SQL commands to text'):
-        fails_fname = str(os.path.basename(sql_script).rsplit('.')[0]) + str(count) + '.sql'
-        txt_file = os.path.join(fails_dir, fails_fname)
+    # Utilize's multiprocessing module if it is available
+    if MULTIPROCESS:
+        pool = Pool(cpu_count())
+        pool.map(dump, command_filepath)
+        pool.close()
+    else:
+        for command, txt_file in command_filepath:
+            dump(command, txt_file)
 
-        # Dump to text file
-        with open(txt_file, 'w') as txt:
-            txt.writelines(fail)
-    return fails_dir
+    # Return base directory of dumped commands
+    return dump_dir
+
+
+def dump(command, txt_file):
+    """
+    Dump SQL command to a text file.
+
+    :param command: SQL command
+    :param txt_file: Text file path
+    """
+    # Dump to text file
+    with open(txt_file, 'w') as txt:
+        txt.writelines(command)
 
 
 def split_sql_commands(text):
