@@ -83,10 +83,8 @@ class SQLScript:
         # Execute list of commands
         fail, success = self._execute_commands(commands)
 
-        # Write fail commands to a text file
-        print('\t' + str(success), 'successful commands')
-
         # Dump failed commands to text files
+        print('\t' + str(success), 'successful commands')
         if len(fail) > 1 and self._dump_fails:
             self.dump_commands(fail)
 
@@ -114,27 +112,27 @@ class SQLScript:
         # Parse each command to see if it can be split
         # Utilize's multiprocessing module if it is available
         print('\tParsing and attempting execution of failed commands')
-        timer = Timer()
-        if MULTIPROCESS:
-            pool = Pool(cpu_count())
-            _commands = pool.map(SplitCommands, fails)
-
-            commands = []
-            for each in _commands:
-                commands.extend(each)
-            pool.close()
-            print('\tParsed ', len(commands), 'failed commands in', timer.end, '(multiprocessing)')
-        else:
-            commands = []
-            for failed in fails:
-                f = SplitCommands(failed).parse
-                if len(f) > 1:
-                    print(len(f))
-                commands.extend(f)
-            print('\tParsed ', len(commands), 'failed commands in', timer.end, '(sequential processing)')
+        # timer = Timer()
+        # if MULTIPROCESS:
+        #     pool = Pool(cpu_count())
+        #     _commands = pool.map(SplitCommands, fails)
+        #
+        #     commands = []
+        #     for each in _commands:
+        #         commands.extend(each)
+        #     pool.close()
+        #     print('\tParsed ', len(commands), 'failed commands in', timer.end, '(multiprocessing)')
+        # else:
+        #     commands = []
+        #     for failed in fails:
+        #         f = SplitCommands(failed).parse
+        #         if len(f) > 1:
+        #             print(len(f))
+        #         commands.extend(f)
+        #     print('\tParsed ', len(commands), 'failed commands in', timer.end, '(sequential processing)')
 
         # Execute failed commands again
-        self.execute(commands, execute_fails=False)
+        self.execute(fails, execute_fails=False)
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
