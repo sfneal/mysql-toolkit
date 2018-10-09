@@ -1,4 +1,5 @@
-from mysql.toolkit.script import dump_commands, SplitCommands
+from mysql.toolkit.script.dump import dump_commands
+from mysql.toolkit.script.split import SplitCommands
 from tqdm import tqdm
 
 # Conditional import of multiprocessing module
