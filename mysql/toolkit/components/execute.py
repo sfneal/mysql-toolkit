@@ -17,20 +17,22 @@ class ExecuteScript:
         self.sql_script = sql_script
 
         # Retrieve commands from sql_script if no commands are provided
-        self.commands = self._get_commands(sql_script) if not commands else commands
+        self.commands = self.get_commands(sql_script) if not commands else commands
 
-        # Save failed commands to list
-        self.fail = []
-        self.success = 0
-
-        # Execute commands
-        self.execute_commands()
+        # Execute commands get list of failed commands and count of successful commands
+        self.fail, self.success = self.execute_commands(self.commands)
 
         # Dump failed commands to text file
         if len(self.fail) > 1 and dump_fails:
-            self.dump_fails()
+            self.dump_failed_commands()
 
-    def _get_commands(self, sql_script):
+    def get_commands(self, sql_script):
+        """
+        Fetch individual SQL commands from a SQL script containing many commands.
+
+        :param sql_script: Path to SQL script
+        :return: List of commands
+        """
         print('\tRetrieving commands from', sql_script)
         # Open and read the file as a single buffer
         with open(sql_script, 'r') as fd:
@@ -42,30 +44,40 @@ class ExecuteScript:
         # remove dbo. prefixes from table names
         return [com.replace("dbo.", '') for com in commands]
 
-    def execute_commands(self):
-        # Remove 'DROP' commands
-        commands_with_drops = len(self.commands)
-        self.commands = [c for c in self.commands if not c.startswith('DROP')]
-        removed = commands_with_drops - len(self.commands)
-        if removed > 0:
-            print("\tDROP commands removed", removed)
+    def execute_commands(self, commands, skip_drops=True):
+        """
+        Sequentially execute a list of SQL commands.
 
-        # Execute every command from the input file
-        print('\t' + str(len(self.commands)), 'commands')
-        for command in tqdm(self.commands, total=len(self.commands), desc='Executing SQL Commands'):
+        :param commands: List of SQL commands
+        :param skip_drops: Boolean, skip SQL commands that beging with 'DROP'
+        :return: Successful and failed commands
+        """
+        # Remove 'DROP' commands
+        if skip_drops:
+            commands_with_drops = len(commands)
+            commands = [c for c in commands if not c.startswith('DROP')]
+            if commands_with_drops - len(commands) > 0:
+                print("\tDROP commands removed", commands_with_drops - len(commands))
+
+        # Execute every command in list of commands
+        print('\t' + str(len(commands)), 'commands')
+
+        fail, success = [], 0
+        for command in tqdm(commands, total=len(commands), desc='Executing SQL Commands'):
             # This will skip and report errors
             # For example, if the tables do not yet exist, this will skip over
             # the DROP TABLE commands
             try:
                 self.MySQL.execute(command)
-                self.success += 1
+                success += 1
             except:
-                self.fail.append(command)
+                fail.append(command)
 
         # Write fail commands to a text file
-        print('\t' + str(self.success), 'successful commands')
+        print('\t' + str(success), 'successful commands')
+        return fail, success
 
-    def dump_fails(self):
+    def dump_failed_commands(self):
         """Dump failed commands to .sql files in the fails directory."""
         dump_commands(self.fail, self.sql_script)
 
