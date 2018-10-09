@@ -1,4 +1,5 @@
 import os
+import sqlparse
 from time import time
 from datetime import datetime
 from tqdm import tqdm
@@ -57,7 +58,7 @@ class SQLScript:
             sql_file = fd.read()
 
         # Retrieve all commands via split function or splitting on ';'
-        commands = split_sql_commands(sql_file) if self.split_func else sql_file.split(self.split_char)
+        commands = SplitCommands(self.sql_script) if self.split_func else sql_file.split(self.split_char)
 
         # remove dbo. prefixes from table names
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
@@ -169,85 +170,105 @@ def dump(tup):
         txt.writelines(command)
 
 
-def split_sql_commands(text):
-    results = []
-    current = ''
-    state = None
-    for c in tqdm(text, total=len(text), desc='Parsing SQL script file', unit='chars'):
-        if state is None:  # default state, outside of special entity
-            current += c
-            if c in '"\'':
-                # quoted string
-                state = c
-            elif c == '-':
-                # probably "--" comment
-                state = '-'
-            elif c == '/':
-                # probably '/*' comment
-                state = '/'
-            elif c == ';':
-                # remove it from the statement
-                current = current[:-1].strip()
-                # and save current stmt unless empty
-                if current:
-                    results.append(current)
-                current = ''
-        elif state == '-':
-            if c != '-':
-                # not a comment
-                state = None
-                current += c
-                continue
-            # remove first minus
-            current = current[:-1]
-            # comment until end of line
-            state = '--'
-        elif state == '--':
-            if c == '\n':
-                # end of comment
-                # and we do include this newline
-                current += c
-                state = None
-            # else just ignore
-        elif state == '/':
-            if c != '*':
-                state = None
-                current += c
-                continue
-            # remove starting slash
-            current = current[:-1]
-            # multiline comment
-            state = '/*'
-        elif state == '/*':
-            if c == '*':
-                # probably end of comment
-                state = '/**'
-        elif state == '/**':
-            if c == '/':
-                state = None
-            else:
-                # not an end
-                state = '/*'
-        elif state[0] in '"\'':
-            current += c
-            if state.endswith('\\'):
-                # prev was backslash, don't check for ender
-                # just revert to regular state
-                state = state[0]
-                continue
-            elif c == '\\':
-                # don't check next char
-                state += '\\'
-                continue
-            elif c == state[0]:
-                # end of quoted string
-                state = None
+class SplitCommands:
+    def __init__(self, text):
+        # Check if text is a file_path or a string
+        if os.path.isfile(text):
+            with open(text, 'r') as fd:
+                self.sql_data = fd.read()
         else:
-            raise Exception('Illegal state %s' % state)
+            self.sql_data = text
 
-    if current:
-        current = current.rstrip(';').strip()
+    def __call__(self):
+        return self.__iter__()
+
+    def __iter__(self):
+        return iter(self.parse)
+
+    @property
+    def parse(self):
+        return sqlparse.split(self.sql_data)
+
+    @property
+    def split(self):
+        results = []
+        current = ''
+        state = None
+        for c in tqdm(self.sql_data, total=len(self.sql_data), desc='Parsing SQL script file', unit='chars'):
+            if state is None:  # default state, outside of special entity
+                current += c
+                if c in '"\'':
+                    # quoted string
+                    state = c
+                elif c == '-':
+                    # probably "--" comment
+                    state = '-'
+                elif c == '/':
+                    # probably '/*' comment
+                    state = '/'
+                elif c == ';':
+                    # remove it from the statement
+                    current = current[:-1].strip()
+                    # and save current stmt unless empty
+                    if current:
+                        results.append(current)
+                    current = ''
+            elif state == '-':
+                if c != '-':
+                    # not a comment
+                    state = None
+                    current += c
+                    continue
+                # remove first minus
+                current = current[:-1]
+                # comment until end of line
+                state = '--'
+            elif state == '--':
+                if c == '\n':
+                    # end of comment
+                    # and we do include this newline
+                    current += c
+                    state = None
+                # else just ignore
+            elif state == '/':
+                if c != '*':
+                    state = None
+                    current += c
+                    continue
+                # remove starting slash
+                current = current[:-1]
+                # multiline comment
+                state = '/*'
+            elif state == '/*':
+                if c == '*':
+                    # probably end of comment
+                    state = '/**'
+            elif state == '/**':
+                if c == '/':
+                    state = None
+                else:
+                    # not an end
+                    state = '/*'
+            elif state[0] in '"\'':
+                current += c
+                if state.endswith('\\'):
+                    # prev was backslash, don't check for ender
+                    # just revert to regular state
+                    state = state[0]
+                    continue
+                elif c == '\\':
+                    # don't check next char
+                    state += '\\'
+                    continue
+                elif c == state[0]:
+                    # end of quoted string
+                    state = None
+            else:
+                raise Exception('Illegal state %s' % state)
+
         if current:
-            results.append(current)
+            current = current.rstrip(';').strip()
+            if current:
+                results.append(current)
 
-    return results
+        return results
