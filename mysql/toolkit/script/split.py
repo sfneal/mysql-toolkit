@@ -33,18 +33,10 @@ class SplitCommands:
 
     @property
     def parse(self):
-        to_split = [(count, command) for count, command in enumerate(sqlparse.split(self.sql_data))]
-        if MULTIPROCESS:
-            pool = Pool(cpu_count())
-            commands = [pool.map(self.ordered_batch_split, to_split)]
-        else:
-            commands = [self.ordered_batch_split(tup) for tup in to_split]
-        return sorted(commands, key=lambda tup: tup[0])
-
-    def ordered_batch_split(self, tup):
-        count, command = tup
-        data = self.split(command)
-        return count, data
+        commands = []
+        for command in sqlparse.split(self.sql_data):
+            commands.extend(self.split(command, False))
+        return commands
 
     def split(self, text=None, disable_tqdm=True):
         data = self.sql_data if not text else text
