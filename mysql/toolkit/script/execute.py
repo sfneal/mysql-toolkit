@@ -52,7 +52,10 @@ class SQLScript:
         """
         # Retrieve all commands via split function or splitting on ';'
         print('\tRetrieving commands from', self.sql_script)
-        commands = SplitCommands(self.sql_script).split() if self.split_func else simple_split(self.sql_script, self.split_char)
+        if self.split_func:
+            commands = SplitCommands(self.sql_script).split(disable_tqdm=False)
+        else:
+            commands = simple_split(self.sql_script, self.split_char)
 
         # remove dbo. prefixes from table names
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
