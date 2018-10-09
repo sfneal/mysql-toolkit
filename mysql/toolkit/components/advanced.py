@@ -1,6 +1,6 @@
 from differentiate import differentiate
 from mysql.toolkit.utils import wrap
-from mysql.toolkit.components.execute import SQLScript
+from mysql.toolkit.script.execute import SQLScript
 
 
 class Advanced:
