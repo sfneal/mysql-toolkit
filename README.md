@@ -79,7 +79,7 @@ get\_primary_key | Retrieve the column which is the primary key for a table
 get\_primary_key\_vals | Retrieve a list of primary key values in a table
 get_schema | Retrieve the database schema for a particular table
 count_rows | Get the number of rows in a particular table
-count_rows_all | Get the number of rows for every table in the database
+count\_rows_all | Get the number of rows for every table in the database
 
 #### advanced
 Methods provide functionality that is not (easily) possible with standard MySQL queries
@@ -92,6 +92,7 @@ drop\_empty_tables | Drop all empty tables in a database
 update_many | Update the values of several rows
 truncate_database | Drop all tables in a database
 execute_script | Execute a sql file one command at a time.
+script | Perform operations with a SQL script
 
 
 ## Built With
