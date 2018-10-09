@@ -19,6 +19,9 @@ class SplitCommands:
     def __iter__(self):
         return iter(self.parse)
 
+    def __len__(self):
+        return len(self.parse)
+
     @property
     def parse(self):
         return sqlparse.split(self.sql_data)
