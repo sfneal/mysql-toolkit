@@ -42,13 +42,17 @@ class SplitCommands:
             print('\tSet error in script.split.SplitCommands.parse')
             return {c for c in commands}
 
-    def split(self, text=None, disable_tqdm=True):
+    def split(self, text=None, disable_tqdm=True, iteration=None):
         data = self.sql_data if not text else text
+
+        # Set progress bar description
+        _desc = 'Parsing SQL script file'
+        desc = _desc + ' ' + str(iteration) if iteration else _desc
 
         results = []
         current = ''
         state = None
-        for c in tqdm(data, total=len(data), desc='Parsing SQL script file', unit='chars', disable=disable_tqdm):
+        for c in tqdm(data, total=len(data), desc=desc, unit='chars', disable=disable_tqdm):
             if state is None:  # default state, outside of special entity
                 current += c
                 if c in '"\'':
