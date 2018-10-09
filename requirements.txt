@@ -1,3 +1,4 @@
 differentiate==1.0.0
+looptools==1.0.2
 mysql-connector==2.1.6
 tqdm==4.26.0
