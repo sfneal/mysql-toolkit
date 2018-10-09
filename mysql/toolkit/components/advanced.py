@@ -1,6 +1,6 @@
 from differentiate import differentiate
 from mysql.toolkit.utils import wrap
-from mysql.toolkit.components.execute import ExecuteScript
+from mysql.toolkit.components.execute import SQLScript
 
 
 class Advanced:
@@ -99,4 +99,4 @@ class Advanced:
 
     def execute_script(self, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
         """Wrapper method for ExecuteScript class."""
-        ExecuteScript(self, sql_script, commands, split_func, split_char, dump_fails)
+        SQLScript(self, sql_script, commands, split_func, split_char, dump_fails)

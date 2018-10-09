@@ -4,7 +4,7 @@ from datetime import datetime
 from tqdm import tqdm
 
 
-class ExecuteScript:
+class SQLScript:
     def __init__(self, mysql_instance, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
