@@ -24,7 +24,6 @@ def filter_commands(commands, query_type):
     filtered_commands = [c for c in commands if not c.startswith(query_type)]
     if commands_with_drops - len(filtered_commands) > 0:
         print("\t" + query_type + " commands removed", commands_with_drops - len(filtered_commands))
-        print("\tFiltered commands", len(filtered_commands))
     return filtered_commands
 
 
