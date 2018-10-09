@@ -91,8 +91,7 @@ class SQLScript:
         # Execute failed commands
         if execute_fails:
             self._execute_failed_commands(fail)
-        else:
-            return fail, success
+        return fail, success
 
     def _execute_commands(self, commands):
         """Execute commands and get list of failed commands and count of successful commands"""
@@ -132,7 +131,7 @@ class SQLScript:
         #     print('\tParsed ', len(commands), 'failed commands in', timer.end, '(sequential processing)')
 
         # Execute failed commands again
-        self.execute(fails, execute_fails=False)
+        self._execute_commands(fails)
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
