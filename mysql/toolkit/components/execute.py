@@ -28,7 +28,7 @@ def filter_commands(commands, query_type):
 
 
 class SQLScript:
-    def __init__(self, mysql_instance, sql_script, split_func=True, split_char=';', dump_fails=True):
+    def __init__(self, sql_script, split_func=True, split_char=';', dump_fails=True, mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self.MySQL = mysql_instance
@@ -96,10 +96,10 @@ class SQLScript:
 
         # Dump failed commands to text files
         if len(fail) > 1 and self._dump_fails:
-            self.dump_fails(fail)
+            self._dump_failed(fail)
         return fail, success
 
-    def dump_fails(self, fails):
+    def _dump_failed(self, fails):
         """Dump failed commands to .sql files in the fails directory."""
         dump_commands(fails, self.sql_script)
 

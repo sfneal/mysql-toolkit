@@ -99,4 +99,5 @@ class Advanced:
 
     def execute_script(self, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
         """Wrapper method for ExecuteScript class."""
-        SQLScript(self, sql_script, commands, split_func, split_char, dump_fails)
+        ss = SQLScript(sql_script, split_func, split_char, dump_fails, self)
+        ss.execute(commands)
