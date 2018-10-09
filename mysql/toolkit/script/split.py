@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 
 class SplitCommands:
+    """Split a text blob or text file full of SQL commands into a list of single commands"""
     def __init__(self, text):
         # Check if text is a file_path or a string
         if os.path.isfile(text):
@@ -109,3 +110,11 @@ class SplitCommands:
                 results.append(current)
 
         return results
+
+
+def simple_split(sql_script, split_char):
+    """Read a SQL script file and split on a particular char"""
+    # Open and read the file as a single buffer
+    with open(sql_script, 'r') as fd:
+        sql_file = fd.read()
+    return sql_file.split(split_char)

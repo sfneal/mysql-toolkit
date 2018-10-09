@@ -1,5 +1,5 @@
 from mysql.toolkit.script.dump import dump_commands
-from mysql.toolkit.script.split import SplitCommands
+from mysql.toolkit.script.split import SplitCommands, simple_split
 from tqdm import tqdm
 
 # Conditional import of multiprocessing module
@@ -25,14 +25,6 @@ def filter_commands(commands, query_type):
         print("\t" + query_type + " commands removed", commands_with_drops - len(filtered_commands))
         print("\tFiltered commands", len(filtered_commands))
     return filtered_commands
-
-
-def simple_split(sql_script, split_char):
-    """Read a SQL script file and split on a particular char"""
-    # Open and read the file as a single buffer
-    with open(sql_script, 'r') as fd:
-        sql_file = fd.read()
-    return sql_file.split(split_char)
 
 
 class SQLScript:
