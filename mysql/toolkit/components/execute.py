@@ -33,7 +33,7 @@ class SQLScript:
     def __init__(self, sql_script, split_func=True, split_char=';', dump_fails=True, mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
-        self.MySQL = mysql_instance
+        self._MySQL = mysql_instance
 
         # SQL script to be executed
         self.sql_script = sql_script
@@ -100,7 +100,7 @@ class SQLScript:
         for command in tqdm(commands, total=len(commands), desc='Executing SQL Commands'):
             # Attempt to execute command and skip command if error is raised
             try:
-                self.MySQL.execute(command)
+                self._MySQL.execute(command)
                 success += 1
             except:
                 fail.append(command)
