@@ -98,6 +98,10 @@ class Advanced:
         return tables
 
     def execute_script(self, sql_script, commands=None, split_func=True, split_char=';', dump_fails=True):
-        """Wrapper method for ExecuteScript class."""
+        """Wrapper method for SQLScript class"""
         ss = SQLScript(sql_script, split_func, split_char, dump_fails, self)
         ss.execute(commands)
+
+    def script(self, sql_script, split_func=True, split_char=';', dump_fails=True):
+        """Wrapper method providing access to the SQLScript class's methods and properties"""
+        return SQLScript(sql_script, split_func, split_char, dump_fails, self)
