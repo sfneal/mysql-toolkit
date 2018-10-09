@@ -27,6 +27,14 @@ def filter_commands(commands, query_type):
     return filtered_commands
 
 
+def simple_split(sql_script, split_char):
+    """Read a SQL script file and split on a particular char"""
+    # Open and read the file as a single buffer
+    with open(sql_script, 'r') as fd:
+        sql_file = fd.read()
+    return sql_file.split(split_char)
+
+
 class SQLScript:
     def __init__(self, sql_script, split_func=True, split_char=';', dump_fails=True, mysql_instance=None):
         """Execute a sql file one command at a time."""
@@ -49,13 +57,9 @@ class SQLScript:
 
         :return: List of commands
         """
-        # Open and read the file as a single buffer
-        print('\tRetrieving commands from', self.sql_script)
-        with open(self.sql_script, 'r') as fd:
-            sql_file = fd.read()
-
         # Retrieve all commands via split function or splitting on ';'
-        commands = SplitCommands(self.sql_script) if self.split_func else sql_file.split(self.split_char)
+        print('\tRetrieving commands from', self.sql_script)
+        commands = SplitCommands(self.sql_script) if self.split_func else simple_split(self.sql_script, self.split_char)
 
         # remove dbo. prefixes from table names
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
@@ -71,6 +75,7 @@ class SQLScript:
 
         :param commands: List of SQL commands
         :param skip_drops: Boolean, skip SQL commands that begin with 'DROP'
+        :param execute_fails: Boolean, attempt to execute failed commands again
         :return: Successful and failed commands
         """
         # Retrieve commands from sql_script if no commands are provided
