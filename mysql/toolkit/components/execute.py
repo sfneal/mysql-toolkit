@@ -4,6 +4,21 @@ from datetime import datetime
 from tqdm import tqdm
 
 
+def filter_commands(commands, query_type):
+    """
+    Remove particular queries from a list of SQL commands.
+
+    :param commands: List of SQL commands
+    :param query_type: Type of SQL command to remove
+    :return: Filtered list of SQL commands
+    """
+    commands_with_drops = len(commands)
+    commands = [c for c in commands if not c.startswith(query_type)]
+    if commands_with_drops - len(commands) > 0:
+        print("\tDROP commands removed", commands_with_drops - len(commands))
+    return commands
+
+
 class SQLScript:
     def __init__(self, mysql_instance, sql_script, split_func=True, split_char=';', dump_fails=True):
         """Execute a sql file one command at a time."""
@@ -19,51 +34,49 @@ class SQLScript:
         # Dump failed SQL commands boolean
         self.dump_fails = dump_fails
 
-    def get_commands(self, sql_script):
+    @property
+    def commands(self):
         """
         Fetch individual SQL commands from a SQL script containing many commands.
 
-        :param sql_script: Path to SQL script
         :return: List of commands
         """
-        print('\tRetrieving commands from', sql_script)
+        print('\tRetrieving commands from', self.sql_script)
         # Open and read the file as a single buffer
-        with open(sql_script, 'r') as fd:
+        with open(self.sql_script, 'r') as fd:
             sql_file = fd.read()
 
         # Retrieve all commands via split function or splitting on ';'
         commands = split_sql_commands(sql_file) if self.split_func else sql_file.split(self.split_char)
 
         # remove dbo. prefixes from table names
-        return [com.replace("dbo.", '') for com in commands]
+        cleaned_commands = [com.replace("dbo.", '') for com in commands]
+        setattr(self, 'fetched_commands', cleaned_commands)
+        return cleaned_commands
 
     def execute_commands(self, commands=None, skip_drops=True):
         """
         Sequentially execute a list of SQL commands.
+
+        Check if commands property has already been fetched, if so use the
+        fetched_commands rather than getting them again.
 
         :param commands: List of SQL commands
         :param skip_drops: Boolean, skip SQL commands that beging with 'DROP'
         :return: Successful and failed commands
         """
         # Retrieve commands from sql_script if no commands are provided
-        commands = self.get_commands(self.sql_script) if not commands else commands
+        commands = getattr(self, 'fetched_commands', self.commands) if not commands else commands
 
         # Remove 'DROP' commands
         if skip_drops:
-            commands_with_drops = len(commands)
-            commands = [c for c in commands if not c.startswith('DROP')]
-            if commands_with_drops - len(commands) > 0:
-                print("\tDROP commands removed", commands_with_drops - len(commands))
-
-        # Execute every command in list of commands
-        print('\t' + str(len(commands)), 'commands')
+            filter_commands(commands, 'DROP')
 
         # Execute commands get list of failed commands and count of successful commands
+        print('\t' + str(len(commands)), 'commands')
         fail, success = [], 0
         for command in tqdm(commands, total=len(commands), desc='Executing SQL Commands'):
-            # This will skip and report errors
-            # For example, if the tables do not yet exist, this will skip over
-            # the DROP TABLE commands
+            # Attempt to execute command and skip command if error is raised
             try:
                 self.MySQL.execute(command)
                 success += 1
@@ -84,7 +97,13 @@ class SQLScript:
 
 
 def dump_commands(commands, sql_script):
-    """Dump SQL commands to .sql files."""
+    """
+    Dump SQL commands to .sql files.
+
+    :param commands: List of SQL commands
+    :param sql_script: Path to SQL script
+    :return: Directory failed commands were dumped to
+    """
     # Re-add semi-colon separator
     fails = [com + ';\n' for com in commands]
     print('\t' + str(len(fails)), 'failed commands')
@@ -106,6 +125,7 @@ def dump_commands(commands, sql_script):
         # Dump to text file
         with open(txt_file, 'w') as txt:
             txt.writelines(fail)
+    return fails_dir
 
 
 def split_sql_commands(text):
