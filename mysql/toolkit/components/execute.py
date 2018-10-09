@@ -72,7 +72,7 @@ class SQLScript:
         fetched_commands rather than getting them again.
 
         :param commands: List of SQL commands
-        :param skip_drops: Boolean, skip SQL commands that beging with 'DROP'
+        :param skip_drops: Boolean, skip SQL commands that begin with 'DROP'
         :return: Successful and failed commands
         """
         # Retrieve commands from sql_script if no commands are provided
@@ -101,12 +101,8 @@ class SQLScript:
 
         # Dump failed commands to text files
         if len(fail) > 1 and self._dump_fails:
-            self._dump_failed(fail)
+            dump_commands(fail, self.sql_script)
         return fail, success
-
-    def _dump_failed(self, fails):
-        """Dump failed commands to .sql files in the fails directory."""
-        dump_commands(fails, self.sql_script)
 
 
 def dump_commands(commands, sql_script, sub_folder='fails'):
