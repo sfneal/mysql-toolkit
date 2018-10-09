@@ -146,13 +146,14 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
     return dump_dir
 
 
-def dump(command, txt_file):
+def dump(tup):
     """
     Dump SQL command to a text file.
 
-    :param command: SQL command
-    :param txt_file: Text file path
+    :param tup: SQL command, text file path tuple
     """
+    # Unpack tuple
+    command, txt_file = tup
     # Dump to text file
     with open(txt_file, 'w') as txt:
         txt.writelines(command)
