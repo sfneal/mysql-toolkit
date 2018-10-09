@@ -52,7 +52,7 @@ class SQLScript:
         """
         # Retrieve all commands via split function or splitting on ';'
         print('\tRetrieving commands from', self.sql_script)
-        commands = SplitCommands(self.sql_script).split if self.split_func else simple_split(self.sql_script, self.split_char)
+        commands = SplitCommands(self.sql_script).split() if self.split_func else simple_split(self.sql_script, self.split_char)
 
         # remove dbo. prefixes from table names
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
@@ -121,7 +121,7 @@ class SQLScript:
             for each in _commands:
                 commands.extend(each)
             pool.close()
-            print('\tParsed ', len(commands), 'commands in', timer.end, '(multiprocessing)')
+            print('\tParsed ', len(commands), 'failed commands in', timer.end, '(multiprocessing)')
         else:
             commands = []
             for failed in fails:
@@ -129,7 +129,7 @@ class SQLScript:
                 if len(f) > 1:
                     print(len(f))
                 commands.extend(f)
-            print('\tParsed ', len(commands), 'commands in', timer.end, '(sequential processing)')
+            print('\tParsed ', len(commands), 'failed commands in', timer.end, '(sequential processing)')
 
         # Execute failed commands again
         self.execute(commands, execute_fails=False)
