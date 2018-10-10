@@ -96,7 +96,7 @@ class SQLScript:
 
         # Remove 'DROP' commands
         if skip_drops:
-            commands = filter_commands(commands, 'DROP')
+            commands = filter_commands(commands, ('DROP', 'UNLOCK', 'LOCK'))
 
         # Execute list of commands
         print('\t' + str(len(commands)), 'commands')
