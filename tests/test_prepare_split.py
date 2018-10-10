@@ -2,6 +2,7 @@ import os
 from looptools import Timer
 from mysql.toolkit.script.prepare import prepare_sql, filter_commands
 from mysql.toolkit.script.split import SplitCommands
+from mysql.toolkit.script.dump import dump_commands
 
 
 with open(os.path.join(os.path.dirname(__file__), 'data', 'All_In_HPA1.sql'), 'r') as sf:
@@ -64,6 +65,8 @@ def main():
             split, filtered = test()
             print('Split commands', len(split), '\nFiltered commands', len(filtered))
         print('\n\n')
+        dump_commands(split, '/Users/Stephen/Dropbox/HPA/database', 'split')
+        dump_commands(filtered, '/Users/Stephen/Dropbox/HPA/database', 'filtered')
 
 
 if __name__ == '__main__':
