@@ -63,10 +63,8 @@ class SQLScript:
         read_commands = write_read_commands(cleaned_commands)
 
         # Prepare commands for SQL execution
-        prepared_commands = list(map(prepare_sql, read_commands))
-        print('\tCommands prepared', len(prepared_commands))
-        setattr(self, 'fetched_commands', prepared_commands)
-        return prepared_commands
+        setattr(self, 'fetched_commands', read_commands)
+        return read_commands
 
     def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True):
         """
@@ -104,9 +102,12 @@ class SQLScript:
 
     def _execute_commands(self, commands, fails=False):
         """Execute commands and get list of failed commands and count of successful commands"""
+        prepared_commands = list(map(prepare_sql, commands))
+        print('\tCommands prepared', len(prepared_commands))
+
         desc = 'Executing SQL Commands' if not fails else 'Executing Failed SQL Commands'
         fail, success = [], 0
-        for command in tqdm(commands, total=len(commands), desc=desc):
+        for command in tqdm(prepared_commands, total=len(prepared_commands), desc=desc):
             # Attempt to execute command and skip command if error is raised
             try:
                 self._MySQL.execute(command)
