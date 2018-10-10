@@ -104,7 +104,7 @@ def write_read_commands(commands):
         print('\tRead and Wrote ', len(_commands), 'commands in', timer.end, '(multiprocessing)')
 
         # Sort list by index and then return flat list of commands
-        return [cmd_lst[0] for cmd_lst in sorted(_commands, key=lambda i: i[0])]
+        return [cmd_lst[1] for cmd_lst in sorted(_commands, key=lambda i: i[0])]
     else:
         return [_write_read(command) for command in tqdm(commands, total=len(commands),
                                                          desc='Writing and Reading SQL commands')]
