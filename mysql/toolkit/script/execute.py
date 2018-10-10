@@ -79,7 +79,7 @@ class SQLScript:
         setattr(self, 'fetched_commands', read_commands)
         return read_commands
 
-    def execute(self, commands=None, skip_drops=True, execute_fails=True):
+    def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True):
         """
         Sequentially execute a list of SQL commands.
 
@@ -87,7 +87,7 @@ class SQLScript:
         fetched_commands rather than getting them again.
 
         :param commands: List of SQL commands
-        :param skip_drops: Boolean, skip SQL commands that begin with 'DROP'
+        :param ignored_commands: Boolean, skip SQL commands that begin with 'DROP'
         :param execute_fails: Boolean, attempt to execute failed commands again
         :return: Successful and failed commands
         """
@@ -95,8 +95,8 @@ class SQLScript:
         commands = getattr(self, 'fetched_commands', self.commands) if not commands else commands
 
         # Remove 'DROP' commands
-        if skip_drops:
-            commands = filter_commands(commands, ('DROP', 'UNLOCK', 'LOCK'))
+        if ignored_commands:
+            commands = filter_commands(commands, ignored_commands)
 
         # Execute list of commands
         print('\t' + str(len(commands)), 'commands')
