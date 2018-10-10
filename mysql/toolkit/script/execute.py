@@ -78,7 +78,7 @@ class SQLScript:
         read_commands = write_read_commands(cleaned_commands)
 
         # Prepare commands for SQL execution
-        prepared_commands = map(prepare_sql, read_commands)
+        prepared_commands = list(map(prepare_sql, read_commands))
 
         print('\tCommands read', len(read_commands))
         print('\tCommands prepared', len(prepared_commands))
