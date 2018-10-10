@@ -26,23 +26,23 @@ class SplitCommands:
         return self.__iter__()
 
     def __iter__(self):
-        return iter(self.parse)
+        return iter(self.sql_parse)
 
     def __len__(self):
-        return len(self.parse)
+        return len(self.sql_parse)
 
     @property
-    def parse(self):
+    def sql_parse(self):
         commands = []
         for command in sqlparse.split(self.sql_data):
-            commands.extend(self.split(command, False))
+            commands.extend(self.sql_split(command, False))
         try:
             return set(commands)
         except:
             print('\tSet error in script.split.SplitCommands.parse')
             return {c for c in commands}
 
-    def split(self, text=None, disable_tqdm=True, iteration=None):
+    def sql_split(self, text=None, disable_tqdm=True, iteration=None):
         data = self.sql_data if not text else text
 
         # Set progress bar description
@@ -131,10 +131,7 @@ class SplitCommands:
 
         return results
 
-
-def simple_split(sql_script, split_char=';'):
-    """Read a SQL script file and split on a particular char"""
-    # Open and read the file as a single buffer
-    with open(sql_script, 'r') as fd:
-        sql_file = fd.read()
-    return sql_file.split(split_char)
+    def simple_split(self, split_char=';'):
+        """Read a SQL script file and split on a particular char"""
+        # Open and read the file as a single buffer
+        return self.sql_data.split(split_char)

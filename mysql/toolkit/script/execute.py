@@ -28,7 +28,7 @@ def filter_commands(commands, query_type):
 
 
 class SQLScript:
-    def __init__(self, sql_script, split_func=True, split_char=';', dump_fails=True, mysql_instance=None):
+    def __init__(self, sql_script, split_algo='sql_split', dump_fails=True, mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self._MySQL = mysql_instance
@@ -36,8 +36,8 @@ class SQLScript:
         # SQL script to be executed
         self.sql_script = sql_script
 
-        # split_func boolean and splitter character
-        self.split_func, self.split_char = split_func, split_char
+        # Function to use to split SQL commands
+        self.split_algo = split_algo
 
         # Dump failed SQL commands boolean
         self._dump_fails = dump_fails
@@ -51,10 +51,20 @@ class SQLScript:
         """
         # Retrieve all commands via split function or splitting on ';'
         print('\tRetrieving commands from', self.sql_script)
-        if self.split_func:
-            commands = SplitCommands(self.sql_script).split(disable_tqdm=False)
+
+        # sqlparse packages split function
+        if self.split_algo is 'sql_parse':
+            commands = SplitCommands(self.sql_script).sql_parse
+
+        # Split on every ';' (unreliable)
+        elif self.split_algo is 'simple_split':
+            commands = SplitCommands(self.sql_script).simple_split()
+
+        # Parse every char of the SQL script and determine breakpoints
+        elif self.split_algo is 'sql_split':
+            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
         else:
-            commands = simple_split(self.sql_script, self.split_char)
+            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
 
         # remove dbo. prefixes from table names
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
