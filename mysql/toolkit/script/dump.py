@@ -3,6 +3,8 @@ import os
 from time import time
 from datetime import datetime
 from looptools import Timer
+from tqdm import tqdm
+from tempfile import NamedTemporaryFile
 
 # Conditional import of multiprocessing module
 try:
@@ -69,3 +71,21 @@ def dump(tup):
     # Dump to text file
     with open(txt_file, 'w') as txt:
         txt.writelines(command)
+
+
+def read_write_commands(commands):
+    read_commands = []
+    for command in tqdm(commands, total=len(commands), desc='Reading and Writing SQL commands'):
+        # Create temporary file context
+        with NamedTemporaryFile(suffix='.sql') as temp:
+            # Write to sql file
+            with open(temp.name, 'w') as write:
+                write.writelines(command)
+
+            # Read the sql file
+            with open(temp.name, 'r') as read:
+                _command = read.read()
+
+        # Append command to list of read_commands
+        read_commands.append(_command)
+    return read_commands

@@ -1,7 +1,5 @@
-from looptools import Timer
 from tqdm import tqdm
-from tempfile import NamedTemporaryFile
-from mysql.toolkit.script.dump import dump_commands
+from mysql.toolkit.script.dump import dump_commands, read_write_commands
 from mysql.toolkit.script.split import SplitCommands
 
 # Conditional import of multiprocessing module
@@ -72,20 +70,7 @@ class SQLScript:
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
 
         # Write and read each command to a text file
-        read_commands = []
-        for command in tqdm(cleaned_commands, total=len(cleaned_commands), desc='Reading and Writing SQL commands'):
-            # Create temporary file context
-            with NamedTemporaryFile(suffix='.sql') as temp:
-                # Write to sql file
-                with open(temp.name, 'w') as write:
-                    write.writelines(command)
-
-                # Read the sql file
-                with open(temp.name, 'r') as read:
-                    _command = read.read()
-
-            # Append command to list of read_commands
-            read_commands.append(_command)
+        read_commands = read_write_commands(cleaned_commands)
 
         setattr(self, 'fetched_commands', read_commands)
         return read_commands
