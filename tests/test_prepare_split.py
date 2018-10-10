@@ -47,19 +47,6 @@ def test6():
     return split, filtered
 
 
-def test7():
-    prepared = prepare_sql(stmnt)
-    split = SplitCommands(prepared).simple_split()
-    filtered = filter_commands(split)
-    return split, filtered
-
-
-def test8():
-    split = SplitCommands(stmnt).simple_split()
-    filtered = filter_commands(split)
-    return split, filtered
-
-
 def main():
     funcs = [
         (test1, 'Test 1: Prepare statement and sql_split'),
@@ -68,8 +55,6 @@ def main():
         (test4, 'Test 4: sql_parse'),
         (test5, 'Test 5: Prepare statement and sql_parse_nosplit'),
         (test6, 'Test 6: sql_parse_nosplit'),
-        (test7, 'Test 7: Prepare statement and simple_split'),
-        (test8, 'Test 8: simple_split'),
     ]
     for test, name in funcs:
         print('-------------------------------------------------------')
