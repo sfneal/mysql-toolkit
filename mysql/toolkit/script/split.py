@@ -42,6 +42,17 @@ class SplitCommands:
             print('\tSet error in script.split.SplitCommands.parse')
             return {c for c in commands}
 
+    @property
+    def sql_parse_nosplit(self):
+        commands = []
+        for command in sqlparse.split(self.sql_data):
+            commands.extend(command)
+        try:
+            return set(commands)
+        except:
+            print('\tSet error in script.split.SplitCommands.parse')
+            return {c for c in commands}
+
     def sql_split(self, text=None, disable_tqdm=True, iteration=None):
         data = self.sql_data if not text else text
 

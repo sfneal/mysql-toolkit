@@ -52,13 +52,17 @@ class SQLScript:
         print('\tRetrieving commands from', self.sql_script)
 
         # Split commands
-        # sqlparse packages split function
+        # sqlparse packages split function combined with sql_split function
         if self.split_algo is 'sql_parse':
             commands = SplitCommands(self.sql_script).sql_parse
 
         # Split on every ';' (unreliable)
         elif self.split_algo is 'simple_split':
             commands = SplitCommands(self.sql_script).simple_split()
+
+        # sqlparse package without additional splitting
+        elif self.split_algo is 'sql_parse_nosplit':
+            commands = SplitCommands(self.sql_script).sql_parse_nosplit
 
         # Parse every char of the SQL script and determine breakpoints
         elif self.split_algo is 'sql_split':
