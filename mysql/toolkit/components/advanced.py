@@ -32,6 +32,11 @@ class Advanced:
         # TODO: Create method
         pass
 
+    def compare_dbs(self):
+        """Compare the structure and data of two databases."""
+        # TODO: Create method
+        pass
+
     def drop_empty_tables(self):
         """Drop all empty tables in a database."""
         # Count number of rows in each table
