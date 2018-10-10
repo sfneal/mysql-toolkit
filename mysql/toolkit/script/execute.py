@@ -91,7 +91,6 @@ class SQLScript:
             commands = filter_commands(commands, ignored_commands)
 
         # Execute list of commands
-        print('\t' + str(len(commands)), 'commands')
         fail, success = self._execute_commands(commands)
 
         # Dump failed commands to text files
@@ -106,10 +105,11 @@ class SQLScript:
                 self._execute_failed_commands(fail)
         return fail, success
 
-    def _execute_commands(self, commands):
+    def _execute_commands(self, commands, fails=False):
         """Execute commands and get list of failed commands and count of successful commands"""
+        desc = 'Executing SQL Commands' if not fails else 'Executing Failed SQL Commands'
         fail, success = [], 0
-        for command in tqdm(commands, total=len(commands), desc='Executing SQL Commands'):
+        for command in tqdm(commands, total=len(commands), desc=desc):
             # Attempt to execute command and skip command if error is raised
             try:
                 self._MySQL.execute(command)
@@ -120,8 +120,6 @@ class SQLScript:
 
     def _execute_failed_commands(self, fails):
         """Re-attempt to split and execute the failed commands"""
-        print('\tAttempting execution of failed commands')
-
         # Execute failed commands again
         self._execute_commands(fails)
 

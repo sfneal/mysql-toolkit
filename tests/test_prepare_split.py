@@ -50,8 +50,8 @@ def test6():
 
 def main():
     funcs = [
-        (test1, 'Test 1: Prepare statement and sql_split'),
-        (test2, 'Test 2: sql_split'),
+        # (test1, 'Test 1: Prepare statement and sql_split'),
+        # (test2, 'Test 2: sql_split'),
         (test3, 'Test 3: Prepare statement and sql_parse'),
         (test4, 'Test 4: sql_parse'),
         (test5, 'Test 5: Prepare statement and sql_parse_nosplit'),
