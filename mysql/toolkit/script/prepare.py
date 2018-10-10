@@ -4,7 +4,7 @@ except ImportError:
     from io import StringIO
 
 
-def prepare_sql(sql, add_semicolon=False):
+def prepare_sql(sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
     results = StringIO()
 
     in_statement = False
@@ -31,7 +31,10 @@ def prepare_sql(sql, add_semicolon=False):
 
         start_str = start_str or start or ""
         precontents = precontents or ""
-        results.write(start_str + precontents + contents)
+
+        # Only write line if line start is valid
+        if start not in invalid_starts:
+            results.write(start_str + precontents + contents)
 
         if not in_line_comment and not in_block_comment and in_statement and end == ";":
             in_statement = False
