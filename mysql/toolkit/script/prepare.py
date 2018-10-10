@@ -28,6 +28,7 @@ class PrepareSQL:
         :param add_semicolon: Add semicolon to end of statements
         :param invalid_starts: Invalid line starts
         """
+        # TODO: Create method to clean up VALUES portion of an insert statement
         self._sql = sql
         self._add_semicolon = add_semicolon
         self._invalid_starts = invalid_starts
