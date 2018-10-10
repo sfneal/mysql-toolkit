@@ -5,6 +5,14 @@ except ImportError:
 
 
 def prepare_sql(sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
+    """
+    Prepare a SQL statement for execution by removing comments and validating syntax.
+
+    :param sql: SQL statement(s)
+    :param add_semicolon: Add semicolon to end of statements
+    :param invalid_starts: Invalid line starts
+    :return:
+    """
     results = StringIO()
 
     in_statement = False
