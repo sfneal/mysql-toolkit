@@ -29,7 +29,8 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
     print('\t' + str(len(fails)), 'failed commands')
 
     # Create a directory to save fail SQL scripts
-    dump_dir = os.path.join(os.path.dirname(sql_script), sub_folder)
+    directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
+    dump_dir = os.path.join(directory, sub_folder)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
     dump_dir = os.path.join(dump_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
@@ -40,7 +41,7 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
     # Create list of (path, content) tuples
     command_filepath = []
     for count, fail in enumerate(fails):
-        txt_file = os.path.join(dump_dir, str(os.path.basename(sql_script).rsplit('.')[0]) + str(count) + '.sql')
+        txt_file = os.path.join(dump_dir, str(count) + '.sql')
         command_filepath.append((fail, txt_file))
 
     # Dump failed commands to text file in the same directory as the script
