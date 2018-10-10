@@ -64,10 +64,7 @@ class SQLScript:
 
         # Prepare commands for SQL execution
         prepared_commands = list(map(prepare_sql, read_commands))
-
-        print('\tCommands read', len(read_commands))
         print('\tCommands prepared', len(prepared_commands))
-
         setattr(self, 'fetched_commands', prepared_commands)
         return prepared_commands
 
