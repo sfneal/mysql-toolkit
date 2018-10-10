@@ -120,27 +120,7 @@ class SQLScript:
 
     def _execute_failed_commands(self, fails):
         """Re-attempt to split and execute the failed commands"""
-        # Parse each command to see if it can be split
-        # Utilize's multiprocessing module if it is available
-        print('\tParsing and attempting execution of failed commands')
-        # timer = Timer()
-        # if MULTIPROCESS:
-        #     pool = Pool(cpu_count())
-        #     _commands = pool.map(SplitCommands, fails)
-        #
-        #     commands = []
-        #     for each in _commands:
-        #         commands.extend(each)
-        #     pool.close()
-        #     print('\tParsed ', len(commands), 'failed commands in', timer.end, '(multiprocessing)')
-        # else:
-        #     commands = []
-        #     for failed in fails:
-        #         f = SplitCommands(failed).parse
-        #         if len(f) > 1:
-        #             print(len(f))
-        #         commands.extend(f)
-        #     print('\tParsed ', len(commands), 'failed commands in', timer.end, '(sequential processing)')
+        print('\tAttempting execution of failed commands')
 
         # Execute failed commands again
         self._execute_commands(fails)
