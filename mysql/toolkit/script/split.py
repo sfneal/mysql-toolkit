@@ -132,7 +132,7 @@ class SplitCommands:
         return results
 
 
-def simple_split(sql_script, split_char):
+def simple_split(sql_script, split_char=';'):
     """Read a SQL script file and split on a particular char"""
     # Open and read the file as a single buffer
     with open(sql_script, 'r') as fd:
