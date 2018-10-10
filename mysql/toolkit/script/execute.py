@@ -1,6 +1,7 @@
 from tqdm import tqdm
 from mysql.toolkit.script.dump import dump_commands, write_read_commands
 from mysql.toolkit.script.split import SplitCommands
+from mysql.toolkit.script.prepare import prepare_sql
 
 # Conditional import of multiprocessing module
 try:
@@ -76,8 +77,14 @@ class SQLScript:
         # Write and read each command to a text file
         read_commands = write_read_commands(cleaned_commands)
 
-        setattr(self, 'fetched_commands', read_commands)
-        return read_commands
+        # Prepare commands for SQL execution
+        prepared_commands = map(prepare_sql, read_commands)
+
+        print('\tCommands read', len(read_commands))
+        print('\tCommands prepared', len(prepared_commands))
+
+        setattr(self, 'fetched_commands', prepared_commands)
+        return prepared_commands
 
     def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True):
         """
