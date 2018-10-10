@@ -75,3 +75,7 @@ def main():
         print(name)
         print('-------------------------------------------------------')
         print('Split commands', len(split), '\nFiltered commands', len(filtered))
+
+
+if __name__ == '__main__':
+    main()
