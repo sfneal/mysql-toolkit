@@ -19,96 +19,111 @@ def filter_commands(commands, invalid_query_starts=('DROP', 'UNLOCK', 'LOCK')):
     return filtered_commands
 
 
+class PrepareSQL:
+    def __init__(self, sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
+        """
+        Prepare a SQL statement for execution by removing comments and validating syntax.
+
+        :param sql: SQL statement(s)
+        :param add_semicolon: Add semicolon to end of statements
+        :param invalid_starts: Invalid line starts
+        """
+        self._sql = sql
+        self._add_semicolon = add_semicolon
+        self._invalid_starts = invalid_starts
+
+    @property
+    def prepared(self):
+        results = StringIO()
+
+        in_statement = False
+        in_line_comment = False
+        in_block_comment = False
+        for (start, end, contents) in self._split_sql(self._sql):
+            precontents = None
+            start_str = None
+
+            # decide where we are
+            if not in_statement and not in_line_comment and not in_block_comment:
+                # not currently in any block
+                if start != "--" and start != "/*" and len(contents.strip()) > 0:
+                    # not starting a comment and there is contents
+                    in_statement = True
+                    precontents = ""
+
+            if start == "/*":
+                in_block_comment = True
+            elif start == "--" and not in_block_comment:
+                in_line_comment = True
+                if not in_statement:
+                    start_str = "//"
+
+            start_str = start_str or start or ""
+            precontents = precontents or ""
+
+            # Only write line if line start is valid
+            if start not in self._invalid_starts:
+                results.write(start_str + precontents + contents)
+
+            if not in_line_comment and not in_block_comment and in_statement and end == ";":
+                in_statement = False
+
+            if in_block_comment and end == "*/":
+                in_block_comment = False
+
+            if in_line_comment and end == "\n":
+                in_line_comment = False
+
+        response = results.getvalue()
+        results.close()
+        if self._add_semicolon and in_statement and not in_block_comment:
+            if in_line_comment:
+                response = response + "\n"
+            response = response + ';'
+        return response
+
+    def _split_sql(self, sql):
+        """
+        Generate hunks of SQL that are between the bookends.
+        note: beginning & end of string are returned as None
+
+        :return: tuple of beginning bookend, closing bookend, and contents
+        """
+        bookends = ("\n", ";", "--", "/*", "*/")
+        last_bookend_found = None
+        start = 0
+
+        while start <= len(sql):
+            results = self._get_next_occurrence(sql, start, bookends)
+            if results is None:
+                yield (last_bookend_found, None, sql[start:])
+                start = len(sql) + 1
+            else:
+                (end, bookend) = results
+                yield (last_bookend_found, bookend, sql[start:end])
+                start = end + len(bookend)
+                last_bookend_found = bookend
+
+    @staticmethod
+    def _get_next_occurrence(haystack, offset, needles):
+        """
+        Find next occurence of one of the needles in the haystack
+
+        :return: tuple of (index, needle found)
+             or: None if no needle was found"""
+        # make map of first char to full needle (only works if all needles
+        # have different first characters)
+        firstcharmap = dict([(n[0], n) for n in needles])
+        firstchars = firstcharmap.keys()
+        while offset < len(haystack):
+            if haystack[offset] in firstchars:
+                possible_needle = firstcharmap[haystack[offset]]
+                if haystack[offset:offset + len(possible_needle)] == possible_needle:
+                    return offset, possible_needle
+            offset += 1
+        return None
+
+
 def prepare_sql(sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
-    """
-    Prepare a SQL statement for execution by removing comments and validating syntax.
-
-    :param sql: SQL statement(s)
-    :param add_semicolon: Add semicolon to end of statements
-    :param invalid_starts: Invalid line starts
-    :return:
-    """
-    results = StringIO()
-
-    in_statement = False
-    in_line_comment = False
-    in_block_comment = False
-    for (start, end, contents) in split_sql(sql):
-        precontents = None
-        start_str = None
-
-        # decide where we are
-        if not in_statement and not in_line_comment and not in_block_comment:
-            # not currently in any block
-            if start != "--" and start != "/*" and len(contents.strip()) > 0:
-                # not starting a comment and there is contents
-                in_statement = True
-                precontents = ""
-
-        if start == "/*":
-            in_block_comment = True
-        elif start == "--" and not in_block_comment:
-            in_line_comment = True
-            if not in_statement:
-                start_str = "//"
-
-        start_str = start_str or start or ""
-        precontents = precontents or ""
-
-        # Only write line if line start is valid
-        if start not in invalid_starts:
-            results.write(start_str + precontents + contents)
-
-        if not in_line_comment and not in_block_comment and in_statement and end == ";":
-            in_statement = False
-
-        if in_block_comment and end == "*/":
-            in_block_comment = False
-
-        if in_line_comment and end == "\n":
-            in_line_comment = False
-
-    response = results.getvalue()
-    results.close()
-    if add_semicolon and in_statement and not in_block_comment:
-        if in_line_comment:
-            response = response + "\n"
-        response = response + ';'
-    return response
-
-
-def split_sql(sql):
-    """generate hunks of SQL that are between the bookends
-       return: tuple of beginning bookend, closing bookend, and contents
-         note: beginning & end of string are returned as None"""
-    bookends = ("\n", ";", "--", "/*", "*/")
-    last_bookend_found = None
-    start = 0
-
-    while start <= len(sql):
-        results = get_next_occurence(sql, start, bookends)
-        if results is None:
-            yield (last_bookend_found, None, sql[start:])
-            start = len(sql) + 1
-        else:
-            (end, bookend) = results
-            yield (last_bookend_found, bookend, sql[start:end])
-            start = end + len(bookend)
-            last_bookend_found = bookend
-
-
-def get_next_occurence(haystack, offset, needles):
-    """find next occurence of one of the needles in the haystack
-       return: tuple of (index, needle found)
-           or: None if no needle was found"""
-    # make map of first char to full needle (only works if all needles
-    # have different first characters)
-    firstcharmap = dict([(n[0], n) for n in needles])
-    firstchars = firstcharmap.keys()
-    while offset < len(haystack):
-        if haystack[offset] in firstchars:
-            possible_needle = firstcharmap[haystack[offset]]
-            if haystack[offset:offset + len(possible_needle)] == possible_needle:
-                return offset, possible_needle
-        offset += 1
-    return None
+    """Wrapper method for PrepareSQL class."""
+    return PrepareSQL(sql, add_semicolon, invalid_starts).prepared
