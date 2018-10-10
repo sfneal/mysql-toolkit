@@ -79,11 +79,11 @@ class SQLScript:
                 # Create temporary file context
                 with NamedTemporaryFile(suffix='.sql') as temp:
                     # Write to sql file
-                    with open(temp, 'w') as write:
+                    with open(temp.name, 'w') as write:
                         write.writelines(command)
 
                     # Read the sql file
-                    with open(temp, 'r') as read:
+                    with open(temp.name, 'r') as read:
                         _command = read.read()
 
                 # Append command to list of read_commands
