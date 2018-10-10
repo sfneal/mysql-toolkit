@@ -73,19 +73,29 @@ def dump(tup):
         txt.writelines(command)
 
 
-def read_write_commands(commands):
-    read_commands = []
-    for command in tqdm(commands, total=len(commands), desc='Reading and Writing SQL commands'):
-        # Create temporary file context
-        with NamedTemporaryFile(suffix='.sql') as temp:
-            # Write to sql file
-            with open(temp.name, 'w') as write:
-                write.writelines(command)
+def _write_read(command):
+    """Write and read SQL commands to and from text files."""
+    # Create temporary file context
+    with NamedTemporaryFile(suffix='.sql') as temp:
+        # Write to sql file
+        with open(temp.name, 'w') as write:
+            write.writelines(command)
 
-            # Read the sql file
-            with open(temp.name, 'r') as read:
-                _command = read.read()
+        # Read the sql file
+        with open(temp.name, 'r') as read:
+            _command = read.read()
+    return _command
 
-        # Append command to list of read_commands
-        read_commands.append(_command)
-    return read_commands
+
+def write_read_commands(commands):
+    """Multiprocessing wrapper for _write_read function."""
+    if MULTIPROCESS:
+        timer = Timer()
+        pool = Pool(cpu_count())
+        _commands = pool.map(_write_read, commands)
+        pool.close()
+        print('\tRead and Wrote ', len(_commands), 'commands in', timer.end, '(multiprocessing)')
+        return _commands
+    else:
+        return [_write_read(command) for command in tqdm(commands, total=len(commands),
+                                                         desc='Writing and Reading SQL commands')]

@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from mysql.toolkit.script.dump import dump_commands, read_write_commands
+from mysql.toolkit.script.dump import dump_commands, write_read_commands
 from mysql.toolkit.script.split import SplitCommands
 
 # Conditional import of multiprocessing module
@@ -70,7 +70,7 @@ class SQLScript:
         cleaned_commands = [com.replace("dbo.", '') for com in commands]
 
         # Write and read each command to a text file
-        read_commands = read_write_commands(cleaned_commands)
+        read_commands = write_read_commands(cleaned_commands)
 
         setattr(self, 'fetched_commands', read_commands)
         return read_commands
