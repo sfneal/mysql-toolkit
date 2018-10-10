@@ -54,40 +54,38 @@ class SQLScript:
         print('\tRetrieving commands from', self.sql_script)
 
         # Split commands
-        with Timer('Split SQL commands'):
-            # sqlparse packages split function
-            if self.split_algo is 'sql_parse':
-                commands = SplitCommands(self.sql_script).sql_parse
+        # sqlparse packages split function
+        if self.split_algo is 'sql_parse':
+            commands = SplitCommands(self.sql_script).sql_parse
 
-            # Split on every ';' (unreliable)
-            elif self.split_algo is 'simple_split':
-                commands = SplitCommands(self.sql_script).simple_split()
+        # Split on every ';' (unreliable)
+        elif self.split_algo is 'simple_split':
+            commands = SplitCommands(self.sql_script).simple_split()
 
-            # Parse every char of the SQL script and determine breakpoints
-            elif self.split_algo is 'sql_split':
-                commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
-            else:
-                commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
+        # Parse every char of the SQL script and determine breakpoints
+        elif self.split_algo is 'sql_split':
+            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
+        else:
+            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
 
-            # remove dbo. prefixes from table names
-            cleaned_commands = [com.replace("dbo.", '') for com in commands]
+        # remove dbo. prefixes from table names
+        cleaned_commands = [com.replace("dbo.", '') for com in commands]
 
         # Write and read each command to a text file
-        with Timer('Wrote and Read commands'):
-            read_commands = []
-            for command in tqdm(cleaned_commands, total=len(cleaned_commands), desc='Reading and Writing SQL commands'):
-                # Create temporary file context
-                with NamedTemporaryFile(suffix='.sql') as temp:
-                    # Write to sql file
-                    with open(temp.name, 'w') as write:
-                        write.writelines(command)
+        read_commands = []
+        for command in tqdm(cleaned_commands, total=len(cleaned_commands), desc='Reading and Writing SQL commands'):
+            # Create temporary file context
+            with NamedTemporaryFile(suffix='.sql') as temp:
+                # Write to sql file
+                with open(temp.name, 'w') as write:
+                    write.writelines(command)
 
-                    # Read the sql file
-                    with open(temp.name, 'r') as read:
-                        _command = read.read()
+                # Read the sql file
+                with open(temp.name, 'r') as read:
+                    _command = read.read()
 
-                # Append command to list of read_commands
-                read_commands.append(_command)
+            # Append command to list of read_commands
+            read_commands.append(_command)
 
         setattr(self, 'fetched_commands', read_commands)
         return read_commands
