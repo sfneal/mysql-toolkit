@@ -4,7 +4,7 @@ except ImportError:
     from io import StringIO
 
 
-def filter_commands(commands, invalid_query_starts):
+def filter_commands(commands, invalid_query_starts=('DROP', 'UNLOCK', 'LOCK')):
     """
     Remove particular queries from a list of SQL commands.
 
