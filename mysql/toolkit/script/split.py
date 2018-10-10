@@ -35,7 +35,7 @@ class SplitCommands:
     def sql_parse(self):
         commands = []
         for command in sqlparse.split(self.sql_data):
-            commands.extend(self.sql_split(command, False))
+            commands.extend(self.sql_split(command))
         try:
             return set(commands)
         except:
