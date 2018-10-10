@@ -118,7 +118,7 @@ class SQLScript:
     def _execute_failed_commands(self, fails):
         """Re-attempt to split and execute the failed commands"""
         # Execute failed commands again
-        self._execute_commands(fails)
+        self._execute_commands(fails, fails=True)
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
