@@ -36,7 +36,6 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
     dump_dir = os.path.join(dump_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
-    print('\tDumping failed commands to', dump_dir)
 
     # Create list of (path, content) tuples
     command_filepath = []
@@ -51,11 +50,11 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
         pool = Pool(cpu_count())
         pool.map(dump, command_filepath)
         pool.close()
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing)')
+        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing) to', dump_dir)
     else:
         for tup in command_filepath:
             dump(tup)
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing)')
+        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing) to', dump_dir)
 
     # Return base directory of dumped commands
     return dump_dir
