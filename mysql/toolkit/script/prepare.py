@@ -20,7 +20,7 @@ def prepare_sql(sql, add_semicolon=False):
             if start != "--" and start != "/*" and len(contents.strip()) > 0:
                 # not starting a comment and there is contents
                 in_statement = True
-                precontents = "EXEC SQL "
+                precontents = ""
 
         if start == "/*":
             in_block_comment = True
