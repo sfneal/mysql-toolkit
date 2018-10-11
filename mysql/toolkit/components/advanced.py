@@ -111,11 +111,12 @@ class Advanced:
             self._printer('\t' + str(len(tables)), 'tables truncated')
         return tables
 
-    def execute_script(self, sql_script, commands=None, split_algo='sql_split', dump_fails=True, execute_fails=True):
+    def execute_script(self, sql_script, commands=None, split_algo='sql_split', prep_statements=True,
+                       dump_fails=True, execute_fails=True):
         """Wrapper method for SQLScript class"""
-        ss = SQLScript(sql_script, split_algo, dump_fails, self)
+        ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
         ss.execute(commands, execute_fails=execute_fails)
 
-    def script(self, sql_script, split_algo='sql_split', dump_fails=True):
+    def script(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True):
         """Wrapper method providing access to the SQLScript class's methods and properties"""
-        return SQLScript(sql_script, split_algo, dump_fails, self)
+        return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)

@@ -13,7 +13,7 @@ except ImportError:
 
 
 class SQLScript:
-    def __init__(self, sql_script, split_algo='sql_split', dump_fails=True, mysql_instance=None):
+    def __init__(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True, mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self._MySQL = mysql_instance
@@ -23,6 +23,9 @@ class SQLScript:
 
         # Function to use to split SQL commands
         self.split_algo = split_algo
+
+        # Pass SQL statements through PrepareSQL class if True
+        self._prep_statements = prep_statements
 
         # Dump failed SQL commands boolean
         self._dump_fails = dump_fails
@@ -102,7 +105,8 @@ class SQLScript:
 
     def _execute_commands(self, commands, fails=False):
         """Execute commands and get list of failed commands and count of successful commands"""
-        prepared_commands = list(map(prepare_sql, commands))
+        # Confirm that prepare_statements flag is on
+        prepared_commands = list(map(prepare_sql, commands)) if self._prep_statements else commands
         print('\tCommands prepared', len(prepared_commands))
 
         desc = 'Executing SQL Commands' if not fails else 'Executing Failed SQL Commands'
