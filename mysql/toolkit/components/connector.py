@@ -17,7 +17,7 @@ class Connector:
 
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
-        print('\tMySQL connecting')
+        self._printer('\tMySQL connecting')
         try:
             self._cnx = connect(**config)
             self._cursor = self._cnx.cursor()

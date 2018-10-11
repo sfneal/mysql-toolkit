@@ -19,12 +19,12 @@ class MySQL(Connector, Core, Results, Advanced):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print('\tMySQL disconnecting')
+        self._printer('\tMySQL disconnecting')
         try:
             self._disconnect()
         except:
-            print('\tError raised during disconnection')
-        print('\tMySQL disconnected')
+            self._printer('\tError raised during disconnection')
+        self._printer('\tMySQL disconnected')
 
     def disconnect(self):
         """Disconnect from a MySQL database."""
