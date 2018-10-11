@@ -39,6 +39,7 @@ class SQLScript:
         """
         # Retrieve all commands via split function or splitting on ';'
         print('\tRetrieving commands from', self.sql_script)
+        print('\tUsing command splitter algorithm {0}'.format(self.split_algo))
 
         # Split commands
         # sqlparse packages split function combined with sql_split function
