@@ -4,11 +4,11 @@ setup.py
 mysql/__init__.py
 mysql/toolkit/__init__.py
 mysql/toolkit/_version.py
-mysql/toolkit/connector.py
 mysql/toolkit/toolkit.py
 mysql/toolkit/utils.py
 mysql/toolkit/components/__init__.py
 mysql/toolkit/components/advanced.py
+mysql/toolkit/components/connector.py
 mysql/toolkit/components/core.py
 mysql/toolkit/components/results.py
 mysql/toolkit/script/__init__.py
