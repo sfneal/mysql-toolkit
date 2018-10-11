@@ -13,8 +13,8 @@ mysql/toolkit/components/core.py
 mysql/toolkit/components/results.py
 mysql/toolkit/script/__init__.py
 mysql/toolkit/script/dump.py
-mysql/toolkit/script/execute.py
 mysql/toolkit/script/prepare.py
+mysql/toolkit/script/script.py
 mysql/toolkit/script/split.py
 mysql_toolkit.egg-info/PKG-INFO
 mysql_toolkit.egg-info/SOURCES.txt
