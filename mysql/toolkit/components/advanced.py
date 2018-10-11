@@ -91,6 +91,10 @@ class Advanced:
         if len(to_update) > 0:
             self.update_many(table, columns, to_update, pk_col, 0)
 
+        # No inserted or updated rows
+        if len(to_insert) < 1 and len(to_update) < 0:
+            self._printer('No rows added to', table)
+
     def update_many(self, table, columns, values, where_col, where_index):
         """Update the values of several rows."""
         for row in values:
