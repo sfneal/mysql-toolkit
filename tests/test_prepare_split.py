@@ -5,7 +5,7 @@ from mysql.toolkit.script.split import SplitCommands
 from mysql.toolkit.script.dump import dump_commands
 
 
-with open(os.path.join(os.path.dirname(__file__), 'data', 'All_In_HPA1.sql'), 'r') as sf:
+with open(os.path.join(os.path.dirname(__file__), 'data', 'long.sql'), 'r') as sf:
     stmnt = sf.read()
 
 

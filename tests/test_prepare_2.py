@@ -1,10 +1,12 @@
+import os
 from mysql.toolkit.script.prepare import prepare_sql
 
 
-stmnt = '''
-
-'''
+with open(os.path.join(os.path.dirname(__file__), 'data', 'oneline.sql'), 'r') as sf:
+    stmnt = sf.read()
 
 print(stmnt)
 print('------------------------------------------------------------------------')
-print(prepare_sql(stmnt))
+s = prepare_sql(stmnt)
+print('------------------------------------------------------------------------')
+print(s)

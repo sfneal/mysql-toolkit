@@ -95,4 +95,9 @@ CREATE TABLE `HomePlan` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 '''
-print(prepare_sql(stmnt))
+# print(stmnt)
+# print('------------------------------------------------------------------------')
+# print(prepare_sql(stmnt))
+
+
+prepare_sql(stmnt)
