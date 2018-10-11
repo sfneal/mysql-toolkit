@@ -13,17 +13,8 @@ config = {
 
 
 with MySQL(config) as sql:
-    # Retrieve list of tables
-    # t = sql.tables
-    # for i in t:
-    #     print(i)
-    # print('\n')
-    #
-    # # Show table data schema
-    # s = sql.get_schema('AddressEmailPhoneType', with_headers=True)
-    # for i in s:
-    #     print(i)
-    # print('\n')
+    # Show databases
+    print(sql.databases)
 
     # Count number of rows
     c = sql.count_rows_all()
