@@ -93,12 +93,15 @@ update_many | Update the values of several rows
 truncate_database | Drop all tables in a database
 execute_script | Execute a sql file one command at a time.
 script | Perform operations with a SQL script
+compare_dbs | Compare the tables and row counts of two databases
 
 
 ## Built With
 
 * [differentiate](https://github.com/mrstephenneal/differentiate) - Compare multiple data sets and retrieve the unique, non-repeated elements.
 * [mysql-connector](https://dev.mysql.com/doc/connector-python/en/) - Self-container driver for communication with MySQL servers
+* [looptools](https://github.com/mrstephenneal/looptools) - Logging output, timing processes and counting iterations
+* [sqlparse](https://github.com/andialbrecht/sqlparse) - A non-validating SQL parser module for Python
 * [tqdm](https://github.com/tqdm/tqdm) - A fast, extensible progress bar for Python
 
 ## Contributing

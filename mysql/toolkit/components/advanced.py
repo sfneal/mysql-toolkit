@@ -117,7 +117,7 @@ class Advanced:
         return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
 
     def compare_dbs(self, db_x, db_y, show=True):
-        """Compare the tables and row counts of several databases."""
+        """Compare the tables and row counts of two databases."""
         self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
         if self.database != db_x:
             self.change_db(db_x)
