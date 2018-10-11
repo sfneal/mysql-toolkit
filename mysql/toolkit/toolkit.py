@@ -1,4 +1,4 @@
-from mysql.toolkit.connector import Connector
+from mysql.toolkit.components.connector import Connector
 from mysql.toolkit.components import Core, Results, Advanced
 
 
