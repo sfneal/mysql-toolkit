@@ -29,7 +29,8 @@ class PrepareSQL:
         :param invalid_starts: Invalid line starts
         """
         # TODO: Create method to clean up VALUES portion of an insert statement
-        self._sql = sql
+        # Add whitespace to comma separated lists
+        self._sql = sql.replace(', ', ',').replace(',', ', ')
         self._add_semicolon = add_semicolon
         self._invalid_starts = invalid_starts
 
