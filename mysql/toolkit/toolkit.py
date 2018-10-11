@@ -1,5 +1,4 @@
-from mysql.toolkit.connector import Connector
-from mysql.toolkit.components import Core, Results, Advanced
+from mysql.toolkit.components import Connector, Core, Results, Advanced
 
 
 class MySQL(Connector, Core, Results, Advanced):
@@ -9,21 +8,22 @@ class MySQL(Connector, Core, Results, Advanced):
         :param config: MySQL server configuration settings
         """
         # Initialize inherited classes
-        Connector.__init__(self, config, enable_printing)
-        Core.__init__(self)
-        Results.__init__(self)
-        Advanced.__init__(self)
+        super().__init__(config, enable_printing)
+        # Connector.__init__(self, config, enable_printing)
+        # Core.__init__(self)
+        # Results.__init__(self)
+        # Advanced.__init__(self)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        print('\tMySQL disconnecting')
+        self._printer('\tMySQL disconnecting')
         try:
             self._disconnect()
         except:
-            print('\tError raised during disconnection')
-        print('\tMySQL disconnected')
+            self._printer('\tError raised during disconnection')
+        self._printer('\tMySQL disconnected')
 
     def disconnect(self):
         """Disconnect from a MySQL database."""

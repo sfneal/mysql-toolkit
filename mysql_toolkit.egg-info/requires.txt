@@ -1,3 +1,5 @@
 mysql-connector>=2.1.6
-tqdm
 differentiate
+sqlparse
+looptools
+tqdm

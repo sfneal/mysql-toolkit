@@ -79,7 +79,7 @@ get\_primary_key | Retrieve the column which is the primary key for a table
 get\_primary_key\_vals | Retrieve a list of primary key values in a table
 get_schema | Retrieve the database schema for a particular table
 count_rows | Get the number of rows in a particular table
-count_rows_all | Get the number of rows for every table in the database
+count\_rows_all | Get the number of rows for every table in the database
 
 #### advanced
 Methods provide functionality that is not (easily) possible with standard MySQL queries
@@ -92,12 +92,16 @@ drop\_empty_tables | Drop all empty tables in a database
 update_many | Update the values of several rows
 truncate_database | Drop all tables in a database
 execute_script | Execute a sql file one command at a time.
+script | Perform operations with a SQL script
+compare_dbs | Compare the tables and row counts of two databases
 
 
 ## Built With
 
 * [differentiate](https://github.com/mrstephenneal/differentiate) - Compare multiple data sets and retrieve the unique, non-repeated elements.
 * [mysql-connector](https://dev.mysql.com/doc/connector-python/en/) - Self-container driver for communication with MySQL servers
+* [looptools](https://github.com/mrstephenneal/looptools) - Logging output, timing processes and counting iterations
+* [sqlparse](https://github.com/andialbrecht/sqlparse) - A non-validating SQL parser module for Python
 * [tqdm](https://github.com/tqdm/tqdm) - A fast, extensible progress bar for Python
 
 ## Contributing

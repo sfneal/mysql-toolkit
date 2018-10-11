@@ -19,8 +19,10 @@ setup(
     namespace_packages=['mysql'],
     install_requires=[
         'mysql-connector>=2.1.6',
-        'tqdm',
         'differentiate',
+        'sqlparse',
+        'looptools',
+        'tqdm',
     ],
     url='https://github.com/mrstephenneal/mysql-toolkit',
     license='MIT',
