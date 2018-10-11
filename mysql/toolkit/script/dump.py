@@ -41,7 +41,7 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     # Get file name to be used for folder name
     src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
 
-    dump_dir = os.path.join(dump_dir, '{0}_{1}'.format(src_fname, timestamp))
+    dump_dir = os.path.join(dump_dir, '{0} ({1})'.format(src_fname, timestamp))
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
