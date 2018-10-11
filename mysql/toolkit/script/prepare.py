@@ -33,6 +33,9 @@ class PrepareSQL:
         self._add_semicolon = add_semicolon
         self._invalid_starts = invalid_starts
 
+    def __str__(self):
+        return self.prepared
+
     @property
     def prepared(self):
         results = StringIO()
