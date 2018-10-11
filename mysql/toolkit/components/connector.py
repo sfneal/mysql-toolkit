@@ -10,6 +10,7 @@ class Connector:
     from a query, executing a query and batch executing multiple queries.
     """
     def __init__(self, config, enable_printing):
+        self._config = config
         self.enable_printing = enable_printing
         self._cursor = None
         self._cnx = None
@@ -76,3 +77,15 @@ class Connector:
         self._cursor.executemany(command)
         self._commit()
         return True
+
+    def change_db(self, db):
+        """Change connect database."""
+        # Get original config and change database key
+        config = self._config
+        config['database'] = db
+
+        # Close current database connection
+        self._disconnect()
+
+        # Reconnect to the new database
+        self._connect(config)
