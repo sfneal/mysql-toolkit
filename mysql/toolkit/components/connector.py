@@ -14,6 +14,7 @@ class Connector:
         self._cursor = None
         self._cnx = None
         self._connect(config)
+        self.database = config['database']
 
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
