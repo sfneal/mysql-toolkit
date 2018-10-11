@@ -132,4 +132,4 @@ class SQLScript:
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
-        dump_commands(commands, self.sql_script)
+        dump_commands(commands, self.sql_script, self._MySQL.database)
