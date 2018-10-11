@@ -106,8 +106,12 @@ class SQLScript:
     def _execute_commands(self, commands, fails=False):
         """Execute commands and get list of failed commands and count of successful commands"""
         # Confirm that prepare_statements flag is on
-        prepared_commands = list(map(prepare_sql, commands)) if self._prep_statements else commands
-        print('\tCommands prepared', len(prepared_commands))
+        if self._prep_statements:
+            prepared_commands = [prepare_sql(c) for c in tqdm(commands, total=len(commands),
+                                                              desc='Prepping SQL Commands')]
+            print('\tCommands prepared', len(prepared_commands))
+        else:
+            prepared_commands = commands
 
         desc = 'Executing SQL Commands' if not fails else 'Executing Failed SQL Commands'
         fail, success = [], 0
