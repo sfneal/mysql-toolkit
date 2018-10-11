@@ -15,12 +15,13 @@ except ImportError:
     pass
 
 
-def dump_commands(commands, sql_script, sub_folder='fails'):
+def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     """
     Dump SQL commands to .sql files.
 
     :param commands: List of SQL commands
     :param sql_script: Path to SQL script
+    :param db: Name of a database
     :param sub_folder: Sub folder to dump commands to
     :return: Directory failed commands were dumped to
     """
@@ -33,7 +34,14 @@ def dump_commands(commands, sql_script, sub_folder='fails'):
     dump_dir = os.path.join(directory, sub_folder)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
-    dump_dir = os.path.join(dump_dir, datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S'))
+
+    # Set current timestamp
+    timestamp = datetime.fromtimestamp(time()).strftime('%H-%M-%S')
+
+    # Get file name to be used for folder name
+    src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
+
+    dump_dir = os.path.join(dump_dir, '{0}_{1}'.format(src_fname, timestamp))
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
