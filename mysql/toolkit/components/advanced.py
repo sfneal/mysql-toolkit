@@ -1,4 +1,4 @@
-from differentiate import differentiate
+from differentiate import diff
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
 
@@ -29,11 +29,6 @@ class Advanced:
     #     self._printer(statement)
 
     def backup_database(self, structure=True, data=True):
-        # TODO: Create method
-        pass
-
-    def compare_dbs(self):
-        """Compare the structure and data of two databases."""
         # TODO: Create method
         pass
 
@@ -120,3 +115,37 @@ class Advanced:
     def script(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True):
         """Wrapper method providing access to the SQLScript class's methods and properties"""
         return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
+
+    def compare_dbs(self, db_x, db_y, show=True):
+        """Compare the tables and row counts of several databases."""
+        self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
+        if self.database != db_x:
+            self.change_db(db_x)
+        x = self.count_rows_all()
+        x_tbls = len(self.tables)
+        if x_tbls == 0:
+            return
+
+        if self.database != db_y:
+            self.change_db(db_y)
+        y = self.count_rows_all()
+        y_tbls = len(self.tables)
+        if y_tbls == 0:
+            return
+
+        # Print comparisons
+        if show:
+            uniques = diff(x, y, x_only=True)
+            print('Unique keys from {0} ({1} of {2}):'.format(db_x, len(uniques), x_tbls))
+            print('------------------------------')
+            for k, v in sorted(uniques):
+                print('{0:25} {1}'.format(k, v))
+            print('\n')
+
+            uniques = diff(x, y, y_only=True)
+            print('Unique keys from {0} ({1} of {2}):'.format(db_y, len(uniques), y_tbls))
+            print('------------------------------')
+            for k, v in sorted(uniques):
+                print('{0:25} {1}'.format(k, v))
+            print('\n')
+        return diff(x, y)
