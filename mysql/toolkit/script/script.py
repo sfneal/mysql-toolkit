@@ -93,16 +93,21 @@ class SQLScript:
         :param execute_fails: Boolean, attempt to execute failed commands again
         :return: Successful and failed commands
         """
+        # Break connection
+        self._MySQL.disconnect()
         self._execute_iters += 1
         if self._execute_iters > 0:
             print('\tExecuting commands attempt #{0}'.format(self._execute_iters))
 
         # Retrieve commands from sql_script if no commands are provided
-        commands = getattr(self, 'fetched_commands', self.commands) if not commands else commands
+        commands = self.commands if not commands else commands
 
         # Remove 'DROP' commands
         if ignored_commands:
             commands = filter_commands(commands, ignored_commands)
+
+        # Reestablish connection
+        self._MySQL.reconnect()
 
         # Execute list of commands
         fail, success = self._execute_commands(commands)
