@@ -1,5 +1,6 @@
 import os
 from tqdm import tqdm
+from looptools import Timer
 from mysql.toolkit.script.dump import dump_commands, write_read_commands
 from mysql.toolkit.script.split import SplitCommands
 from mysql.toolkit.script.prepare import prepare_sql, filter_commands
@@ -48,33 +49,34 @@ class SQLScript:
         print('\tRetrieving commands from', self.sql_script)
         print('\tUsing command splitter algorithm {0}'.format(self.split_algo))
 
-        # Split commands
-        # sqlparse packages split function combined with sql_split function
-        if self.split_algo is 'sql_parse':
-            commands = SplitCommands(self.sql_script).sql_parse
+        with Timer('\tRetrieved commands in'):
+            # Split commands
+            # sqlparse packages split function combined with sql_split function
+            if self.split_algo is 'sql_parse':
+                commands = SplitCommands(self.sql_script).sql_parse
 
-        # Split on every ';' (unreliable)
-        elif self.split_algo is 'simple_split':
-            commands = SplitCommands(self.sql_script).simple_split()
+            # Split on every ';' (unreliable)
+            elif self.split_algo is 'simple_split':
+                commands = SplitCommands(self.sql_script).simple_split()
 
-        # sqlparse package without additional splitting
-        elif self.split_algo is 'sql_parse_nosplit':
-            commands = SplitCommands(self.sql_script).sql_parse_nosplit
+            # sqlparse package without additional splitting
+            elif self.split_algo is 'sql_parse_nosplit':
+                commands = SplitCommands(self.sql_script).sql_parse_nosplit
 
-        # Parse every char of the SQL script and determine breakpoints
-        elif self.split_algo is 'sql_split':
-            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
-        else:
-            commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
+            # Parse every char of the SQL script and determine breakpoints
+            elif self.split_algo is 'sql_split':
+                commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
+            else:
+                commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
 
-        # remove dbo. prefixes from table names
-        cleaned_commands = [com.replace("dbo.", '') for com in commands]
+            # remove dbo. prefixes from table names
+            cleaned_commands = [com.replace("dbo.", '') for com in commands]
 
-        # Write and read each command to a text file
-        read_commands = write_read_commands(cleaned_commands)
+            # Write and read each command to a text file
+            read_commands = write_read_commands(cleaned_commands)
 
-        # Prepare commands for SQL execution
-        setattr(self, 'fetched_commands', read_commands)
+            # Prepare commands for SQL execution
+            setattr(self, 'fetched_commands', read_commands)
         return read_commands
 
     def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True):
@@ -91,7 +93,7 @@ class SQLScript:
         """
         self._execute_iters += 1
         if self._execute_iters > 0:
-            self._printer('\tExecuting commands attempt #{0}'.format(self._execute_iters))
+            print('\tExecuting commands attempt #{0}'.format(self._execute_iters))
 
         # Retrieve commands from sql_script if no commands are provided
         commands = getattr(self, 'fetched_commands', self.commands) if not commands else commands
