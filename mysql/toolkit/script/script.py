@@ -92,6 +92,7 @@ class SQLScript:
         :param commands: List of SQL commands
         :param ignored_commands: Boolean, skip SQL commands that begin with 'DROP'
         :param execute_fails: Boolean, attempt to execute failed commands again
+        :param max_executions: Int, max number of attempted executions
         :return: Successful and failed commands
         """
         # Break connection
