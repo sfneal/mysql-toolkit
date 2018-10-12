@@ -47,54 +47,6 @@ class Advanced:
                 drops.append(table)
         return drops
 
-    def insert_uniques(self, table, columns, values):
-        """
-        Insert multiple rows into a table that do not already exist.
-
-        If the rows primary key already exists, the rows values will be updated.
-        If the rows primary key does not exists, a new row will be inserted
-        """
-        # Rows that exist in the table
-        existing_rows = self.select(table, columns)
-
-        # Rows that DO NOT exist in the table
-        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
-
-        # Keys that exist in the table
-        keys = self.get_primary_key_values(table)
-
-        # Primary key's column index
-        pk_col = self.get_primary_key(table)
-        pk_index = columns.index(pk_col)
-
-        # Split list of unique rows into list of rows to update and rows to insert
-        to_insert, to_update = [], []
-        for index, row in enumerate(unique):
-            # Primary key is not in list of pk values, insert new row
-            if row[pk_index] not in keys:
-                to_insert.append(unique[index])
-
-            # Primary key exists, update row rather than insert
-            elif row[pk_index] in keys:
-                to_update.append(unique[index])
-
-        # Insert new rows
-        if len(to_insert) > 0:
-            self.insert_many(table, columns, to_insert)
-
-        # Update existing rows
-        if len(to_update) > 0:
-            self.update_many(table, columns, to_update, pk_col, 0)
-
-        # No inserted or updated rows
-        if len(to_insert) < 1 and len(to_update) < 0:
-            self._printer('No rows added to', table)
-
-    def update_many(self, table, columns, values, where_col, where_index):
-        """Update the values of several rows."""
-        for row in values:
-            self.update(table, columns, row, (where_col, row[where_index]))
-
     def truncate_database(self, database=None):
         """Drop all tables in a database."""
         # Change database if needed
