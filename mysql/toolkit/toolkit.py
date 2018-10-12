@@ -24,7 +24,3 @@ class MySQL(Connector, Core, Results, Advanced):
         except:
             self._printer('\tError raised during disconnection')
         self._printer('\tMySQL disconnected')
-
-    def disconnect(self):
-        """Disconnect from a MySQL database."""
-        self._disconnect()
