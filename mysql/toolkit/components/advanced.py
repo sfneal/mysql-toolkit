@@ -58,7 +58,7 @@ class Advanced:
         existing_rows = self.select(table, columns)
 
         # Rows that DO NOT exist in the table
-        unique = differentiate(existing_rows, values)  # Get values that are not in existing_rows
+        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
 
         # Keys that exist in the table
         keys = self.get_primary_key_values(table)
@@ -119,33 +119,44 @@ class Advanced:
     def compare_dbs(self, db_x, db_y, show=True):
         """Compare the tables and row counts of two databases."""
         self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
-        if self.database != db_x:
-            self.change_db(db_x)
-        x = self.count_rows_all()
-        x_tbls = len(self.tables)
-        if x_tbls == 0:
-            return
 
-        if self.database != db_y:
-            self.change_db(db_y)
-        y = self.count_rows_all()
-        y_tbls = len(self.tables)
-        if y_tbls == 0:
-            return
+        # Run compare_dbs_getter to get row counts
+        x = self._compare_dbs_getter(db_x)
+        y = self._compare_dbs_getter(db_y)
+        x_tbl_count = len(list(x.keys()))
+        y_tbl_count = len(list(y.keys()))
+
+        # Check that database does not have zero tables
+        if x_tbl_count == 0:
+            self._printer('\tThe database {0} has no tables'.format(db_x))
+            self._printer('\tDatabase differencing was not run')
+            return None
+        elif y_tbl_count == 0:
+            self._printer('\tThe database {0} has no tables'.format(db_y))
+            self._printer('\tDatabase differencing was not run')
+            return None
 
         # Print comparisons
         if show:
             uniques = diff(x, y, x_only=True)
-            print('Unique keys from {0} ({1} of {2}):'.format(db_x, len(uniques), x_tbls))
-            print('------------------------------')
+            self._printer('\nUnique keys from {0} ({1} of {2}):'.format(db_x, len(uniques), x_tbl_count))
+            self._printer('------------------------------')
+            # print(uniques)
             for k, v in sorted(uniques):
-                print('{0:25} {1}'.format(k, v))
-            print('\n')
+                self._printer('{0:25} {1}'.format(k, v))
+            self._printer('\n')
 
             uniques = diff(x, y, y_only=True)
-            print('Unique keys from {0} ({1} of {2}):'.format(db_y, len(uniques), y_tbls))
-            print('------------------------------')
+            self._printer('Unique keys from {0} ({1} of {2}):'.format(db_y, len(uniques), y_tbl_count))
+            self._printer('------------------------------')
             for k, v in sorted(uniques):
-                print('{0:25} {1}'.format(k, v))
-            print('\n')
+                self._printer('{0:25} {1}'.format(k, v))
+            self._printer('\n')
         return diff(x, y)
+
+    def _compare_dbs_getter(self, db):
+        """Retrieve a dictionary of table_name, row count key value pairs for a DB."""
+        # Change DB connection if needed
+        if self.database != db:
+            self.change_db(db)
+        return self.count_rows_all()
