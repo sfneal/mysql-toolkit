@@ -63,11 +63,13 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
         pool = Pool(cpu_count())
         pool.map(dump, command_filepath)
         pool.close()
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing) to', dump_dir)
+        print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
+              '\n\t\tMethod    : (multiprocessing)\n\t\tDirectory : {0}'.format(dump_dir))
     else:
         for tup in command_filepath:
             dump(tup)
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing) to', dump_dir)
+        print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
+              '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
     # Return base directory of dumped commands
     return dump_dir
