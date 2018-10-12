@@ -32,12 +32,6 @@ class Advanced:
         # TODO: Create method
         pass
 
-    def truncate(self, table):
-        """Empty a table by deleting all of its rows."""
-        statement = "TRUNCATE " + wrap(table)
-        self.execute(statement)
-        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
-
     def drop(self, table):
         """Drop a table from a database."""
         self.execute('DROP TABLE ' + wrap(table))
@@ -57,6 +51,12 @@ class Advanced:
                 self._printer('Dropped table', table)
                 drops.append(table)
         return drops
+
+    def truncate(self, table):
+        """Empty a table by deleting all of its rows."""
+        statement = "TRUNCATE " + wrap(table)
+        self.execute(statement)
+        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
 
     def truncate_database(self, database=None):
         """Drop all tables in a database."""
