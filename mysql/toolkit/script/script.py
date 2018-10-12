@@ -174,6 +174,6 @@ def get_commands_from_dir(directory, zip_backup=True):
 
     # Remove most recent failures folder after reading
     if zip_backup:
-        ZipBackup(directory)
+        ZipBackup(directory).backup()
         shutil.rmtree(directory)
     return commands
