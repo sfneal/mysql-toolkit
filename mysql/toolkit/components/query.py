@@ -2,7 +2,7 @@ from differentiate import diff
 from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
-class Core:
+class Query:
     def __init__(self):
         pass
 
