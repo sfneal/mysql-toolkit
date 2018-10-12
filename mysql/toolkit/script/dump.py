@@ -29,19 +29,24 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     fails = [com + ';\n' for com in commands]
     print('\t' + str(len(fails)), 'failed commands')
 
-    # Create a directory to save fail SQL scripts
+    # Get base directory
     directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
-    dump_dir = os.path.join(directory, sub_folder)
-    if not os.path.exists(dump_dir):
-        os.mkdir(dump_dir)
-
-    # Set current timestamp
-    timestamp = datetime.fromtimestamp(time()).strftime('%H-%M-%S')
 
     # Get file name to be used for folder name
     src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
 
-    dump_dir = os.path.join(dump_dir, '{0} ({1})'.format(src_fname, timestamp))
+    # Set current timestamp
+    timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
+
+    # Create a directory to save fail SQL scripts
+    # TODO: Replace with function that recursively creates directories until path exists
+    dump_dir = os.path.join(directory, sub_folder)
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    dump_dir = os.path.join(dump_dir, src_fname)
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    dump_dir = os.path.join(dump_dir, timestamp)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
