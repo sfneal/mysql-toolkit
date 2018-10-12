@@ -95,8 +95,12 @@ class Advanced:
         for row in values:
             self.update(table, columns, row, (where_col, row[where_index]))
 
-    def truncate_database(self):
+    def truncate_database(self, database=None):
         """Drop all tables in a database."""
+        # Change database if needed
+        if database in self.databases and database is not self.database:
+            self.change_db(database)
+
         # Get list of tables
         tables = self.tables if isinstance(self.tables, list) else [self.tables]
         if len(tables) > 0:
@@ -138,20 +142,27 @@ class Advanced:
 
         # Print comparisons
         if show:
-            uniques = diff(x, y, x_only=True)
-            self._printer('\nUnique keys from {0} ({1} of {2}):'.format(db_x, len(uniques), x_tbl_count))
-            self._printer('------------------------------')
-            # print(uniques)
-            for k, v in sorted(uniques):
-                self._printer('{0:25} {1}'.format(k, v))
-            self._printer('\n')
+            uniques_x = diff(x, y, x_only=True)
+            if len(uniques_x) > 0:
+                self._printer('\nUnique keys from {0} ({1} of {2}):'.format(db_x, len(uniques_x), x_tbl_count))
+                self._printer('------------------------------')
+                # print(uniques)
+                for k, v in sorted(uniques_x):
+                    self._printer('{0:25} {1}'.format(k, v))
+                self._printer('\n')
 
-            uniques = diff(x, y, y_only=True)
-            self._printer('Unique keys from {0} ({1} of {2}):'.format(db_y, len(uniques), y_tbl_count))
-            self._printer('------------------------------')
-            for k, v in sorted(uniques):
-                self._printer('{0:25} {1}'.format(k, v))
-            self._printer('\n')
+            uniques_y = diff(x, y, y_only=True)
+            if len(uniques_y) > 0:
+                self._printer('Unique keys from {0} ({1} of {2}):'.format(db_y, len(uniques_y), y_tbl_count))
+                self._printer('------------------------------')
+                for k, v in sorted(uniques_y):
+                    self._printer('{0:25} {1}'.format(k, v))
+                self._printer('\n')
+
+            if len(uniques_y) == 0 and len(uniques_y) == 0:
+                self._printer("Databases's {0} and {1} are identical:".format(db_x, db_y))
+                self._printer('------------------------------')
+
         return diff(x, y)
 
     def _compare_dbs_getter(self, db):
@@ -160,3 +171,51 @@ class Advanced:
         if self.database != db:
             self.change_db(db)
         return self.count_rows_all()
+
+    def copy_table_structure(self, source_db, destination_db, table):
+        """Copy a table from one database to another."""
+        command = "CREATE TABLE {0}.{1} LIKE {2}.{3}".format(destination_db, table, source_db, table)
+        self.execute(command)
+
+    def copy_tables_structure(self, source_db, destination_db, tables=None):
+        """Copy multiple tables from one database to another."""
+        if tables is None:
+            tables = self.tables
+        for t in tables:
+            self.copy_table_structure(source_db, destination_db, t)
+
+    def create_database(self, name):
+        """Create a new database."""
+        statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
+        return self.execute(statement)
+
+    def copy_database(self, source, destination):
+        """
+        Copy a database's content and structure.
+
+        Inspiration: https://stackoverflow.com/questions/15110769/how-to-clone-mysql-database-under-a-different-name
+        -with-the-same-name-and-the-sa
+        """
+        # Create destination database if it does not exist
+        if destination not in self.databases:
+            self.create_database(destination)
+        # Truncate database if it does exist
+        elif destination in self.databases:
+            self.truncate_database(destination)
+
+        # Change database to source
+        self.change_db(source)
+
+        # CREATE TABLE commands
+        self.copy_tables_structure(source, destination)
+
+        # Get table data and columns from source database
+        rows = {tbl: self.select_all(tbl) for tbl in self.tables}
+        cols = {tbl: self.get_columns(tbl) for tbl in self.tables}
+
+        # Change database to destination
+        self.change_db(destination)
+
+        # Insert data into destination database
+        for table in self.tables:
+            self.insert_many(table, cols[table], rows[table])
