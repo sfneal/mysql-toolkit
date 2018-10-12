@@ -1,7 +1,7 @@
-from mysql.toolkit.components import Connector, Core, Results, Advanced
+from mysql.toolkit.components import Connector, Core, Results, Operations
 
 
-class MySQL(Connector, Core, Results, Advanced):
+class MySQL(Connector, Core, Results, Operations):
     def __init__(self, config, enable_printing=True):
         """
         Connect to MySQL database and execute queries

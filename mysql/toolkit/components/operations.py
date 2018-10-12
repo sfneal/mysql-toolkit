@@ -3,7 +3,7 @@ from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
 
 
-class Advanced:
+class Operations:
     def __init__(self):
         pass
 
