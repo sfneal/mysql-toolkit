@@ -20,7 +20,7 @@ def filter_commands(commands, invalid_query_starts=('DROP', 'UNLOCK', 'LOCK')):
 
 
 class PrepareSQL:
-    def __init__(self, sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
+    def __init__(self, sql, add_semicolon=True, invalid_starts=('--', '/*', '*/', ';')):
         """
         Prepare a SQL statement for execution by removing comments and validating syntax.
 
@@ -129,6 +129,6 @@ class PrepareSQL:
         return None
 
 
-def prepare_sql(sql, add_semicolon=False, invalid_starts=('--', '/*', '*/', ';')):
+def prepare_sql(sql, add_semicolon=True, invalid_starts=('--', '/*', '*/', ';')):
     """Wrapper method for PrepareSQL class."""
     return PrepareSQL(sql, add_semicolon, invalid_starts).prepared

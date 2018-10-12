@@ -29,19 +29,24 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     fails = [com + ';\n' for com in commands]
     print('\t' + str(len(fails)), 'failed commands')
 
-    # Create a directory to save fail SQL scripts
+    # Get base directory
     directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
-    dump_dir = os.path.join(directory, sub_folder)
-    if not os.path.exists(dump_dir):
-        os.mkdir(dump_dir)
-
-    # Set current timestamp
-    timestamp = datetime.fromtimestamp(time()).strftime('%H-%M-%S')
 
     # Get file name to be used for folder name
     src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
 
-    dump_dir = os.path.join(dump_dir, '{0} ({1})'.format(src_fname, timestamp))
+    # Set current timestamp
+    timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
+
+    # Create a directory to save fail SQL scripts
+    # TODO: Replace with function that recursively creates directories until path exists
+    dump_dir = os.path.join(directory, sub_folder)
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    dump_dir = os.path.join(dump_dir, src_fname)
+    if not os.path.exists(dump_dir):
+        os.mkdir(dump_dir)
+    dump_dir = os.path.join(dump_dir, timestamp)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
 
@@ -58,11 +63,13 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
         pool = Pool(cpu_count())
         pool.map(dump, command_filepath)
         pool.close()
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(multiprocessing) to', dump_dir)
+        print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
+              '\n\t\tMethod    : (multiprocessing)\n\t\tDirectory : {0}'.format(dump_dir))
     else:
         for tup in command_filepath:
             dump(tup)
-        print('\tDumped ', len(command_filepath), 'commands in', timer.end, '(sequential processing) to', dump_dir)
+        print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
+              '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
     # Return base directory of dumped commands
     return dump_dir
@@ -74,13 +81,9 @@ def dump(tup):
 
     :param tup: SQL command, text file path tuple
     """
-    # Unpack tuple
+    # Unpack tuple, clean command and dump to text file
     _command, txt_file = tup
-
-    # Clean up command
     command = _command.strip()
-
-    # Dump to text file
     with open(txt_file, 'w') as txt:
         txt.writelines(command)
 

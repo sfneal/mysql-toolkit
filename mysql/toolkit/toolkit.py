@@ -1,7 +1,7 @@
-from mysql.toolkit.components import Connector, Core, Results, Advanced
+from mysql.toolkit.components import Connector, Query, SQL, Operations
 
 
-class MySQL(Connector, Core, Results, Advanced):
+class MySQL(Connector, Query, SQL, Operations):
     def __init__(self, config, enable_printing=True):
         """
         Connect to MySQL database and execute queries
@@ -24,7 +24,3 @@ class MySQL(Connector, Core, Results, Advanced):
         except:
             self._printer('\tError raised during disconnection')
         self._printer('\tMySQL disconnected')
-
-    def disconnect(self):
-        """Disconnect from a MySQL database."""
-        self._disconnect()

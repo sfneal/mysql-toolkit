@@ -89,3 +89,11 @@ class Connector:
 
         # Reconnect to the new database
         self._connect(config)
+
+    def disconnect(self):
+        """Disconnect from a MySQL database."""
+        self._disconnect()
+
+    def reconnect(self):
+        """Reconnect to a MySQL database using the same config."""
+        self._connect(self._config)

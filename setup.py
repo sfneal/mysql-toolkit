@@ -18,6 +18,7 @@ setup(
     packages=find_packages(),
     namespace_packages=['mysql'],
     install_requires=[
+        'dirutility>=0.3.4',
         'mysql-connector>=2.1.6',
         'differentiate',
         'sqlparse',
