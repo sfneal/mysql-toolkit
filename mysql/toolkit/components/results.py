@@ -42,6 +42,10 @@ class Results:
             f.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return f
 
+    def get_columns(self, table):
+        """Retrieve a list of columns in a table."""
+        return [schema[0] for schema in self.get_schema(table)]
+
     def count_rows(self, table):
         """Get the number of rows in a particular table"""
         return self.select(table, 'COUNT(*)', False)
