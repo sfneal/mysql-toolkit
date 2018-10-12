@@ -1,6 +1,8 @@
 import os
+import shutil
 from tqdm import tqdm
 from looptools import Timer
+from dirutility.backup import ZipBackup
 from mysql.toolkit.script.dump import dump_commands, write_read_commands
 from mysql.toolkit.script.split import SplitCommands
 from mysql.toolkit.script.prepare import prepare_sql, filter_commands
@@ -162,4 +164,8 @@ def get_commands_from_dir(directory):
         with open(sql_file, 'r') as txt:
             sql_command = txt.read()
         commands.append(sql_command)
+
+    # Remove most recent failures folder after reading
+    ZipBackup(directory)
+    shutil.rmtree(directory)
     return commands
