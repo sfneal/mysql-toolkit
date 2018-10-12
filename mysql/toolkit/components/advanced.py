@@ -32,6 +32,17 @@ class Advanced:
         # TODO: Create method
         pass
 
+    def truncate(self, table):
+        """Empty a table by deleting all of its rows."""
+        statement = "TRUNCATE " + wrap(table)
+        self.execute(statement)
+        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
+
+    def drop(self, table):
+        """Drop a table from a database."""
+        self.execute('DROP TABLE ' + wrap(table))
+        return table
+
     def drop_empty_tables(self):
         """Drop all empty tables in a database."""
         # Count number of rows in each table

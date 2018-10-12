@@ -135,14 +135,3 @@ class Core:
         """Update the values of several rows."""
         for row in values:
             self.update(table, columns, row, (where_col, row[where_index]))
-
-    def truncate(self, table):
-        """Empty a table by deleting all of its rows."""
-        statement = "TRUNCATE " + wrap(table)
-        self.execute(statement)
-        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
-
-    def drop(self, table):
-        """Drop a table from a database."""
-        self.execute('DROP TABLE ' + wrap(table))
-        return table
