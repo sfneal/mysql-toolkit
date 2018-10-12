@@ -81,13 +81,9 @@ def dump(tup):
 
     :param tup: SQL command, text file path tuple
     """
-    # Unpack tuple
+    # Unpack tuple, clean command and dump to text file
     _command, txt_file = tup
-
-    # Clean up command
     command = _command.strip()
-
-    # Dump to text file
     with open(txt_file, 'w') as txt:
         txt.writelines(command)
 
