@@ -1,3 +1,4 @@
+import os
 from tqdm import tqdm
 from mysql.toolkit.script.dump import dump_commands, write_read_commands
 from mysql.toolkit.script.split import SplitCommands
@@ -10,6 +11,9 @@ try:
     MULTIPROCESS = True
 except ImportError:
     pass
+
+
+MAX_EXECUTION_ATTEMPTS = 5
 
 
 class SQLScript:
@@ -29,6 +33,9 @@ class SQLScript:
 
         # Dump failed SQL commands boolean
         self._dump_fails = dump_fails
+
+        # execute method iterations
+        self._execute_iters = 0
 
     @property
     def commands(self):
@@ -82,6 +89,10 @@ class SQLScript:
         :param execute_fails: Boolean, attempt to execute failed commands again
         :return: Successful and failed commands
         """
+        self._execute_iters += 1
+        if self._execute_iters > 0:
+            self._printer('\tExecuting commands attempt #{0}'.format(self._execute_iters))
+
         # Retrieve commands from sql_script if no commands are provided
         commands = getattr(self, 'fetched_commands', self.commands) if not commands else commands
 
@@ -96,12 +107,11 @@ class SQLScript:
         print('\t' + str(success), 'successful commands')
         if len(fail) > 1 and self._dump_fails:
             # Dump failed commands
-            self.dump_commands(fail)
+            dump_dir = self.dump_commands(fail)
 
             # Execute failed commands
-            if execute_fails:
-                print('executing failed')
-                self._execute_failed_commands(fail)
+            if execute_fails and self._execute_iters < MAX_EXECUTION_ATTEMPTS:
+                return self._execute_commands_from_dir(dump_dir)
         return fail, success
 
     def _execute_commands(self, commands, fails=False):
@@ -125,11 +135,29 @@ class SQLScript:
                 fail.append(command)
         return fail, success
 
-    def _execute_failed_commands(self, fails):
+    def _execute_commands_from_dir(self, directory):
         """Re-attempt to split and execute the failed commands"""
+        # Get file paths and contents
+        commands = get_commands_from_dir(directory)
+
         # Execute failed commands again
-        self._execute_commands(fails, fails=True)
+        print('\tAttempting to execute {0} failed commands'.format(len(commands)))
+        return self.execute(commands, ignored_commands=None, execute_fails=True)
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
-        dump_commands(commands, self.sql_script, self._MySQL.database)
+        return dump_commands(commands, self.sql_script, self._MySQL.database)
+
+
+def get_commands_from_dir(directory):
+    """Traverse a directory and read contained SQL files."""
+    # Get SQL script file paths
+    failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
+
+    # Read each failed SQL file and append contents to a list
+    commands = []
+    for sql_file in tqdm(failed_scripts, total=len(failed_scripts), desc='Reading failed SQL scripts'):
+        with open(sql_file, 'r') as txt:
+            sql_command = txt.read()
+        commands.append(sql_command)
+    return commands
