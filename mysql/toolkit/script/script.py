@@ -81,7 +81,8 @@ class SQLScript:
             setattr(self, 'fetched_commands', read_commands)
         return read_commands
 
-    def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True):
+    def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True,
+                max_executions=MAX_EXECUTION_ATTEMPTS):
         """
         Sequentially execute a list of SQL commands.
 
@@ -119,7 +120,7 @@ class SQLScript:
             dump_dir = self.dump_commands(fail)
 
             # Execute failed commands
-            if execute_fails and self._execute_iters < MAX_EXECUTION_ATTEMPTS:
+            if execute_fails and self._execute_iters < max_executions:
                 return self._execute_commands_from_dir(dump_dir)
         return fail, success
 
