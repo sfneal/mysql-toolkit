@@ -153,7 +153,7 @@ class SQLScript:
         return dump_commands(commands, self.sql_script, self._MySQL.database)
 
 
-def get_commands_from_dir(directory):
+def get_commands_from_dir(directory, zip_backup=True):
     """Traverse a directory and read contained SQL files."""
     # Get SQL script file paths
     failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
@@ -166,6 +166,7 @@ def get_commands_from_dir(directory):
         commands.append(sql_command)
 
     # Remove most recent failures folder after reading
-    ZipBackup(directory)
-    shutil.rmtree(directory)
+    if zip_backup:
+        ZipBackup(directory)
+        shutil.rmtree(directory)
     return commands
