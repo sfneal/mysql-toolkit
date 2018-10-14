@@ -54,6 +54,10 @@ class Query:
 
         If only one row is found, self.insert method will be used.
         """
+        # Make values a list of lists if it is a flat list
+        if not isinstance(values[0], list):
+            values = [[v] for v in values]
+
         # Use self.insert if only one row is being inserted
         if len(values) < 2:
             self.insert(table, columns, values[0])
@@ -102,7 +106,7 @@ class Query:
         unique = diff(existing_rows, values)  # Get values that are not in existing_rows
 
         # Keys that exist in the table
-        keys = self.get_primary_key_values(table)
+        keys = self.get_primary_key_vals(table)
 
         # Primary key's column index
         pk_col = self.get_primary_key(table)

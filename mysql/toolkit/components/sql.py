@@ -26,7 +26,7 @@ class SQL:
     def get_primary_key(self, table):
         """Retrieve the column which is the primary key for a table."""
         for column in self.get_schema(table):
-            if 'pri' in column[3].lower():
+            if len(column) > 3 and 'pri' in column[3].lower():
                 return column[0]
 
     def get_primary_key_vals(self, table):
@@ -36,6 +36,8 @@ class SQL:
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
         f = self._fetch('desc ' + wrap(table))
+        if not isinstance(f[0], list):
+            f = [f]
 
         # If with_headers is True, insert headers to first row before returning
         if with_headers:
