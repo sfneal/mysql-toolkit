@@ -7,26 +7,40 @@ class Operations:
     def __init__(self):
         pass
 
-    def create_table(self, table, data, headers=None):
+    def create_table(self, name, data, headers=None):
         """Generate and execute a create table query by parsing a 2D dataset"""
         # TODO: Finish writing method
-        pass
-    #     # Set headers list
-    #     if not headers:
-    #         headers = data[0]
-    #
-    #     # Create dictionary columns and data types from headers list
-    #     data_types = {header: None for header in headers}
-    #
-    #     # Confirm that each row of the dataset is the same length
-    #     for row in data:
-    #         assert len(row) == len(headers)
-    #
-    #     # Create list of columns
-    #     columns = [header + ' ' + data_type for header, data_type in data_types]
-    #     self._printer(columns)
-    #     statement = "create table " + table + " ("
-    #     self._printer(statement)
+        # Set headers list
+        if not headers:
+            headers = data[0]
+
+        # Create dictionary columns and data types from headers list
+        data_types = {header: {'type': None, 'max': None} for header in headers}
+
+        # Confirm that each row of the dataset is the same length
+        for row in data:
+            assert len(row) == len(headers)
+            row_dict = dict(zip(headers, row))
+            for k, v in row_dict.items():
+                if data_types[k]['type'] is None:
+                    data_types[k]['type'] = type(v)
+                    data_types[k]['max'] = len(str(v))
+                else:
+                    data_types[k]['max'] = max(len(str(v)), data_types[k]['max'])
+
+
+        for k, v in data_types.items():
+            print(k, v)
+
+        # Create list of columns
+        columns = []
+        for column, v in data_types.items():
+            var_type = 'INT' if isinstance(v['type'], int) else 'VARCHAR'
+            var_max = str(v['max'])
+
+        self._printer(columns)
+        statement = "create table " + name + " ("
+        self._printer(statement)
 
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
