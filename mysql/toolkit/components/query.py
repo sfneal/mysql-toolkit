@@ -111,8 +111,7 @@ class Query:
 
             if len(values) > limit:
                 while len(values) > 0:
-                    print(len(values))
-                    vals = [values.pop(0) for i in range(0, limit)]
+                    vals = [values.pop(0) for i in range(0, min(limit, values))]
                     self._cursor.executemany(statement, vals)
 
             else:
