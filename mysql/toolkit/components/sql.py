@@ -15,8 +15,7 @@ class SQL:
     @property
     def tables(self):
         """Retrieve a list of tables in the connected database"""
-        statement = 'show tables'
-        return self.fetch(statement)
+        return self.fetch('show tables')
 
     @property
     def databases(self):
