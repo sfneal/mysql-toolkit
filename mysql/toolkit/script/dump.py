@@ -5,6 +5,7 @@ from datetime import datetime
 from looptools import Timer
 
 # Conditional import of multiprocessing module
+# Replace with global import
 try:
     from multiprocessing import cpu_count
     from multiprocessing.pool import Pool
@@ -23,9 +24,7 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     :param sub_folder: Sub folder to dump commands to
     :return: Directory failed commands were dumped to
     """
-    # Re-add semi-colon separator
-    fails = [com + ';\n' for com in commands]
-    print('\t' + str(len(fails)), 'failed commands')
+    print('\t' + str(len(commands)), 'failed commands')
 
     # Get base directory
     directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
@@ -49,7 +48,7 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
         os.mkdir(dump_dir)
 
     # Create list of (path, content) tuples
-    command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(fails)]
+    command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(commands)]
 
     # Dump failed commands to text file in the same directory as the script
     # Utilize's multiprocessing module if it is available
