@@ -72,6 +72,11 @@ class Connector:
         self._commit()
         return True
 
+    def executemore(self, command):
+        """Execute a single SQL query without returning a result."""
+        self._cursor.execute(command)
+        return True
+
     def executemany(self, command):
         """Execute multiple SQL queries without returning a result."""
         self._cursor.executemany(command)

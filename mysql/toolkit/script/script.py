@@ -137,10 +137,11 @@ class SQLScript:
         for command in tqdm(prepared_commands, total=len(prepared_commands), desc=desc):
             # Attempt to execute command and skip command if error is raised
             try:
-                self._MySQL.execute(command)
+                self._MySQL.executemore(command)
                 success += 1
             except:
                 fail.append(command)
+        self._MySQL._commit()
         return fail, success
 
     def _execute_commands_from_dir(self, directory):
