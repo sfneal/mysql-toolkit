@@ -2,17 +2,17 @@ def get_col_val_str(columns, query_type='insert'):
     cols = ""
     vals = ""
     if query_type == 'insert':
-        for c in columns:
-            cols = cols + c + ', '
-            vals = vals + '%s' + ', '
+        for index, column in enumerate(columns):
+            cols = cols + column + ', '
+            vals = vals + '{' + str(index) + '}' + ', '
 
         # Remove last comma and space
         cols = cols[:-2]
         vals = vals[:-2]
         return cols, vals
     if query_type == 'update':
-        for c in columns:
-            cols = str(cols + c + '=%s, ')
+        for column in columns:
+            cols = str(cols + column + '=%s, ')
 
         # Remove last comma and space
         cols = cols[:-2]
