@@ -38,8 +38,7 @@ class Query:
     def select(self, table, cols):
         """Query every row and only certain columns from a table."""
         # Concatenate statement
-        cols_str = join_cols(cols)
-        return self.fetch('SELECT {0} FROM {1}'.format(cols, wrap(table)))
+        return self.fetch('SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table)))
 
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY):
         """Query all rows and columns from a table."""
@@ -55,7 +54,8 @@ class Query:
         # TODO: Write function to run a select * left join query
         pass
 
-    def _select_limit_statement(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
+    @staticmethod
+    def _select_limit_statement(table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
         """Concatenate a select with offset and limit statement."""
         return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(cols, wrap(table), offset, limit)
 
@@ -111,6 +111,7 @@ class Query:
 
             if len(values) > limit:
                 while len(values) > 0:
+                    print(len(values))
                     vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
                     self._cursor.executemany(statement, vals)
 
