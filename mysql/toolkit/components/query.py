@@ -93,6 +93,9 @@ class Query:
 
         If only one row is found, self.insert method will be used.
         """
+        # Valid that at least one row is to be inserted
+        if len(values) < 1:
+            return False
 
         # Make values a list of lists if it is a flat list
         if not isinstance(values[0], list):
@@ -107,9 +110,12 @@ class Query:
             statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
             print(statement)
 
-            # Valid that at least one row is to be inserted
-            if len(values) < 1:
-                return False
+            if len(values) > limit:
+                while len(values) > 0:
+                    print(len(values))
+                    vals = [values.pop(0) for i in range(0, limit)]
+                    self._cursor.executemany(statement, vals)
+
             else:
                 # Execute statement
                 self._cursor.executemany(statement, values)
