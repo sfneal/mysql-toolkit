@@ -27,7 +27,6 @@ class Query:
         til_reconnect = queries_per_batch
         for c in commands:
             if til_reconnect == 0:
-                self._commit()
                 self.disconnect()
                 self.reconnect()
                 til_reconnect = queries_per_batch
@@ -111,7 +110,6 @@ class Query:
 
             if len(values) > limit:
                 while len(values) > 0:
-                    print(len(values))
                     vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
                     self._cursor.executemany(statement, vals)
 
