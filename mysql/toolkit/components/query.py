@@ -81,8 +81,6 @@ class Query:
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
         statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
-        print(statement)
-        print(values)
 
         # Execute statement
         self._cursor.execute(statement, values)
@@ -114,12 +112,10 @@ class Query:
         if len(values) > limit:
             while len(values) > 0:
                 vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
-                print(len(vals), statement)
                 self._cursor.executemany(statement, vals)
 
         else:
             # Execute statement
-            print(len(values), statement)
             self._cursor.executemany(statement, values)
             self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
 
