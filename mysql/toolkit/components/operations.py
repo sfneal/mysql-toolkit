@@ -200,7 +200,7 @@ class Operations:
         rows = {tbl: self.select_all(tbl) for tbl in tqdm(tables, total=len(tables),
                                                           desc='Getting {0} rows'.format(source))}
         cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
-                                                           desc='Getting {0} table columns'.format(source))}
+                                                           desc='Getting {0} columns'.format(source))}
 
         # Validate rows and columns
         for r in list(rows.keys()):
