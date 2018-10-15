@@ -3,8 +3,6 @@ import os
 from time import time
 from datetime import datetime
 from looptools import Timer
-from tqdm import tqdm
-from tempfile import NamedTemporaryFile
 
 # Conditional import of multiprocessing module
 try:
@@ -83,40 +81,3 @@ def dump(tup):
     command = _command.strip()
     with open(txt_file, 'w') as txt:
         txt.writelines(command)
-
-
-def _write_read(command):
-    """Write and read SQL commands to and from text files."""
-    # Create temporary file context
-    with NamedTemporaryFile(suffix='.sql') as temp:
-        # Write to sql file
-        with open(temp.name, 'w') as write:
-            write.writelines(command)
-
-        # Read the sql file
-        with open(temp.name, 'r') as read:
-            _command = read.read()
-    return _command
-
-
-def _write_read_packed(pack):
-    """Multiprocessing intermediary wrapper"""
-    index, command = pack
-    return [index, _write_read(command)]
-
-
-def write_read_commands(commands):
-    """Multiprocessing wrapper for _write_read function."""
-    if MULTIPROCESS:
-        commands_packed = [(index, command) for index, command in enumerate(commands)]
-        timer = Timer()
-        pool = Pool(cpu_count())
-        _commands = pool.map(_write_read_packed, commands_packed)
-        pool.close()
-        print('\tRead and Wrote ', len(_commands), 'commands in', timer.end, '(multiprocessing)')
-
-        # Sort list by index and then return flat list of commands
-        return [cmd_lst[1] for cmd_lst in sorted(_commands, key=lambda i: i[0])]
-    else:
-        return [_write_read(command) for command in tqdm(commands, total=len(commands),
-                                                         desc='Writing and Reading SQL commands')]
