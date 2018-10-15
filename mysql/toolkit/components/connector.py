@@ -63,17 +63,31 @@ class Connector:
                 rows.append(list(row))
         return rows
 
-    def _fetch(self, statement, commit):
-        """Execute a SQL query and return a result."""
-        # Execute statement
-        self._cursor.execute(statement)
-        fetch = self._cursor.fetchall()
-        rows = self._fetch_rows(fetch)
-        if commit:
-            self._commit()
+    def _fetch(self, statement, commit, max_attempts=5):
+        """
+        Execute a SQL query and return a result.
 
-        # Return a single item if the list only has one item
-        return rows[0] if len(rows) == 1 else rows
+        Recursively disconnect and reconnect to the database
+        if an error occurs.
+        """
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                # Execute statement
+                self._cursor.execute(statement)
+                fetch = self._cursor.fetchall()
+                rows = self._fetch_rows(fetch)
+                if commit:
+                    self._commit()
+
+                # Return a single item if the list only has one item
+                return rows[0] if len(rows) == 1 else rows
+            except Exception as e:
+                attempts += 1
+                self.disconnect()
+                self.reconnect()
+                continue
+        raise e
 
     def fetch(self, statement, commit=True):
         """Execute a SQL query and attempt to disconnect and reconnect if failure occurs."""
