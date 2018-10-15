@@ -213,5 +213,5 @@ class Operations:
 
         # Insert data into destination database
         for table in tqdm(tables, total=len(tables), desc='Inserting rows into tables'):
-            self.insert_many(table, cols.pop(table), rows.pop(table))
+            self.insert_many(table, cols[table], rows[table])
         self.enable_printing = True
