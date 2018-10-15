@@ -192,11 +192,11 @@ class Operations:
         self.copy_tables_structure(source, destination)
 
         # Change database to source
+        self.enable_printing = False
         self.change_db(source)
 
         # Get table data and columns from source database
         tables = self.tables
-        self.enable_printing = False
         rows = {tbl: self.select_all(tbl) for tbl in tqdm(tables, total=len(tables),
                                                           desc='Getting {0} rows'.format(source))}
         cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
