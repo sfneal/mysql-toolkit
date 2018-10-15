@@ -80,7 +80,6 @@ class Connector:
         try:
             return self._fetch(statement, commit)
         except InterfaceError:
-            self.disconnect()
             self.reconnect()
             return self._fetch(statement, commit)
 
