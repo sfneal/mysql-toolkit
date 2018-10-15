@@ -52,7 +52,9 @@ class Connector:
         """Commit the changes made during the current connection."""
         self._cnx.commit()
 
-    def _fetch_rows(self, fetch):
+    @staticmethod
+    def _fetch_rows(fetch):
+        """Retrieve fetched rows from a MySQL cursor."""
         rows = []
         for row in fetch:
             if len(row) == 1:
@@ -61,7 +63,7 @@ class Connector:
                 rows.append(list(row))
         return rows
 
-    def fetch(self, statement, commit=True):
+    def _fetch(self, statement, commit):
         """Execute a SQL query and return a result."""
         # Execute statement
         self._cursor.execute(statement)
@@ -72,6 +74,15 @@ class Connector:
 
         # Return a single item if the list only has one item
         return rows[0] if len(rows) == 1 else rows
+
+    def fetch(self, statement, commit=True):
+        """Execute a SQL query and attempt to disconnect and reconnect if failure occurs."""
+        try:
+            return self._fetch(statement, commit)
+        except InterfaceError:
+            self.disconnect()
+            self.reconnect()
+            return self._fetch(statement, commit)
 
     def execute(self, command):
         """Execute a single SQL query without returning a result."""
