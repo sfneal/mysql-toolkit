@@ -107,8 +107,7 @@ class Query:
         else:
             # Concatenate statement
             cols, vals = get_col_val_str(columns)
-            statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
-            print(statement)
+            statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
 
             if len(values) > limit:
                 while len(values) > 0:
