@@ -1,6 +1,7 @@
 from differentiate import diff
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
+from tqdm import tqdm
 
 
 class Operations:
@@ -151,14 +152,20 @@ class Operations:
 
     def copy_table_structure(self, source_db, destination_db, table):
         """Copy a table from one database to another."""
-        command = "CREATE TABLE {0}.{1} LIKE {2}.{3}".format(destination_db, table, source_db, table)
-        self.execute(command)
+        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
 
     def copy_tables_structure(self, source_db, destination_db, tables=None):
         """Copy multiple tables from one database to another."""
+        # Change database to source
+        self.change_db(source_db)
+
         if tables is None:
             tables = self.tables
-        for t in tables:
+
+        # Change database to destination
+        self.change_db(destination_db)
+        print('\n')
+        for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source_db)):
             self.copy_table_structure(source_db, destination_db, t)
 
     def create_database(self, name):
@@ -173,26 +180,38 @@ class Operations:
         Inspiration: https://stackoverflow.com/questions/15110769/how-to-clone-mysql-database-under-a-different-name
         -with-the-same-name-and-the-sa
         """
+        print('\tCopying database {0} strucutre and data to database {1}'.format(source, destination))
         # Create destination database if it does not exist
-        if destination not in self.databases:
-            self.create_database(destination)
-        # Truncate database if it does exist
-        elif destination in self.databases:
+        if destination in self.databases:
             self.truncate_database(destination)
-
-        # Change database to source
-        self.change_db(source)
+        # Truncate database if it does exist
+        else:
+            self.create_database(destination)
 
         # CREATE TABLE commands
         self.copy_tables_structure(source, destination)
 
+        # Change database to source
+        self.change_db(source)
+
         # Get table data and columns from source database
-        rows = {tbl: self.select_all(tbl) for tbl in self.tables}
-        cols = {tbl: self.get_columns(tbl) for tbl in self.tables}
+        tables = self.tables
+        self.enable_printing = False
+        rows = {tbl: self.select_all(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                          desc='Getting {0} rows'.format(source))}
+        cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                           desc='Getting {0} table columns'.format(source))}
+
+        # Validate rows and columns
+        for r in list(rows.keys()):
+            assert r in tables, r
+        for c in list(cols.keys()):
+            assert c in tables, c
 
         # Change database to destination
         self.change_db(destination)
 
         # Insert data into destination database
-        for table in self.tables:
-            self.insert_many(table, cols[table], rows[table])
+        for table in tqdm(tables, total=len(tables), desc='Inserting rows into tables'):
+            self.insert_many(table, cols.pop(table), rows.pop(table))
+        self.enable_printing = True

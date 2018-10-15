@@ -31,7 +31,7 @@ class SQL:
 
     def get_primary_key_vals(self, table):
         """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table), _print=False)
+        return self.select(table, self.get_primary_key(table))
 
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
@@ -50,7 +50,7 @@ class SQL:
 
     def count_rows(self, table):
         """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
+        return self._fetch('SELECT COUNT(*) FROM {0}'.format(wrap(table)))
 
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""
