@@ -211,7 +211,7 @@ class Operations:
         self.change_db(destination)
 
         # Insert data into destination database
-        for table in tqdm(tables, total=len(tables), desc='Inserting rows into tables'):
+        for table in tqdm(tables, disable=True, total=len(tables), desc='Inserting rows into tables'):
             if len(rows[table]) > 1:
                 self.insert_many(table, cols[table], rows[table])
             elif len(rows[table]) == 1:

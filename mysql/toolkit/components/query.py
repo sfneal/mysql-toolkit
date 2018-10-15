@@ -80,8 +80,9 @@ class Query:
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
-        statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
+        statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
         print(statement)
+        print(values)
 
         # Execute statement
         self._cursor.execute(statement, values)
@@ -94,30 +95,33 @@ class Query:
         If only one row is found, self.insert method will be used.
         """
         # Valid that at least one row is to be inserted
-        if len(values) < 1:
+        if len(values) < 2:
             return False
 
         # Make values a list of lists if it is a flat list
         if not isinstance(values[0], list):
-            values = [[v] for v in values]
+            values = []
+            for v in values:
+                if v is not None and len(v) > 0:
+                    values.append([v])
+                else:
+                    values.append([None])
 
-        # Use self.insert if only one row is being inserted
-        if len(values) < 2:
-            self.insert(table, columns, values[0])
+        # Concatenate statement
+        cols, vals = get_col_val_str(columns)
+        statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
+
+        if len(values) > limit:
+            while len(values) > 0:
+                vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
+                print(len(vals), statement)
+                self._cursor.executemany(statement, vals)
+
         else:
-            # Concatenate statement
-            cols, vals = get_col_val_str(columns)
-            statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
-
-            if len(values) > limit:
-                while len(values) > 0:
-                    vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
-                    self._cursor.executemany(statement, vals)
-
-            else:
-                # Execute statement
-                self._cursor.executemany(statement, values)
-                self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
+            # Execute statement
+            print(len(values), statement)
+            self._cursor.executemany(statement, values)
+            self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
 
     def update(self, table, columns, values, where):
         """
