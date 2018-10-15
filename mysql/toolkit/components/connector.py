@@ -19,7 +19,8 @@ class Connector:
 
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
-        self._printer('\tMySQL connecting')
+        if 'connection_timeout' not in self._config:
+            self._config['connection_timeout'] = 480
         try:
             self._cnx = connect(**config)
             self._cursor = self._cnx.cursor()
@@ -50,18 +51,23 @@ class Connector:
         """Commit the changes made during the current connection."""
         self._cnx.commit()
 
-    def _fetch(self, statement, _print=False):
-        """Execute a SQL query and return a result."""
-        # Execute statement
-        self._cursor.execute(statement)
+    def _fetch_rows(self, fetch):
         rows = []
-        for row in self._cursor:
+        for row in fetch:
             if len(row) == 1:
                 rows.append(row[0])
             else:
                 rows.append(list(row))
-        if _print:
-            self._printer('\tMySQL rows successfully queried', len(rows))
+        return rows
+
+    def _fetch(self, statement, commit=True):
+        """Execute a SQL query and return a result."""
+        # Execute statement
+        self._cursor.execute(statement)
+        fetch = self._cursor.fetchall()
+        rows = self._fetch_rows(fetch)
+        if commit:
+            self._commit()
 
         # Return a single item if the list only has one item
         return rows[0] if len(rows) == 1 else rows
