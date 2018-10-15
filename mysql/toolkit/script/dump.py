@@ -51,10 +51,7 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
         os.mkdir(dump_dir)
 
     # Create list of (path, content) tuples
-    command_filepath = []
-    for count, fail in enumerate(fails):
-        txt_file = os.path.join(dump_dir, str(count) + '.sql')
-        command_filepath.append((fail, txt_file))
+    command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(fails)]
 
     # Dump failed commands to text file in the same directory as the script
     # Utilize's multiprocessing module if it is available
