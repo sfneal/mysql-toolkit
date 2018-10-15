@@ -80,11 +80,11 @@ class Query:
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
-        statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")".format(values)
+        statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
         print(statement)
 
         # Execute statement
-        self.execute(statement)
+        self._cursor.execute(statement, values)
         self._printer('\tMySQL row successfully inserted')
 
     def insert_many(self, table, columns, values, limit=MAX_ROWS_PER_QUERY):

@@ -214,6 +214,6 @@ class Operations:
         for table in tqdm(tables, total=len(tables), desc='Inserting rows into tables'):
             if len(rows[table]) > 1:
                 self.insert_many(table, cols[table], rows[table])
-            else:
+            elif len(rows[table]) == 1:
                 self.insert(table, cols[table], rows[table])
         self.enable_printing = True
