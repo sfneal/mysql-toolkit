@@ -16,12 +16,12 @@ class SQL:
     def tables(self):
         """Retrieve a list of tables in the connected database"""
         statement = 'show tables'
-        return self._fetch(statement)
+        return self.fetch(statement)
 
     @property
     def databases(self):
         """Retrieve a list of databases that are accessible under the current connection"""
-        return self._fetch('show databases')
+        return self.fetch('show databases')
 
     def get_primary_key(self, table):
         """Retrieve the column which is the primary key for a table."""
@@ -35,7 +35,7 @@ class SQL:
 
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
-        f = self._fetch('desc ' + wrap(table))
+        f = self.fetch('desc ' + wrap(table))
         if not isinstance(f[0], list):
             f = [f]
 
@@ -50,7 +50,7 @@ class SQL:
 
     def count_rows(self, table):
         """Get the number of rows in a particular table"""
-        return self._fetch('SELECT COUNT(*) FROM {0}'.format(wrap(table)))
+        return self.fetch('SELECT COUNT(*) FROM {0}'.format(wrap(table)))
 
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""

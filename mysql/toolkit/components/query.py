@@ -31,7 +31,7 @@ class Query:
                 self.disconnect()
                 self.reconnect()
                 til_reconnect = queries_per_batch
-            rows.extend(self._fetch(c, False))
+            rows.extend(self.fetch(c, False))
             til_reconnect += -1
         return rows
 
@@ -39,7 +39,7 @@ class Query:
         """Query every row and only certain columns from a table."""
         # Concatenate statement
         cols_str = join_cols(cols)
-        return self._fetch('SELECT {0} FROM {1}'.format(cols, wrap(table)))
+        return self.fetch('SELECT {0} FROM {1}'.format(cols, wrap(table)))
 
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY):
         """Query all rows and columns from a table."""
@@ -61,7 +61,7 @@ class Query:
 
     def select_limit(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
         """Run a select query with an offset and limit parameter."""
-        return self._fetch(self._select_limit_statement(table, cols, offset, limit))
+        return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
     def select_where(self, table, cols, where):
         """Query certain columns from a table where a particular value is found."""
@@ -75,7 +75,7 @@ class Query:
         where_col, where_val = where
 
         statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
-        self._fetch(statement)
+        self.fetch(statement)
 
     def insert(self, table, columns, values):
         """Insert a single row into a table."""

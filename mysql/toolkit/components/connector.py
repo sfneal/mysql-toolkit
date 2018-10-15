@@ -1,5 +1,6 @@
 from mysql.connector import connect, Error
 from mysql.connector import errorcode
+from mysql.connector.errors import InterfaceError
 
 
 class Connector:
@@ -60,7 +61,7 @@ class Connector:
                 rows.append(list(row))
         return rows
 
-    def _fetch(self, statement, commit=True):
+    def fetch(self, statement, commit=True):
         """Execute a SQL query and return a result."""
         # Execute statement
         self._cursor.execute(statement)
