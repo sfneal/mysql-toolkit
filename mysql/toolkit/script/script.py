@@ -20,7 +20,8 @@ MAX_EXECUTION_ATTEMPTS = 5
 
 
 class SQLScript:
-    def __init__(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True, mysql_instance=None):
+    def __init__(self, sql_script=None, split_algo='sql_split', prep_statements=True, dump_fails=True,
+                 mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self._MySQL = mysql_instance
