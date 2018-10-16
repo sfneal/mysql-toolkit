@@ -14,38 +14,37 @@ except ImportError:
     pass
 
 
-def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
-    """
-    Dump SQL commands to .sql files.
-
-    :param commands: List of SQL commands
-    :param sql_script: Path to SQL script
-    :param db: Name of a database
-    :param sub_folder: Sub folder to dump commands to
-    :return: Directory failed commands were dumped to
-    """
-    print('\t' + str(len(commands)), 'failed commands')
-
-    # Get base directory
-    directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
-
-    # Get file name to be used for folder name
-    src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
-
+def set_dump_directory(base, sub_dir):
+    """Create directory for dumping SQL commands."""
     # Set current timestamp
     timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
 
     # Create a directory to save fail SQL scripts
     # TODO: Replace with function that recursively creates directories until path exists
-    dump_dir = os.path.join(directory, sub_folder)
-    if not os.path.exists(dump_dir):
-        os.mkdir(dump_dir)
-    dump_dir = os.path.join(dump_dir, src_fname)
+    if not os.path.exists(base):
+        os.mkdir(base)
+    dump_dir = os.path.join(base, sub_dir)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
     dump_dir = os.path.join(dump_dir, timestamp)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
+    return dump_dir
+
+
+def dump_commands(commands, directory, sub_dir=None):
+    """
+    Dump SQL commands to .sql files.
+
+    :param commands: List of SQL commands
+    :param directory: Directory to dump commands to
+    :param sub_dir: Sub directory
+    :return: Directory failed commands were dumped to
+    """
+    print('\t' + str(len(commands)), 'failed commands')
+
+    # Create dump_dir directory
+    dump_dir = set_dump_directory(directory, sub_dir)
 
     # Create list of (path, content) tuples
     command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(commands)]
@@ -55,13 +54,13 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     timer = Timer()
     if MULTIPROCESS:
         pool = Pool(cpu_count())
-        pool.map(dump, command_filepath)
+        pool.map(write_text, command_filepath)
         pool.close()
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (multiprocessing)\n\t\tDirectory : {0}'.format(dump_dir))
     else:
         for tup in command_filepath:
-            dump(tup)
+            write_text(tup)
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
@@ -69,7 +68,7 @@ def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
     return dump_dir
 
 
-def dump(tup):
+def write_text(tup):
     """
     Dump SQL command to a text file.
 

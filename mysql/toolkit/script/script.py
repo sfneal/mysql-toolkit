@@ -156,7 +156,13 @@ class SQLScript:
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
-        return dump_commands(commands, self.sql_script, self._MySQL.database)
+        # Get base directory
+        directory = os.path.join(os.path.dirname(self.sql_script), 'fails')
+
+        # Get file name to be used for folder name
+        fname = os.path.basename(self.sql_script.rsplit('.')[0])
+
+        return dump_commands(commands, directory, fname)
 
 
 def get_commands_from_dir(directory, zip_backup=True):
