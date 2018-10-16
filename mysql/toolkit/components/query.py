@@ -85,17 +85,22 @@ class Query:
         statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
         self.fetch(statement)
 
-    def insert(self, table, columns, values):
+    def insert(self, table, columns, values, execute=True):
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
         statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
 
         # Execute statement
-        self._cursor.execute(statement, values)
-        self._printer('\tMySQL row successfully inserted')
+        if execute:
+            self._cursor.execute(statement, values)
+            self._printer('\tMySQL row successfully inserted')
 
-    def insert_many(self, table, columns, values, limit=MAX_ROWS_PER_QUERY):
+        # Only return statement
+        else:
+            return statement
+
+    def insert_many(self, table, columns, values, limit=MAX_ROWS_PER_QUERY, execute=True):
         """
         Insert multiple rows into a table.
 
@@ -118,17 +123,21 @@ class Query:
         cols, vals = get_col_val_str(columns)
         statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
 
-        if len(values) > limit:
+        if execute and len(values) > limit:
             while len(values) > 0:
                 vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
-                self._cursor.executemany(statement, values)
+                self._cursor.executemany(statement, vals)
                 self._commit()
 
-        else:
+        elif execute:
             # Execute statement
             self._cursor.executemany(statement, values)
             self._commit()
             self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
+
+        # Only return statement
+        else:
+            return statement
 
     def update(self, table, columns, values, where):
         """
