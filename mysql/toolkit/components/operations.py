@@ -212,7 +212,6 @@ class Operations:
                                   desc='Executing {0} select queries'.format(source)):
             rows[tbl] = []
             for command in commands:
-                print('\t{0}'.format(command))
                 rows[tbl].extend(self.fetch(command, commit=True))
         self._commit()
 
