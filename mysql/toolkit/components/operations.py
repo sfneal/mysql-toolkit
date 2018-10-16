@@ -239,7 +239,7 @@ class Operations:
             elif 'insert' in query:
                 self.execute(query['insert'])
 
-    def copy_database_data(self, source, destination, to_disk):
+    def copy_database_data(self, source, destination):
         """
         Copy the data from one database to another.
 
@@ -266,7 +266,7 @@ class Operations:
         self.change_db(destination)
 
         # Get insert queries
-        insert_queries = self.set_database_rows_insert_queries(rows, cols, to_disk)
+        insert_queries = self.set_database_rows_insert_queries(rows, cols)
 
         # Execute insert queries
         self.set_database_rows_execute_queries(insert_queries)
