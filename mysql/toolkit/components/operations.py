@@ -178,18 +178,21 @@ class Operations:
         row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
                        tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
 
-        # Pack command strings into lists
+        # Convert command strings into lists of commands
         for tbl, command in row_queries.items():
             if isinstance(command, str):
                 row_queries[tbl] = [command]
 
+        # Pack commands into list of tuples
+        commands = [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
+
         # Execute select commands
         rows = {}
-        for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
-                                  desc='Executing {0} select queries'.format(source)):
-            rows[tbl] = []
-            for command in commands:
-                rows[tbl].extend(self.fetch(command, commit=True))
+        for tbl, command in tqdm(commands, total=len(commands), desc='Executing {0} select queries'.format(source)):
+            # Add key to dictionary
+            if tbl not in rows:
+                rows[tbl] = []
+            rows[tbl].extend(self.fetch(command, commit=True))
         self._commit()
         return rows
 
@@ -245,8 +248,7 @@ class Operations:
             query = insert_queries.pop(table)
             if 'insert_many' in query:
                 stmt, params = query['insert_many']
-                self._cursor.executemany(stmt, params)
-                self._commit()
+                self.executemany(stmt, params)
             elif 'insert' in query:
                 self.execute(query['insert'])
         self.enable_printing = True
