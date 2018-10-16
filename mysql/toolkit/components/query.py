@@ -2,7 +2,7 @@ from differentiate import diff
 from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
-MAX_ROWS_PER_QUERY = 100000
+MAX_ROWS_PER_QUERY = 50000
 
 
 class Query:
@@ -112,11 +112,13 @@ class Query:
         if len(values) > limit:
             while len(values) > 0:
                 vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
-                self._cursor.executemany(statement, vals)
+                self._cursor.executemany(statement, values)
+                self._commit()
 
         else:
             # Execute statement
             self._cursor.executemany(statement, values)
+            self._commit()
             self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
 
     def update(self, table, columns, values, where):
