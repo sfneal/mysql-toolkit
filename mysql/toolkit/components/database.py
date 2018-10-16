@@ -15,7 +15,7 @@ class Database:
         -with-the-same-name-and-the-sa
         """
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
-        with Timer('Success! Copied database {0} to {1} in '.format(source, destination)):
+        with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
             # Create destination database if it does not exist
             if destination in self.databases:
                 self.truncate_database(destination)
