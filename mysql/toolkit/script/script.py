@@ -165,8 +165,9 @@ def get_commands_from_dir(directory, zip_backup=True):
     failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
 
     # Read each failed SQL file and append contents to a list
+    print('\tReading SQL scripts from files')
     commands = []
-    for sql_file in tqdm(failed_scripts, total=len(failed_scripts), desc='Reading failed SQL scripts'):
+    for sql_file in failed_scripts:
         with open(sql_file, 'r') as txt:
             sql_command = txt.read()
         commands.append(sql_command)
