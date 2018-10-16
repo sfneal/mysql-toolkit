@@ -168,12 +168,8 @@ class Operations:
         for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source_db)):
             self.copy_table_structure(source_db, destination_db, t)
 
-    def get_database_rows(self, tables=None, database=None):
-        """Retrieve a dictionary of table keys and list of rows values for every table."""
-        # Get table data and columns from source database
-        source = database if database else self.database
-        tables = tables if tables else self.tables
-
+    def _get_database_rows_select_queries(self, source, tables):
+        """Create select queries for all of the tables from a source database."""
         # Create dictionary of select queries
         row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
                        tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
@@ -184,9 +180,10 @@ class Operations:
                 row_queries[tbl] = [command]
 
         # Pack commands into list of tuples
-        commands = [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
+        return [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
 
-        # Execute select commands
+    def _get_database_rows_execute_queries(self, source, commands):
+        """Execute select queries for all of the tables from a source database."""
         rows = {}
         for tbl, command in tqdm(commands, total=len(commands), desc='Executing {0} select queries'.format(source)):
             # Add key to dictionary
@@ -195,6 +192,18 @@ class Operations:
             rows[tbl].extend(self.fetch(command, commit=True))
         self._commit()
         return rows
+
+    def get_database_rows(self, tables=None, database=None):
+        """Retrieve a dictionary of table keys and list of rows values for every table."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+
+        # Get database select queries
+        commands = self._get_database_rows_select_queries(source, tables)
+
+        # Execute select commands
+        return self._get_database_rows_execute_queries(source, commands)
 
     def get_database_columns(self, tables=None, database=None):
         """Retrieve a dictionary of table keys and column list values for every table."""
