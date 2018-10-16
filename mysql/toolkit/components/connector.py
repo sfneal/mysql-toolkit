@@ -10,22 +10,36 @@ class Connector:
     Handles opening and closing a connection to a database source, fetching results
     from a query, executing a query and batch executing multiple queries.
     """
-    def __init__(self, config, enable_printing):
-        self._config = config
-        self.enable_printing = enable_printing
-        self._cursor = None
-        self._cnx = None
-        self._connect(config)
-        self.database = config['database']
+    _config = None
+    enable_printing = True
+    _cursor = None
+    _cnx = None
+    database = None
+    CONFIGURED = False
 
-    def _connect(self, config):
+    def __init__(self, config=None, enable_printing=None):
+        if self._config is None and config is not None:
+            self.configure(config, enable_printing)
+
+    @classmethod
+    def configure(cls, config, enable_printing):
+        cls._config = config
+        cls.enable_printing = enable_printing
+        cls._cursor = None
+        cls._cnx = None
+        cls._connect(config)
+        cls.database = config['database']
+        cls.CONFIGURED = True
+
+    @classmethod
+    def _connect(cls, config):
         """Establish a connection with a MySQL database."""
-        if 'connection_timeout' not in self._config:
-            self._config['connection_timeout'] = 480
+        if 'connection_timeout' not in cls._config:
+            cls._config['connection_timeout'] = 480
         try:
-            self._cnx = connect(**config)
-            self._cursor = self._cnx.cursor()
-            self._printer('\tMySQL DB connection established with db', config['database'])
+            cls._cnx = connect(**config)
+            cls._cursor = cls._cnx.cursor()
+            cls._printer('\tMySQL DB connection established with db', config['database'])
         except Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
@@ -38,9 +52,10 @@ class Connector:
         self._commit()
         self._close()
 
-    def _printer(self, *msg):
+    @classmethod
+    def _printer(cls, *msg):
         """Printing method for internal use."""
-        if self.enable_printing:
+        if cls.enable_printing:
             print(*msg)
 
     def _close(self):
