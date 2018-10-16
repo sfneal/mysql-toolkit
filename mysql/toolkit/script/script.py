@@ -1,9 +1,7 @@
 import os
-import shutil
 from tqdm import tqdm
 from looptools import Timer
-from dirutility import ZipBackup
-from mysql.toolkit.script.dump import dump_commands
+from mysql.toolkit.script.dump import dump_commands, get_commands_from_dir
 from mysql.toolkit.script.split import SplitCommands
 from mysql.toolkit.script.prepare import prepare_sql, filter_commands
 
@@ -163,23 +161,3 @@ class SQLScript:
         fname = os.path.basename(self.sql_script.rsplit('.')[0])
 
         return dump_commands(commands, directory, fname)
-
-
-def get_commands_from_dir(directory, zip_backup=True):
-    """Traverse a directory and read contained SQL files."""
-    # Get SQL script file paths
-    failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
-
-    # Read each failed SQL file and append contents to a list
-    print('\tReading SQL scripts from files')
-    commands = []
-    for sql_file in failed_scripts:
-        with open(sql_file, 'r') as txt:
-            sql_command = txt.read()
-        commands.append(sql_command)
-
-    # Remove most recent failures folder after reading
-    if zip_backup:
-        ZipBackup(directory).backup()
-        shutil.rmtree(directory)
-    return commands
