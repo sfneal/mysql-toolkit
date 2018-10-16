@@ -2,27 +2,74 @@ from differentiate import diff
 from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
+MAX_ROWS_PER_QUERY = 50000
+
+
 class Query:
     def __init__(self):
         pass
 
-    def select(self, table, cols, _print=True):
+    def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
+        """Run select queries in small batches and return joined resutls."""
+        # Execute select queries in small batches to avoid connection timeout
+        commands, offset = [], 0
+        while num_rows > 0:
+            # Use number of rows as limit if num_rows < limit
+            _limit = min(limit, num_rows)
+
+            # Execute select_limit query
+            commands.append(self._select_limit_statement(table, cols=cols, offset=offset, limit=limit))
+            offset += _limit
+            num_rows += -_limit
+
+        # Execute commands
+        if execute:
+            rows = []
+            til_reconnect = queries_per_batch
+            for c in commands:
+                if til_reconnect == 0:
+                    self.disconnect()
+                    self.reconnect()
+                    til_reconnect = queries_per_batch
+                rows.extend(self.fetch(c, False))
+                til_reconnect += -1
+            del commands
+            return rows
+        # Return commands
+        else:
+            return commands
+
+    def select(self, table, cols, execute=True):
         """Query every row and only certain columns from a table."""
         # Concatenate statement
-        cols_str = join_cols(cols)
-        statement = "SELECT " + cols_str + " FROM " + wrap(table)
-        return self._fetch(statement, _print)
+        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
+        if execute:  # Execute commands
+            return self.fetch(statement)
+        else:  # Return command
+            return statement
 
-    def select_all(self, table):
+    def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
-        # Concatenate statement
-        statement = "SELECT * FROM " + wrap(table)
-        return self._fetch(statement)
+        # Determine if a row per query limit should be set
+        num_rows = self.count_rows(table)
+        if num_rows > limit:
+            return self._select_batched(table, '*', num_rows, limit, execute=execute)
+        else:
+            return self.select(table, '*', execute=execute)
 
     def select_all_join(self, table1, table2, key):
         """Left join all rows and columns from two tables where a common value is shared."""
         # TODO: Write function to run a select * left join query
         pass
+
+    @staticmethod
+    def _select_limit_statement(table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
+        """Concatenate a select with offset and limit statement."""
+        return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(cols, wrap(table), offset, limit)
+
+    def select_limit(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
+        """Run a select query with an offset and limit parameter."""
+        return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
     def select_where(self, table, cols, where):
         """Query certain columns from a table where a particular value is found."""
@@ -36,35 +83,61 @@ class Query:
         where_col, where_val = where
 
         statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
-        self._fetch(statement)
+        self.fetch(statement)
 
-    def insert(self, table, columns, values):
+    def insert(self, table, columns, values, execute=True):
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
-        statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
+        statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
 
         # Execute statement
-        self.execute(statement, values)
-        self._printer('\tMySQL row successfully inserted')
+        if execute:
+            self._cursor.execute(statement, values)
+            self._printer('\tMySQL row successfully inserted')
 
-    def insert_many(self, table, columns, values):
+        # Only return statement
+        else:
+            return statement
+
+    def insert_many(self, table, columns, values, limit=MAX_ROWS_PER_QUERY, execute=True):
         """
         Insert multiple rows into a table.
 
         If only one row is found, self.insert method will be used.
         """
-        # Use self.insert if only one row is being inserted
+        # Valid that at least one row is to be inserted
         if len(values) < 2:
-            self.insert(table, columns, values[0])
-        else:
-            # Concatenate statement
-            cols, vals = get_col_val_str(columns)
-            statement = "INSERT INTO " + wrap(table) + "(" + cols + ") " + "VALUES (" + vals + ")"
+            return False
 
+        # Make values a list of lists if it is a flat list
+        if not isinstance(values[0], list):
+            values = []
+            for v in values:
+                if v is not None and len(v) > 0:
+                    values.append([v])
+                else:
+                    values.append([None])
+
+        # Concatenate statement
+        cols, vals = get_col_val_str(columns)
+        statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
+
+        if execute and len(values) > limit:
+            while len(values) > 0:
+                vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
+                self._cursor.executemany(statement, vals)
+                self._commit()
+
+        elif execute:
             # Execute statement
             self._cursor.executemany(statement, values)
+            self._commit()
             self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
+
+        # Only return statement
+        else:
+            return statement, values
 
     def update(self, table, columns, values, where):
         """
@@ -102,7 +175,7 @@ class Query:
         unique = diff(existing_rows, values)  # Get values that are not in existing_rows
 
         # Keys that exist in the table
-        keys = self.get_primary_key_values(table)
+        keys = self.get_primary_key_vals(table)
 
         # Primary key's column index
         pk_col = self.get_primary_key(table)

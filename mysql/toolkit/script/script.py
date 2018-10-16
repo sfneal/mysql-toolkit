@@ -1,9 +1,7 @@
 import os
-import shutil
 from tqdm import tqdm
 from looptools import Timer
-from dirutility import ZipBackup
-from mysql.toolkit.script.dump import dump_commands, write_read_commands
+from mysql.toolkit.script.dump import dump_commands, get_commands_from_dir
 from mysql.toolkit.script.split import SplitCommands
 from mysql.toolkit.script.prepare import prepare_sql, filter_commands
 
@@ -20,7 +18,8 @@ MAX_EXECUTION_ATTEMPTS = 5
 
 
 class SQLScript:
-    def __init__(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True, mysql_instance=None):
+    def __init__(self, sql_script=None, split_algo='sql_split', prep_statements=True, dump_fails=True,
+                 mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self._MySQL = mysql_instance
@@ -74,12 +73,9 @@ class SQLScript:
             # remove dbo. prefixes from table names
             cleaned_commands = [com.replace("dbo.", '') for com in commands]
 
-            # Write and read each command to a text file
-            read_commands = write_read_commands(cleaned_commands)
-
             # Prepare commands for SQL execution
-            setattr(self, 'fetched_commands', read_commands)
-        return read_commands
+            setattr(self, 'fetched_commands', cleaned_commands)
+        return cleaned_commands
 
     def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True,
                 max_executions=MAX_EXECUTION_ATTEMPTS):
@@ -140,10 +136,11 @@ class SQLScript:
         for command in tqdm(prepared_commands, total=len(prepared_commands), desc=desc):
             # Attempt to execute command and skip command if error is raised
             try:
-                self._MySQL.execute(command)
+                self._MySQL.executemore(command)
                 success += 1
             except:
                 fail.append(command)
+        self._MySQL._commit()
         return fail, success
 
     def _execute_commands_from_dir(self, directory):
@@ -157,23 +154,10 @@ class SQLScript:
 
     def dump_commands(self, commands):
         """Dump commands wrapper for external access."""
-        return dump_commands(commands, self.sql_script, self._MySQL.database)
+        # Get base directory
+        directory = os.path.join(os.path.dirname(self.sql_script), 'fails')
 
+        # Get file name to be used for folder name
+        fname = os.path.basename(self.sql_script.rsplit('.')[0])
 
-def get_commands_from_dir(directory, zip_backup=True):
-    """Traverse a directory and read contained SQL files."""
-    # Get SQL script file paths
-    failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
-
-    # Read each failed SQL file and append contents to a list
-    commands = []
-    for sql_file in tqdm(failed_scripts, total=len(failed_scripts), desc='Reading failed SQL scripts'):
-        with open(sql_file, 'r') as txt:
-            sql_command = txt.read()
-        commands.append(sql_command)
-
-    # Remove most recent failures folder after reading
-    if zip_backup:
-        ZipBackup(directory).backup()
-        shutil.rmtree(directory)
-    return commands
+        return dump_commands(commands, directory, fname)

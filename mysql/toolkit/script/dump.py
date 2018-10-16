@@ -1,12 +1,14 @@
 # Dump SQL commands to files
 import os
+import shutil
+from dirutility import ZipBackup
+from looptools import Timer
 from time import time
 from datetime import datetime
-from looptools import Timer
-from tqdm import tqdm
-from tempfile import NamedTemporaryFile
+from tempfile import TemporaryDirectory
 
 # Conditional import of multiprocessing module
+# Replace with global import
 try:
     from multiprocessing import cpu_count
     from multiprocessing.pool import Pool
@@ -15,67 +17,73 @@ except ImportError:
     pass
 
 
-def dump_commands(commands, sql_script, db=None, sub_folder='fails'):
-    """
-    Dump SQL commands to .sql files.
-
-    :param commands: List of SQL commands
-    :param sql_script: Path to SQL script
-    :param db: Name of a database
-    :param sub_folder: Sub folder to dump commands to
-    :return: Directory failed commands were dumped to
-    """
-    # Re-add semi-colon separator
-    fails = [com + ';\n' for com in commands]
-    print('\t' + str(len(fails)), 'failed commands')
-
-    # Get base directory
-    directory = os.path.dirname(sql_script) if os.path.isfile(sql_script) else sql_script
-
-    # Get file name to be used for folder name
-    src_fname = os.path.basename(sql_script.rsplit('.')[0]) if db is None else db
-
+def set_dump_directory(base=None, sub_dir=None):
+    """Create directory for dumping SQL commands."""
     # Set current timestamp
     timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
 
+    # Clean sub_dir
+    if sub_dir and '.' in sub_dir:
+        sub_dir = sub_dir.rsplit('.', 1)[0]
+
     # Create a directory to save fail SQL scripts
     # TODO: Replace with function that recursively creates directories until path exists
-    dump_dir = os.path.join(directory, sub_folder)
-    if not os.path.exists(dump_dir):
-        os.mkdir(dump_dir)
-    dump_dir = os.path.join(dump_dir, src_fname)
+    if not os.path.exists(base):
+        os.mkdir(base)
+    dump_dir = os.path.join(base, sub_dir) if sub_dir else base
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
     dump_dir = os.path.join(dump_dir, timestamp)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
+        return dump_dir
+
+
+def dump_commands(commands, directory=None, sub_dir=None):
+    """
+    Dump SQL commands to .sql files.
+
+    :param commands: List of SQL commands
+    :param directory: Directory to dump commands to
+    :param sub_dir: Sub directory
+    :return: Directory failed commands were dumped to
+    """
+    print('\t' + str(len(commands)), 'failed commands')
+
+    # Create dump_dir directory
+    if directory and os.path.isfile(directory):
+        dump_dir = set_dump_directory(os.path.dirname(directory), sub_dir)
+        return_dir = dump_dir
+    elif directory:
+        dump_dir = set_dump_directory(directory, sub_dir)
+        return_dir = dump_dir
+    else:
+        dump_dir = TemporaryDirectory().name
+        return_dir = TemporaryDirectory()
 
     # Create list of (path, content) tuples
-    command_filepath = []
-    for count, fail in enumerate(fails):
-        txt_file = os.path.join(dump_dir, str(count) + '.sql')
-        command_filepath.append((fail, txt_file))
+    command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(commands)]
 
     # Dump failed commands to text file in the same directory as the script
     # Utilize's multiprocessing module if it is available
     timer = Timer()
     if MULTIPROCESS:
         pool = Pool(cpu_count())
-        pool.map(dump, command_filepath)
+        pool.map(write_text, command_filepath)
         pool.close()
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (multiprocessing)\n\t\tDirectory : {0}'.format(dump_dir))
     else:
         for tup in command_filepath:
-            dump(tup)
+            write_text(tup)
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
     # Return base directory of dumped commands
-    return dump_dir
+    return return_dir
 
 
-def dump(tup):
+def write_text(tup):
     """
     Dump SQL command to a text file.
 
@@ -88,38 +96,22 @@ def dump(tup):
         txt.writelines(command)
 
 
-def _write_read(command):
-    """Write and read SQL commands to and from text files."""
-    # Create temporary file context
-    with NamedTemporaryFile(suffix='.sql') as temp:
-        # Write to sql file
-        with open(temp.name, 'w') as write:
-            write.writelines(command)
+def get_commands_from_dir(directory, zip_backup=True, remove_dir=True):
+    """Traverse a directory and read contained SQL files."""
+    # Get SQL script file paths
+    failed_scripts = sorted([os.path.join(directory, fn) for fn in os.listdir(directory) if fn.endswith('.sql')])
 
-        # Read the sql file
-        with open(temp.name, 'r') as read:
-            _command = read.read()
-    return _command
+    # Read each failed SQL file and append contents to a list
+    print('\tReading SQL scripts from files')
+    commands = []
+    for sql_file in failed_scripts:
+        with open(sql_file, 'r') as txt:
+            sql_command = txt.read()
+        commands.append(sql_command)
 
-
-def _write_read_packed(pack):
-    """Multiprocessing intermediary wrapper"""
-    index, command = pack
-    return [index, _write_read(command)]
-
-
-def write_read_commands(commands):
-    """Multiprocessing wrapper for _write_read function."""
-    if MULTIPROCESS:
-        commands_packed = [(index, command) for index, command in enumerate(commands)]
-        timer = Timer()
-        pool = Pool(cpu_count())
-        _commands = pool.map(_write_read_packed, commands_packed)
-        pool.close()
-        print('\tRead and Wrote ', len(_commands), 'commands in', timer.end, '(multiprocessing)')
-
-        # Sort list by index and then return flat list of commands
-        return [cmd_lst[1] for cmd_lst in sorted(_commands, key=lambda i: i[0])]
-    else:
-        return [_write_read(command) for command in tqdm(commands, total=len(commands),
-                                                         desc='Writing and Reading SQL commands')]
+    # Remove most recent failures folder after reading
+    if zip_backup:
+        ZipBackup(directory).backup()
+    if remove_dir:
+        shutil.rmtree(directory)
+    return commands

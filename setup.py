@@ -20,7 +20,7 @@ setup(
     install_requires=[
         'dirutility>=0.3.4',
         'mysql-connector>=2.1.6',
-        'differentiate',
+        'differentiate>=1.1.7',
         'sqlparse',
         'looptools',
         'tqdm',

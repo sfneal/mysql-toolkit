@@ -15,27 +15,28 @@ class SQL:
     @property
     def tables(self):
         """Retrieve a list of tables in the connected database"""
-        statement = 'show tables'
-        return self._fetch(statement)
+        return self.fetch('show tables')
 
     @property
     def databases(self):
         """Retrieve a list of databases that are accessible under the current connection"""
-        return self._fetch('show databases')
+        return self.fetch('show databases')
 
     def get_primary_key(self, table):
         """Retrieve the column which is the primary key for a table."""
         for column in self.get_schema(table):
-            if 'pri' in column[3].lower():
+            if len(column) > 3 and 'pri' in column[3].lower():
                 return column[0]
 
     def get_primary_key_vals(self, table):
         """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table), _print=False)
+        return self.select(table, self.get_primary_key(table))
 
     def get_schema(self, table, with_headers=False):
         """Retrieve the database schema for a particular table."""
-        f = self._fetch('desc ' + wrap(table))
+        f = self.fetch('desc ' + wrap(table))
+        if not isinstance(f[0], list):
+            f = [f]
 
         # If with_headers is True, insert headers to first row before returning
         if with_headers:
@@ -48,7 +49,7 @@ class SQL:
 
     def count_rows(self, table):
         """Get the number of rows in a particular table"""
-        return self.select(table, 'COUNT(*)', False)
+        return self.fetch('SELECT COUNT(*) FROM {0}'.format(wrap(table)))
 
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""

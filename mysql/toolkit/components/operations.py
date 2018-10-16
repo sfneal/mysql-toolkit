@@ -1,32 +1,47 @@
 from differentiate import diff
+from looptools import Timer
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
+from tqdm import tqdm
 
 
 class Operations:
     def __init__(self):
         pass
 
-    def create_table(self, table, data, headers=None):
+    def create_table(self, name, data, headers=None):
         """Generate and execute a create table query by parsing a 2D dataset"""
         # TODO: Finish writing method
-        pass
-    #     # Set headers list
-    #     if not headers:
-    #         headers = data[0]
-    #
-    #     # Create dictionary columns and data types from headers list
-    #     data_types = {header: None for header in headers}
-    #
-    #     # Confirm that each row of the dataset is the same length
-    #     for row in data:
-    #         assert len(row) == len(headers)
-    #
-    #     # Create list of columns
-    #     columns = [header + ' ' + data_type for header, data_type in data_types]
-    #     self._printer(columns)
-    #     statement = "create table " + table + " ("
-    #     self._printer(statement)
+        # Set headers list
+        if not headers:
+            headers = data[0]
+
+        # Create dictionary columns and data types from headers list
+        data_types = {header: {'type': None, 'max': None} for header in headers}
+
+        # Confirm that each row of the dataset is the same length
+        for row in data:
+            assert len(row) == len(headers)
+            row_dict = dict(zip(headers, row))
+            for k, v in row_dict.items():
+                if data_types[k]['type'] is None:
+                    data_types[k]['type'] = type(v)
+                    data_types[k]['max'] = len(str(v))
+                else:
+                    data_types[k]['max'] = max(len(str(v)), data_types[k]['max'])
+
+        for k, v in data_types.items():
+            print(k, v)
+
+        # Create list of columns
+        columns = []
+        for column, v in data_types.items():
+            var_type = 'INT' if isinstance(v['type'], int) else 'VARCHAR'
+            var_max = str(v['max'])
+
+        self._printer(columns)
+        statement = "create table " + name + " ("
+        self._printer(statement)
 
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
@@ -70,10 +85,10 @@ class Operations:
             # Join list of tables into comma separated string
             tables_str = ', '.join([wrap(table) for table in tables])
             self.execute('DROP TABLE ' + tables_str)
-            self._printer('\t' + str(len(tables)), 'tables truncated')
+            self._printer('\t' + str(len(tables)), 'tables truncated from', database)
         return tables
 
-    def execute_script(self, sql_script, commands=None, split_algo='sql_split', prep_statements=True,
+    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
                        dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
         """Wrapper method for SQLScript class"""
         ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
@@ -137,15 +152,125 @@ class Operations:
 
     def copy_table_structure(self, source_db, destination_db, table):
         """Copy a table from one database to another."""
-        command = "CREATE TABLE {0}.{1} LIKE {2}.{3}".format(destination_db, table, source_db, table)
-        self.execute(command)
+        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
 
-    def copy_tables_structure(self, source_db, destination_db, tables=None):
+    def copy_database_structure(self, source_db, destination_db, tables=None):
         """Copy multiple tables from one database to another."""
+        # Change database to source
+        self.change_db(source_db)
+
         if tables is None:
             tables = self.tables
-        for t in tables:
+
+        # Change database to destination
+        self.change_db(destination_db)
+        print('\n')
+        for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source_db)):
             self.copy_table_structure(source_db, destination_db, t)
+
+    def _get_database_rows_select_queries(self, source, tables):
+        """Create select queries for all of the tables from a source database."""
+        # Create dictionary of select queries
+        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
+                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
+
+        # Convert command strings into lists of commands
+        for tbl, command in row_queries.items():
+            if isinstance(command, str):
+                row_queries[tbl] = [command]
+
+        # Pack commands into list of tuples
+        return [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
+
+    def _get_database_rows_execute_queries(self, source, commands):
+        """Execute select queries for all of the tables from a source database."""
+        rows = {}
+        for tbl, command in tqdm(commands, total=len(commands), desc='Executing {0} select queries'.format(source)):
+            # Add key to dictionary
+            if tbl not in rows:
+                rows[tbl] = []
+            rows[tbl].extend(self.fetch(command, commit=True))
+        self._commit()
+        return rows
+
+    def get_database_rows(self, tables=None, database=None):
+        """Retrieve a dictionary of table keys and list of rows values for every table."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+
+        # Get database select queries
+        commands = self._get_database_rows_select_queries(source, tables)
+
+        # Execute select commands
+        return self._get_database_rows_execute_queries(source, commands)
+
+    def get_database_columns(self, tables=None, database=None):
+        """Retrieve a dictionary of columns."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+        return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                           desc='Getting {0} columns'.format(source))}
+
+    def set_database_rows_insert_queries(self, rows, cols):
+        """Retrieve dictionary of insert statements to be executed."""
+        # Get insert queries
+        insert_queries = {}
+        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
+            insert_queries[table] = {}
+            _rows = rows.pop(table)
+            _cols = cols.pop(table)
+
+            if len(_rows) > 1:
+                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+            elif len(_rows) == 1:
+                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+        return insert_queries
+
+    def set_database_rows_execute_queries(self, insert_queries):
+        # Insert data into destination database
+        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                          desc='Inserting rows into tables'):
+            query = insert_queries.pop(table)
+            if 'insert_many' in query:
+                stmt, params = query['insert_many']
+                self.executemany(stmt, params)
+            elif 'insert' in query:
+                self.execute(query['insert'])
+
+    def copy_database_data(self, source, destination):
+        """
+        Copy the data from one database to another.
+
+        Retrieve existing data from the source database and insert that data into the destination database.
+        """
+        # Change database to source
+        self.enable_printing = False
+        self.change_db(source)
+        tables = self.tables
+
+        # Retrieve database rows
+        rows = self.get_database_rows(tables, source)
+
+        # Retrieve database columns
+        cols = self.get_database_columns(tables, source)
+
+        # Validate rows and columns
+        for r in list(rows.keys()):
+            assert r in tables, r
+        for c in list(cols.keys()):
+            assert c in tables, c
+
+        # Change database to destination
+        self.change_db(destination)
+
+        # Get insert queries
+        insert_queries = self.set_database_rows_insert_queries(rows, cols)
+
+        # Execute insert queries
+        self.set_database_rows_execute_queries(insert_queries)
+        self.enable_printing = True
 
     def create_database(self, name):
         """Create a new database."""
@@ -159,26 +284,17 @@ class Operations:
         Inspiration: https://stackoverflow.com/questions/15110769/how-to-clone-mysql-database-under-a-different-name
         -with-the-same-name-and-the-sa
         """
-        # Create destination database if it does not exist
-        if destination not in self.databases:
-            self.create_database(destination)
-        # Truncate database if it does exist
-        elif destination in self.databases:
-            self.truncate_database(destination)
+        print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
+        with Timer('Success! Copied database {0} to {1} in '.format(source, destination)):
+            # Create destination database if it does not exist
+            if destination in self.databases:
+                self.truncate_database(destination)
+            # Truncate database if it does exist
+            else:
+                self.create_database(destination)
 
-        # Change database to source
-        self.change_db(source)
+            # Copy table structures
+            self.copy_database_structure(source, destination)
 
-        # CREATE TABLE commands
-        self.copy_tables_structure(source, destination)
-
-        # Get table data and columns from source database
-        rows = {tbl: self.select_all(tbl) for tbl in self.tables}
-        cols = {tbl: self.get_columns(tbl) for tbl in self.tables}
-
-        # Change database to destination
-        self.change_db(destination)
-
-        # Insert data into destination database
-        for table in self.tables:
-            self.insert_many(table, cols[table], rows[table])
+            # Copy table data
+            self.copy_database_data(source, destination)
