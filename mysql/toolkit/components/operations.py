@@ -196,8 +196,22 @@ class Operations:
 
         # Get table data and columns from source database
         tables = self.tables
-        rows = {tbl: self.select_all(tbl) for tbl in tqdm(tables, total=len(tables),
-                                                          desc='Getting {0} rows'.format(source))}
+
+        # Create dictionary of select queries
+        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
+                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
+
+        # Pack command strings into lists
+        for tbl, command in row_queries.items():
+            if isinstance(command, str):
+                row_queries[tbl] = [command]
+
+        # Execute select commands
+        rows = {tbl: self.executemore(command) for tbl, commands in
+                tqdm(row_queries.items(), total=len(list(row_queries.keys())),
+                     desc='Executing {0} select queries'.format(source)) for command in commands}
+        self._commit()
+
         cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
                                                            desc='Getting {0} columns'.format(source))}
 
