@@ -179,7 +179,7 @@ class Operations:
         Inspiration: https://stackoverflow.com/questions/15110769/how-to-clone-mysql-database-under-a-different-name
         -with-the-same-name-and-the-sa
         """
-        print('\tCopying database {0} strucutre and data to database {1}'.format(source, destination))
+        print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
         # Create destination database if it does not exist
         if destination in self.databases:
             self.truncate_database(destination)
@@ -203,14 +203,17 @@ class Operations:
 
         # Pack command strings into lists
         for tbl, command in row_queries.items():
-            print(tbl, command)
             if isinstance(command, str):
                 row_queries[tbl] = [command]
 
         # Execute select commands
-        rows = {tbl: self.executemore(command) for tbl, commands in
-                tqdm(row_queries.items(), total=len(list(row_queries.keys())),
-                     desc='Executing {0} select queries'.format(source)) for command in commands}
+        rows = {}
+        for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
+                                  desc='Executing {0} select queries'.format(source)):
+            rows[tbl] = []
+            for command in commands:
+                print('\t{0}'.format(command))
+                rows[tbl].extend(self.fetch(command, commit=True))
         self._commit()
 
         cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
