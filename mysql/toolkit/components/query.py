@@ -33,6 +33,7 @@ class Query:
                     til_reconnect = queries_per_batch
                 rows.extend(self.fetch(c, False))
                 til_reconnect += -1
+            del commands
             return rows
         # Return commands
         else:
