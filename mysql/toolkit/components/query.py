@@ -9,7 +9,7 @@ class Query:
     def __init__(self):
         pass
 
-    def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3):
+    def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""
         # Execute select queries in small batches to avoid connection timeout
         commands, offset = [], 0
@@ -23,30 +23,38 @@ class Query:
             num_rows += -_limit
 
         # Execute commands
-        rows = []
-        til_reconnect = queries_per_batch
-        for c in commands:
-            if til_reconnect == 0:
-                self.disconnect()
-                self.reconnect()
-                til_reconnect = queries_per_batch
-            rows.extend(self.fetch(c, False))
-            til_reconnect += -1
-        return rows
+        if execute:
+            rows = []
+            til_reconnect = queries_per_batch
+            for c in commands:
+                if til_reconnect == 0:
+                    self.disconnect()
+                    self.reconnect()
+                    til_reconnect = queries_per_batch
+                rows.extend(self.fetch(c, False))
+                til_reconnect += -1
+            return rows
+        # Return commands
+        else:
+            return commands
 
-    def select(self, table, cols):
+    def select(self, table, cols, execute=True):
         """Query every row and only certain columns from a table."""
         # Concatenate statement
-        return self.fetch('SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table)))
+        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
+        if execute:  # Execute commands
+            return self.fetch(statement)
+        else:  # Return command
+            return statement
 
-    def select_all(self, table, limit=MAX_ROWS_PER_QUERY):
+    def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
         # Determine if a row per query limit should be set
         num_rows = self.count_rows(table)
         if num_rows > limit:
             return self._select_batched(table, '*', num_rows, limit)
         else:
-            return self.select(table, '*')
+            return self.select(table, '*', execute)
 
     def select_all_join(self, table1, table2, key):
         """Left join all rows and columns from two tables where a common value is shared."""
