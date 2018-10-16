@@ -214,6 +214,7 @@ class Operations:
             for command in commands:
                 rows[tbl].extend(self.fetch(command, commit=True))
         self._commit()
+        print(rows['TimeLineManager'])
 
         cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
                                                            desc='Getting {0} columns'.format(source))}
@@ -227,10 +228,23 @@ class Operations:
         # Change database to destination
         self.change_db(destination)
 
+        # Get insert queries
+        insert_queries = {}
+        for table in tqdm(tables, total=len(tables), desc='Getting insert rows queries'):
+            insert_queries[table] = {}
+            _rows = rows.pop(table)
+            _cols = cols.pop(table)
+
+            if len(_rows) > 1:
+                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+            elif len(_rows) == 1:
+                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+
         # Insert data into destination database
-        for table in tqdm(tables, total=len(tables), desc='Inserting rows into tables'):
-            if len(rows[table]) > 1:
-                self.insert_many(table, cols.pop(table), rows.pop(table))
-            elif len(rows[table]) == 1:
-                self.insert(table, cols.pop(table), rows.pop(table))
+        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                          desc='Inserting rows into tables'):
+            if 'insert_many' in insert_queries[table]:
+                self.execute_many(insert_queries[table]['insert_many'])
+            elif 'insert' in insert_queries[table]:
+                self.execute(insert_queries[table]['insert'])
         self.enable_printing = True
