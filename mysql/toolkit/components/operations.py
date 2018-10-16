@@ -286,5 +286,5 @@ class Operations:
             # Copy table structures
             self.copy_database_structure(source, destination)
 
-            # Copy table datas
+            # Copy table data
             self.copy_database_data(source, destination)
