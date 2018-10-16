@@ -22,6 +22,10 @@ def set_dump_directory(base=None, sub_dir=None):
     # Set current timestamp
     timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
 
+    # Clean sub_dir
+    if sub_dir and '.' in sub_dir:
+        sub_dir = sub_dir.rsplit('.', 1)[0]
+
     # Create a directory to save fail SQL scripts
     # TODO: Replace with function that recursively creates directories until path exists
     if not os.path.exists(base):
@@ -47,7 +51,10 @@ def dump_commands(commands, directory=None, sub_dir=None):
     print('\t' + str(len(commands)), 'failed commands')
 
     # Create dump_dir directory
-    if directory:
+    if directory and os.path.isfile(directory):
+        dump_dir = set_dump_directory(os.path.dirname(directory), sub_dir)
+        return_dir = dump_dir
+    elif directory:
         dump_dir = set_dump_directory(directory, sub_dir)
         return_dir = dump_dir
     else:
