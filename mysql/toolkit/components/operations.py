@@ -1,4 +1,5 @@
 from differentiate import diff
+from looptools import Timer
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
 from tqdm import tqdm
@@ -180,72 +181,73 @@ class Operations:
         -with-the-same-name-and-the-sa
         """
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
-        # Create destination database if it does not exist
-        if destination in self.databases:
-            self.truncate_database(destination)
-        # Truncate database if it does exist
-        else:
-            self.create_database(destination)
+        with Timer('\tCopied database {0} to {1} in '.format(source, destination)):
+            # Create destination database if it does not exist
+            if destination in self.databases:
+                self.truncate_database(destination)
+            # Truncate database if it does exist
+            else:
+                self.create_database(destination)
 
-        # CREATE TABLE commands
-        self.copy_tables_structure(source, destination)
+            # CREATE TABLE commands
+            self.copy_tables_structure(source, destination)
 
-        # Change database to source
-        self.enable_printing = False
-        self.change_db(source)
+            # Change database to source
+            self.enable_printing = False
+            self.change_db(source)
 
-        # Get table data and columns from source database
-        tables = self.tables
+            # Get table data and columns from source database
+            tables = self.tables
 
-        # Create dictionary of select queries
-        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
-                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
+            # Create dictionary of select queries
+            row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
+                           tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
 
-        # Pack command strings into lists
-        for tbl, command in row_queries.items():
-            if isinstance(command, str):
-                row_queries[tbl] = [command]
+            # Pack command strings into lists
+            for tbl, command in row_queries.items():
+                if isinstance(command, str):
+                    row_queries[tbl] = [command]
 
-        # Execute select commands
-        rows = {}
-        for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
-                                  desc='Executing {0} select queries'.format(source)):
-            rows[tbl] = []
-            for command in commands:
-                rows[tbl].extend(self.fetch(command, commit=True))
-        self._commit()
-        print(rows['TimeLineManager'])
+            # Execute select commands
+            rows = {}
+            for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
+                                      desc='Executing {0} select queries'.format(source)):
+                rows[tbl] = []
+                for command in commands:
+                    rows[tbl].extend(self.fetch(command, commit=True))
+            self._commit()
+            print(rows['TimeLineManager'])
 
-        cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
-                                                           desc='Getting {0} columns'.format(source))}
+            cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                               desc='Getting {0} columns'.format(source))}
 
-        # Validate rows and columns
-        for r in list(rows.keys()):
-            assert r in tables, r
-        for c in list(cols.keys()):
-            assert c in tables, c
+            # Validate rows and columns
+            for r in list(rows.keys()):
+                assert r in tables, r
+            for c in list(cols.keys()):
+                assert c in tables, c
 
-        # Change database to destination
-        self.change_db(destination)
+            # Change database to destination
+            self.change_db(destination)
 
-        # Get insert queries
-        insert_queries = {}
-        for table in tqdm(tables, total=len(tables), desc='Getting insert rows queries'):
-            insert_queries[table] = {}
-            _rows = rows.pop(table)
-            _cols = cols.pop(table)
+            # Get insert queries
+            insert_queries = {}
+            for table in tqdm(tables, total=len(tables), desc='Getting insert rows queries'):
+                insert_queries[table] = {}
+                _rows = rows.pop(table)
+                _cols = cols.pop(table)
 
-            if len(_rows) > 1:
-                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
-            elif len(_rows) == 1:
-                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+                if len(_rows) > 1:
+                    insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+                elif len(_rows) == 1:
+                    insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
 
-        # Insert data into destination database
-        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
-                          desc='Inserting rows into tables'):
-            query = insert_queries.pop(table)
-            if 'insert_many' in query:
-                self.execute_many(query['insert_many'])
-            elif 'insert' in query:
-                self.execute(query['insert'])
-        self.enable_printing = True
+            # Insert data into destination database
+            for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                              desc='Inserting rows into tables'):
+                query = insert_queries.pop(table)
+                if 'insert_many' in query:
+                    self.execute_many(query['insert_many'])
+                elif 'insert' in query:
+                    self.execute(query['insert'])
+            self.enable_printing = True
