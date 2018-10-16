@@ -107,11 +107,20 @@ class Connector:
         self._cursor.execute(command)
         return True
 
-    def executemany(self, command):
+    def executemany(self, command, params=None, max_attempts=5):
         """Execute multiple SQL queries without returning a result."""
-        self._cursor.executemany(command)
-        self._commit()
-        return True
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                # Execute statement
+                self._cursor.executemany(command, params)
+                self._commit()
+                return True
+            except Exception as e:
+                attempts += 1
+                self.reconnect()
+                continue
+        raise e
 
     def change_db(self, db):
         """Change connect database."""
