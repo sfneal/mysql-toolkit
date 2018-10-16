@@ -206,14 +206,40 @@ class Operations:
         return self._get_database_rows_execute_queries(source, commands)
 
     def get_database_columns(self, tables=None, database=None):
-        """Retrieve a dictionary of table keys and column list values for every table."""
+        """Retrieve a dictionary of columns."""
         # Get table data and columns from source database
         source = database if database else self.database
         tables = tables if tables else self.tables
         return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
                                                            desc='Getting {0} columns'.format(source))}
 
-    def copy_database_data(self, source, destination):
+    def set_database_rows_insert_queries(self, rows, cols):
+        """Retrieve dictionary of insert statements to be executed."""
+        # Get insert queries
+        insert_queries = {}
+        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
+            insert_queries[table] = {}
+            _rows = rows.pop(table)
+            _cols = cols.pop(table)
+
+            if len(_rows) > 1:
+                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+            elif len(_rows) == 1:
+                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+        return insert_queries
+
+    def set_database_rows_execute_queries(self, insert_queries):
+        # Insert data into destination database
+        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                          desc='Inserting rows into tables'):
+            query = insert_queries.pop(table)
+            if 'insert_many' in query:
+                stmt, params = query['insert_many']
+                self.executemany(stmt, params)
+            elif 'insert' in query:
+                self.execute(query['insert'])
+
+    def copy_database_data(self, source, destination, to_disk):
         """
         Copy the data from one database to another.
 
@@ -240,26 +266,10 @@ class Operations:
         self.change_db(destination)
 
         # Get insert queries
-        insert_queries = {}
-        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
-            insert_queries[table] = {}
-            _rows = rows.pop(table)
-            _cols = cols.pop(table)
+        insert_queries = self.set_database_rows_insert_queries(rows, cols, to_disk)
 
-            if len(_rows) > 1:
-                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
-            elif len(_rows) == 1:
-                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
-
-        # Insert data into destination database
-        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
-                          desc='Inserting rows into tables'):
-            query = insert_queries.pop(table)
-            if 'insert_many' in query:
-                stmt, params = query['insert_many']
-                self.executemany(stmt, params)
-            elif 'insert' in query:
-                self.execute(query['insert'])
+        # Execute insert queries
+        self.set_database_rows_execute_queries(insert_queries)
         self.enable_printing = True
 
     def create_database(self, name):
@@ -267,7 +277,7 @@ class Operations:
         statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
         return self.execute(statement)
 
-    def copy_database(self, source, destination):
+    def copy_database(self, source, destination, to_disk=False):
         """
         Copy a database's content and structure.
 
@@ -287,4 +297,4 @@ class Operations:
             self.copy_database_structure(source, destination)
 
             # Copy table data
-            self.copy_database_data(source, destination)
+            self.copy_database_data(source, destination, to_disk)
