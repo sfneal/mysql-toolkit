@@ -8,6 +8,7 @@ mysql/toolkit/toolkit.py
 mysql/toolkit/utils.py
 mysql/toolkit/components/__init__.py
 mysql/toolkit/components/connector.py
+mysql/toolkit/components/database.py
 mysql/toolkit/components/operations.py
 mysql/toolkit/components/query.py
 mysql/toolkit/components/sql.py
