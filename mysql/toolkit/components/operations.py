@@ -84,7 +84,7 @@ class Operations:
             # Join list of tables into comma separated string
             tables_str = ', '.join([wrap(table) for table in tables])
             self.execute('DROP TABLE ' + tables_str)
-            self._printer('\t' + str(len(tables)), 'tables truncated')
+            self._printer('\t' + str(len(tables)), 'tables truncated from', database)
         return tables
 
     def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
@@ -203,6 +203,7 @@ class Operations:
 
         # Pack command strings into lists
         for tbl, command in row_queries.items():
+            print(tbl, command)
             if isinstance(command, str):
                 row_queries[tbl] = [command]
 
