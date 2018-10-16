@@ -154,7 +154,7 @@ class Operations:
         """Copy a table from one database to another."""
         self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
 
-    def copy_tables_structure(self, source_db, destination_db, tables=None):
+    def copy_database_structure(self, source_db, destination_db, tables=None):
         """Copy multiple tables from one database to another."""
         # Change database to source
         self.change_db(source_db)
@@ -190,7 +190,7 @@ class Operations:
                 self.create_database(destination)
 
             # CREATE TABLE commands
-            self.copy_tables_structure(source, destination)
+            self.copy_database_structure(source, destination)
 
             # Change database to source
             self.enable_printing = False
