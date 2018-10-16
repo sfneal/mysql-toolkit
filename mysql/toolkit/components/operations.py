@@ -243,8 +243,9 @@ class Operations:
         # Insert data into destination database
         for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
                           desc='Inserting rows into tables'):
-            if 'insert_many' in insert_queries[table]:
-                self.execute_many(insert_queries[table]['insert_many'])
-            elif 'insert' in insert_queries[table]:
-                self.execute(insert_queries[table]['insert'])
+            query = insert_queries.pop(table)
+            if 'insert_many' in query:
+                self.execute_many(query['insert_many'])
+            elif 'insert' in query:
+                self.execute(query['insert'])
         self.enable_printing = True
