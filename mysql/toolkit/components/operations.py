@@ -1,11 +1,12 @@
 from differentiate import diff
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
+from mysql.toolkit.components.database import Database
 
 
-class Operations:
+class Operations(Database):
     def __init__(self):
-        pass
+        Database.__init__(self)
 
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
