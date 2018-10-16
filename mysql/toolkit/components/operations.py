@@ -168,6 +168,89 @@ class Operations:
         for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source_db)):
             self.copy_table_structure(source_db, destination_db, t)
 
+    def get_database_rows(self, tables=None, database=None):
+        """Retrieve a dictionary of table keys and list of rows values for every table."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+
+        # Create dictionary of select queries
+        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
+                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
+
+        # Pack command strings into lists
+        for tbl, command in row_queries.items():
+            if isinstance(command, str):
+                row_queries[tbl] = [command]
+
+        # Execute select commands
+        rows = {}
+        for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
+                                  desc='Executing {0} select queries'.format(source)):
+            rows[tbl] = []
+            for command in commands:
+                rows[tbl].extend(self.fetch(command, commit=True))
+        self._commit()
+        return rows
+
+    def get_database_columns(self, tables=None, database=None):
+        """Retrieve a dictionary of table keys and column list values for every table."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+        return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                           desc='Getting {0} columns'.format(source))}
+
+    def copy_database_data(self, source, destination):
+        """
+        Copy the data from one database to another.
+
+        Retrieve existing data from the source database and insert that data into the destination database.
+        """
+        # Change database to source
+        self.enable_printing = False
+        self.change_db(source)
+        tables = self.tables
+
+        # Retrieve database rows
+        rows = self.get_database_rows(tables, source)
+
+        # Retrieve database columns
+        cols = self.get_database_columns(tables, source)
+
+        # Validate rows and columns
+        for r in list(rows.keys()):
+            assert r in tables, r
+        for c in list(cols.keys()):
+            assert c in tables, c
+
+        # Change database to destination
+        self.change_db(destination)
+
+        # Get insert queries
+        insert_queries = {}
+        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
+            insert_queries[table] = {}
+            _rows = rows.pop(table)
+            _cols = cols.pop(table)
+
+            if len(_rows) > 1:
+                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+            elif len(_rows) == 1:
+                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+
+        # Insert data into destination database
+        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                          desc='Inserting rows into tables'):
+            query = insert_queries.pop(table)
+            if 'insert_many' in query:
+                stmt, params = query['insert_many']
+                self._cursor.executemany(stmt, params)
+                self._commit()
+            elif 'insert' in query:
+                self.execute(query['insert'])
+        self.enable_printing = True
+
     def create_database(self, name):
         """Create a new database."""
         statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
@@ -189,65 +272,8 @@ class Operations:
             else:
                 self.create_database(destination)
 
-            # CREATE TABLE commands
+            # Copy table structures
             self.copy_database_structure(source, destination)
 
-            # Change database to source
-            self.enable_printing = False
-            self.change_db(source)
-
-            # Get table data and columns from source database
-            tables = self.tables
-
-            # Create dictionary of select queries
-            row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
-                           tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
-
-            # Pack command strings into lists
-            for tbl, command in row_queries.items():
-                if isinstance(command, str):
-                    row_queries[tbl] = [command]
-
-            # Execute select commands
-            rows = {}
-            for tbl, commands in tqdm(row_queries.items(), total=len(list(row_queries.keys())),
-                                      desc='Executing {0} select queries'.format(source)):
-                rows[tbl] = []
-                for command in commands:
-                    rows[tbl].extend(self.fetch(command, commit=True))
-            self._commit()
-            print(rows['TimeLineManager'])
-
-            cols = {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
-                                                               desc='Getting {0} columns'.format(source))}
-
-            # Validate rows and columns
-            for r in list(rows.keys()):
-                assert r in tables, r
-            for c in list(cols.keys()):
-                assert c in tables, c
-
-            # Change database to destination
-            self.change_db(destination)
-
-            # Get insert queries
-            insert_queries = {}
-            for table in tqdm(tables, total=len(tables), desc='Getting insert rows queries'):
-                insert_queries[table] = {}
-                _rows = rows.pop(table)
-                _cols = cols.pop(table)
-
-                if len(_rows) > 1:
-                    insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
-                elif len(_rows) == 1:
-                    insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
-
-            # Insert data into destination database
-            for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
-                              desc='Inserting rows into tables'):
-                query = insert_queries.pop(table)
-                if 'insert_many' in query:
-                    self.execute_many(query['insert_many'])
-                elif 'insert' in query:
-                    self.execute(query['insert'])
-            self.enable_printing = True
+            # Copy table datas
+            self.copy_database_data(source, destination)
