@@ -5,9 +5,50 @@ from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 MAX_ROWS_PER_QUERY = 50000
 
 
-class Query:
+class Select:
     def __init__(self):
         pass
+
+    def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
+        """Query all rows and columns from a table."""
+        # Determine if a row per query limit should be set
+        num_rows = self.count_rows(table)
+        if num_rows > limit:
+            return self._select_batched(table, '*', num_rows, limit, execute=execute)
+        else:
+            return self.select(table, '*', execute=execute)
+
+    def select(self, table, cols, execute=True):
+        """Query every row and only certain columns from a table."""
+        # Concatenate statement
+        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
+        if execute:  # Execute commands
+            return self.fetch(statement)
+        else:  # Return command
+            return statement
+
+    def select_all_join(self, table1, table2, key):
+        """Left join all rows and columns from two tables where a common value is shared."""
+        # TODO: Write function to run a select * left join query
+        pass
+
+    def select_limit(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
+        """Run a select query with an offset and limit parameter."""
+        return self.fetch(self._select_limit_statement(table, cols, offset, limit))
+
+    def select_where(self, table, cols, where):
+        """Query certain columns from a table where a particular value is found."""
+        # Either join list of columns into string or set columns to * (all)
+        if isinstance(cols, list):
+            cols_str = join_cols(cols)
+        else:
+            cols_str = "*"
+
+        # Unpack WHERE clause dictionary into tuple
+        where_col, where_val = where
+
+        statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
+        self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""
@@ -39,51 +80,58 @@ class Query:
         else:
             return commands
 
-    def select(self, table, cols, execute=True):
-        """Query every row and only certain columns from a table."""
-        # Concatenate statement
-        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
-        if execute:  # Execute commands
-            return self.fetch(statement)
-        else:  # Return command
-            return statement
-
-    def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
-        """Query all rows and columns from a table."""
-        # Determine if a row per query limit should be set
-        num_rows = self.count_rows(table)
-        if num_rows > limit:
-            return self._select_batched(table, '*', num_rows, limit, execute=execute)
-        else:
-            return self.select(table, '*', execute=execute)
-
-    def select_all_join(self, table1, table2, key):
-        """Left join all rows and columns from two tables where a common value is shared."""
-        # TODO: Write function to run a select * left join query
-        pass
-
     @staticmethod
     def _select_limit_statement(table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
         """Concatenate a select with offset and limit statement."""
         return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(cols, wrap(table), offset, limit)
 
-    def select_limit(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
-        """Run a select query with an offset and limit parameter."""
-        return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
-    def select_where(self, table, cols, where):
-        """Query certain columns from a table where a particular value is found."""
-        # Either join list of columns into string or set columns to * (all)
-        if isinstance(cols, list):
-            cols_str = join_cols(cols)
-        else:
-            cols_str = "*"
+class Insert:
+    def __init__(self):
+        pass
 
-        # Unpack WHERE clause dictionary into tuple
-        where_col, where_val = where
+    def insert_uniques(self, table, columns, values):
+        """
+        Insert multiple rows into a table that do not already exist.
 
-        statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
-        self.fetch(statement)
+        If the rows primary key already exists, the rows values will be updated.
+        If the rows primary key does not exists, a new row will be inserted
+        """
+        # Rows that exist in the table
+        existing_rows = self.select(table, columns)
+
+        # Rows that DO NOT exist in the table
+        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
+
+        # Keys that exist in the table
+        keys = self.get_primary_key_vals(table)
+
+        # Primary key's column index
+        pk_col = self.get_primary_key(table)
+        pk_index = columns.index(pk_col)
+
+        # Split list of unique rows into list of rows to update and rows to insert
+        to_insert, to_update = [], []
+        for index, row in enumerate(unique):
+            # Primary key is not in list of pk values, insert new row
+            if row[pk_index] not in keys:
+                to_insert.append(unique[index])
+
+            # Primary key exists, update row rather than insert
+            elif row[pk_index] in keys:
+                to_update.append(unique[index])
+
+        # Insert new rows
+        if len(to_insert) > 0:
+            self.insert_many(table, columns, to_insert)
+
+        # Update existing rows
+        if len(to_update) > 0:
+            self.update_many(table, columns, to_update, pk_col, 0)
+
+        # No inserted or updated rows
+        if len(to_insert) < 1 and len(to_update) < 0:
+            self._printer('No rows added to', table)
 
     def insert(self, table, columns, values, execute=True):
         """Insert a single row into a table."""
@@ -139,6 +187,11 @@ class Query:
         else:
             return statement, values
 
+
+class Update:
+    def __init__(self):
+        pass
+
     def update(self, table, columns, values, where):
         """
         Update the values of a particular row where a value is met.
@@ -161,50 +214,14 @@ class Query:
         self._cursor.execute(statement, values)
         self._printer('\tMySQL cols (' + str(len(values)) + ') successfully UPDATED')
 
-    def insert_uniques(self, table, columns, values):
-        """
-        Insert multiple rows into a table that do not already exist.
-
-        If the rows primary key already exists, the rows values will be updated.
-        If the rows primary key does not exists, a new row will be inserted
-        """
-        # Rows that exist in the table
-        existing_rows = self.select(table, columns)
-
-        # Rows that DO NOT exist in the table
-        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
-
-        # Keys that exist in the table
-        keys = self.get_primary_key_vals(table)
-
-        # Primary key's column index
-        pk_col = self.get_primary_key(table)
-        pk_index = columns.index(pk_col)
-
-        # Split list of unique rows into list of rows to update and rows to insert
-        to_insert, to_update = [], []
-        for index, row in enumerate(unique):
-            # Primary key is not in list of pk values, insert new row
-            if row[pk_index] not in keys:
-                to_insert.append(unique[index])
-
-            # Primary key exists, update row rather than insert
-            elif row[pk_index] in keys:
-                to_update.append(unique[index])
-
-        # Insert new rows
-        if len(to_insert) > 0:
-            self.insert_many(table, columns, to_insert)
-
-        # Update existing rows
-        if len(to_update) > 0:
-            self.update_many(table, columns, to_update, pk_col, 0)
-
-        # No inserted or updated rows
-        if len(to_insert) < 1 and len(to_update) < 0:
-            self._printer('No rows added to', table)
-
     def update_many(self, table, columns, values, where_col, where_index):
         """Update the values of several rows."""
         for row in values:
             self.update(table, columns, row, (where_col, row[where_index]))
+
+
+class Query(Select, Insert, Update):
+    def __init__(self):
+        Select.__init__(self)
+        Insert.__init__(self)
+        Update.__init__(self)
