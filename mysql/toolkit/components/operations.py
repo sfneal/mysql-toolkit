@@ -277,7 +277,7 @@ class Operations:
         statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
         return self.execute(statement)
 
-    def copy_database(self, source, destination, to_disk=False):
+    def copy_database(self, source, destination):
         """
         Copy a database's content and structure.
 
@@ -297,4 +297,4 @@ class Operations:
             self.copy_database_structure(source, destination)
 
             # Copy table data
-            self.copy_database_data(source, destination, to_disk)
+            self.copy_database_data(source, destination)
