@@ -137,7 +137,7 @@ class Query:
 
         # Only return statement
         else:
-            return statement
+            return statement, vals
 
     def update(self, table, columns, values, where):
         """
