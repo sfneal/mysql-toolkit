@@ -84,7 +84,6 @@ class Connector:
                 return rows[0] if len(rows) == 1 else rows
             except Exception as e:
                 attempts += 1
-                self.disconnect()
                 self.reconnect()
                 continue
         raise e
