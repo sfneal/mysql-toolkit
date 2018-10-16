@@ -52,9 +52,9 @@ class Query:
         # Determine if a row per query limit should be set
         num_rows = self.count_rows(table)
         if num_rows > limit:
-            return self._select_batched(table, '*', num_rows, limit)
+            return self._select_batched(table, '*', num_rows, limit, execute=execute)
         else:
-            return self.select(table, '*', execute)
+            return self.select(table, '*', execute=execute)
 
     def select_all_join(self, table1, table2, key):
         """Left join all rows and columns from two tables where a common value is shared."""
