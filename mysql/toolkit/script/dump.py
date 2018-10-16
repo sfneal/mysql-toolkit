@@ -5,6 +5,7 @@ from dirutility import ZipBackup
 from looptools import Timer
 from time import time
 from datetime import datetime
+from tempfile import TemporaryDirectory
 
 # Conditional import of multiprocessing module
 # Replace with global import
@@ -16,7 +17,7 @@ except ImportError:
     pass
 
 
-def set_dump_directory(base, sub_dir):
+def set_dump_directory(base=None, sub_dir=None):
     """Create directory for dumping SQL commands."""
     # Set current timestamp
     timestamp = datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H-%M-%S')
@@ -25,16 +26,16 @@ def set_dump_directory(base, sub_dir):
     # TODO: Replace with function that recursively creates directories until path exists
     if not os.path.exists(base):
         os.mkdir(base)
-    dump_dir = os.path.join(base, sub_dir)
+    dump_dir = os.path.join(base, sub_dir) if sub_dir else base
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
     dump_dir = os.path.join(dump_dir, timestamp)
     if not os.path.exists(dump_dir):
         os.mkdir(dump_dir)
-    return dump_dir
+        return dump_dir
 
 
-def dump_commands(commands, directory, sub_dir=None):
+def dump_commands(commands, directory=None, sub_dir=None):
     """
     Dump SQL commands to .sql files.
 
@@ -46,7 +47,12 @@ def dump_commands(commands, directory, sub_dir=None):
     print('\t' + str(len(commands)), 'failed commands')
 
     # Create dump_dir directory
-    dump_dir = set_dump_directory(directory, sub_dir)
+    if directory:
+        dump_dir = set_dump_directory(directory, sub_dir)
+        return_dir = dump_dir
+    else:
+        dump_dir = TemporaryDirectory().name
+        return_dir = TemporaryDirectory()
 
     # Create list of (path, content) tuples
     command_filepath = [(fail, os.path.join(dump_dir, str(count) + '.sql')) for count, fail in enumerate(commands)]
@@ -67,7 +73,7 @@ def dump_commands(commands, directory, sub_dir=None):
               '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
     # Return base directory of dumped commands
-    return dump_dir
+    return return_dir
 
 
 def write_text(tup):
