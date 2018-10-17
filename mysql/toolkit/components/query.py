@@ -84,9 +84,6 @@ class Select:
 
 
 class Insert:
-    def __init__(self):
-        pass
-
     def insert_uniques(self, table, columns, values):
         """
         Insert multiple rows into a table that do not already exist.
@@ -186,9 +183,6 @@ class Insert:
 
 
 class Update:
-    def __init__(self):
-        pass
-
     def update(self, table, columns, values, where):
         """
         Update the values of a particular row where a value is met.
@@ -219,6 +213,4 @@ class Update:
 
 class Query(Select, Insert, Update):
     def __init__(self):
-        Select.__init__(self)
-        Insert.__init__(self)
-        Update.__init__(self)
+        pass
