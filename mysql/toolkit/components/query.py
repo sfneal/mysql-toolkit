@@ -156,7 +156,7 @@ class Insert:
             return False
 
         # Make values a list of lists if it is a flat list
-        if not isinstance(values[0], list):
+        if not isinstance(values[0], (list, set, tuple)):
             values = []
             for v in values:
                 if v is not None and len(v) > 0:
