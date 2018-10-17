@@ -45,6 +45,10 @@ class Database:
         for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source)):
             self.copy_table_structure(source, destination, t)
 
+    def copy_table_structure(self, source_db, destination_db, table):
+        """Copy a table from one database to another."""
+        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
+
     def copy_database_data(self, source, destination):
         """
         Copy the data from one database to another.
@@ -77,10 +81,6 @@ class Database:
         # Execute insert queries
         self._set_database_rows_execute_queries(insert_queries)
         self.enable_printing = True
-
-    def copy_table_structure(self, source_db, destination_db, table):
-        """Copy a table from one database to another."""
-        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
 
     def get_database_rows(self, tables=None, database=None):
         """Retrieve a dictionary of table keys and list of rows values for every table."""
