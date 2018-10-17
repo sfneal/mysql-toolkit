@@ -11,7 +11,7 @@ mysql/toolkit/components/connector.py
 mysql/toolkit/components/database.py
 mysql/toolkit/components/operations.py
 mysql/toolkit/components/query.py
-mysql/toolkit/components/sql.py
+mysql/toolkit/components/structure.py
 mysql/toolkit/script/__init__.py
 mysql/toolkit/script/dump.py
 mysql/toolkit/script/prepare.py
