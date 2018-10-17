@@ -85,13 +85,24 @@ class Remove:
         Accepts either a string representing a table name or a list of strings
         representing a table names.
         """
+        existing_tables = self.tables
         if isinstance(table, (list, set, tuple)):
             # Join list of tables into comma separated string
-            tables_str = ', '.join([wrap(t) for t in table])
+            for t in table:
+                self._drop(t, existing_tables)
         else:
-            tables_str = wrap(table)
-        self.execute('DROP TABLE {0}'.format(tables_str))
+            self._drop(table, existing_tables)
         return table
+
+    def _drop(self, table, existing_tables=None):
+        """Private method for executing table drop commands."""
+        # Retrieve list of exisiting tables for comparison
+        existing_tables = existing_tables if existing_tables else self.tables
+
+        # Only drop table if it exists
+        if table in existing_tables:
+            self.execute('DROP TABLE {0}'.format(wrap(table)))
+            self._printer('\tDropped table {0}'.format(table))
 
     def drop_empty_tables(self):
         """Drop all empty tables in a database."""
