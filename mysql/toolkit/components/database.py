@@ -151,8 +151,13 @@ class Database:
         """
         Copy a database's content and structure.
 
+        SMALL Database speed improvements (DB size < 5mb)
         Using optimized is about 178% faster
         Using one_query is about 200% faster
+
+        LARGE Database speed improvements (DB size > 5mb)
+        Using optimized is about 900% faster
+        Using one_query is about 2600% faster
         """
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
         with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
