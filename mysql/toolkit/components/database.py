@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 class DatabaseCopy:
     """Extension of Database class for particular use cases."""
-    def __init__(self, source, destination, optimized=False):
+    def copy_database_slow(self, source, destination, optimized=False):
         # Copy table structures
         self.copy_database_structure(source, destination)
 
@@ -146,7 +146,7 @@ class DatabaseCopy:
                 self.execute(query['insert'])
 
 
-class Database:
+class Database(DatabaseCopy):
     def copy_database(self, source, destination, optimized=False, one_query=False):
         """
         Copy a database's content and structure.
@@ -169,7 +169,7 @@ class Database:
                 self.create_database(destination)
 
             if not one_query:
-                DatabaseCopy(source, destination, optimized)
+                self.copy_database_slow(source, destination, optimized)
             else:
                 self.copy_tables_onequery(source, destination)
 
