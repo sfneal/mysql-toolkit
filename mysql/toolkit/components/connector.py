@@ -18,6 +18,60 @@ class Connector:
         self._connect(config)
         self.database = config['database']
 
+    def change_db(self, db):
+        """Change connect database."""
+        # Get original config and change database key
+        config = self._config
+        config['database'] = db
+
+        # Close current database connection
+        self._disconnect()
+
+        # Reconnect to the new database
+        self._connect(config)
+
+    def disconnect(self):
+        """Disconnect from a MySQL database."""
+        self._disconnect()
+
+    def reconnect(self):
+        """Reconnect to a MySQL database using the same config."""
+        self._connect(self._config)
+
+    def fetch(self, statement, commit=True):
+        """Execute a SQL query and attempt to disconnect and reconnect if failure occurs."""
+        try:
+            return self._fetch(statement, commit)
+        except InterfaceError:
+            self.reconnect()
+            return self._fetch(statement, commit)
+
+    def execute(self, command):
+        """Execute a single SQL query without returning a result."""
+        self._cursor.execute(command)
+        self._commit()
+        return True
+
+    def executemore(self, command):
+        """Execute a single SQL query without returning a result."""
+        self._cursor.execute(command)
+        return True
+
+    def executemany(self, command, params=None, max_attempts=5):
+        """Execute multiple SQL queries without returning a result."""
+        attempts = 0
+        while attempts < max_attempts:
+            try:
+                # Execute statement
+                self._cursor.executemany(command, params)
+                self._commit()
+                return True
+            except Exception as e:
+                attempts += 1
+                self.reconnect()
+                continue
+        raise e
+
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
         if 'connection_timeout' not in self._config:
@@ -87,57 +141,3 @@ class Connector:
                 self.reconnect()
                 continue
         raise e
-
-    def fetch(self, statement, commit=True):
-        """Execute a SQL query and attempt to disconnect and reconnect if failure occurs."""
-        try:
-            return self._fetch(statement, commit)
-        except InterfaceError:
-            self.reconnect()
-            return self._fetch(statement, commit)
-
-    def execute(self, command):
-        """Execute a single SQL query without returning a result."""
-        self._cursor.execute(command)
-        self._commit()
-        return True
-
-    def executemore(self, command):
-        """Execute a single SQL query without returning a result."""
-        self._cursor.execute(command)
-        return True
-
-    def executemany(self, command, params=None, max_attempts=5):
-        """Execute multiple SQL queries without returning a result."""
-        attempts = 0
-        while attempts < max_attempts:
-            try:
-                # Execute statement
-                self._cursor.executemany(command, params)
-                self._commit()
-                return True
-            except Exception as e:
-                attempts += 1
-                self.reconnect()
-                continue
-        raise e
-
-    def change_db(self, db):
-        """Change connect database."""
-        # Get original config and change database key
-        config = self._config
-        config['database'] = db
-
-        # Close current database connection
-        self._disconnect()
-
-        # Reconnect to the new database
-        self._connect(config)
-
-    def disconnect(self):
-        """Disconnect from a MySQL database."""
-        self._disconnect()
-
-    def reconnect(self):
-        """Reconnect to a MySQL database using the same config."""
-        self._connect(self._config)
