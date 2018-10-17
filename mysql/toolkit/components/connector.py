@@ -68,9 +68,6 @@ class Connector:
                 return True
             except Exception as e:
                 attempts += 1
-                if attempts > max_attempts:
-                    print(command)
-                    raise e
                 self.reconnect()
                 continue
 

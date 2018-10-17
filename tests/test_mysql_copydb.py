@@ -12,8 +12,24 @@ config = {
 }
 
 
-with MySQL(config) as sql:
-    src, dst = 'hpa_pt', 'hpa_sandbox'
-    sql.copy_database(src, dst)
-    sql.compare_dbs(src, dst)
+def standard():
+    with MySQL(config, enable_printing=False) as sql:
+        src, dst = 'hpa_pt', 'hpa_sandbox'
+        sql.copy_database(src, dst)
+        sql.compare_dbs(src, dst)
 
+
+def optimized():
+    with MySQL(config, enable_printing=False) as sql:
+        src, dst = 'hpa_pt', 'hpa_sandbox'
+        sql.copy_database(src, dst, optimized=True)
+        sql.compare_dbs(src, dst)
+
+
+def main():
+    standard()
+    optimized()
+
+
+if __name__ == '__main__':
+    main()
