@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 
 class Database:
-    def copy_database(self, source, destination):
+    def copy_database(self, source, destination, optimized=False):
         """
         Copy a database's content and structure.
 
@@ -24,7 +24,7 @@ class Database:
             self.copy_database_structure(source, destination)
 
             # Copy table data
-            self.copy_database_data(source, destination)
+            self.copy_database_data(source, destination, optimized)
 
     def create_database(self, name):
         """Create a new database."""
@@ -49,7 +49,7 @@ class Database:
         """Copy a table from one database to another."""
         self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
 
-    def copy_database_data(self, source, destination):
+    def copy_database_data(self, source, destination, optimized=False):
         """
         Copy the data from one database to another.
 
@@ -60,27 +60,37 @@ class Database:
         self.change_db(source)
         tables = self.tables
 
-        # Retrieve database rows
-        rows = self.get_database_rows(tables, source)
+        if not optimized:
+            # Retrieve database rows
+            rows = self.get_database_rows(tables, source)
 
-        # Retrieve database columns
-        cols = self.get_database_columns(tables, source)
+            # Retrieve database columns
+            cols = self.get_database_columns(tables, source)
 
-        # Validate rows and columns
-        for r in list(rows.keys()):
-            assert r in tables, r
-        for c in list(cols.keys()):
-            assert c in tables, c
+            # Validate rows and columns
+            for r in list(rows.keys()):
+                assert r in tables, r
+            for c in list(cols.keys()):
+                assert c in tables, c
 
-        # Change database to destination
-        self.change_db(destination)
+            # Change database to destination
+            self.change_db(destination)
 
-        # Get insert queries
-        insert_queries = self._set_database_rows_insert_queries(rows, cols)
+            # Get insert queries
+            insert_queries = self._set_database_rows_insert_queries(rows, cols)
 
-        # Execute insert queries
-        self._set_database_rows_execute_queries(insert_queries)
+            # Execute insert queries
+            self._set_database_rows_execute_queries(insert_queries)
+
+        # Copy database data by executing INSERT and SELECT commands in a single query
+        else:
+            for table in tqdm(tables, total=len(tables), desc='Copying table data (optimized)'):
+                self.copy_table_data_optimized(source, destination, table)
+
         self.enable_printing = True
+
+    def copy_table_data_optimized(self, source, destination, table):
+        self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
     def get_database_rows(self, tables=None, database=None):
         """Retrieve a dictionary of table keys and list of rows values for every table."""
