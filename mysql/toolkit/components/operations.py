@@ -85,12 +85,12 @@ class Remove:
         Accepts either a string representing a table name or a list of strings
         representing a table names.
         """
-        if isinstance(table, str):
-            self.execute('DROP TABLE ' + wrap(table))
-        elif isinstance(table, (list, set, tuple)):
+        if isinstance(table, (list, set, tuple)):
             # Join list of tables into comma separated string
             tables_str = ', '.join([wrap(t) for t in table])
-            self.execute('DROP TABLE ' + tables_str)
+        else:
+            tables_str = wrap(table)
+        self.execute('DROP TABLE {0}'.format(tables_str))
         return table
 
     def drop_empty_tables(self):
@@ -109,7 +109,24 @@ class Remove:
         return drops
 
 
-class Operations(Database, Compare, Remove):
+class Alter:
+    def rename(self, old_table, new_table):
+        """
+        Rename a table.
+
+        You must have ALTER and DROP privileges for the original table,
+        and CREATE and INSERT privileges for the new table.
+        """
+        try:
+            command = 'RENAME TABLE {0} TO {1}'.format(wrap(old_table), wrap(new_table))
+        except:
+            command = 'ALTER TABLE {0} RENAME {1}'.format(wrap(old_table), wrap(new_table))
+        self.execute(command)
+        self._printer('Renamed {0} to {1}'.format(wrap(old_table), wrap(new_table)))
+        return old_table, new_table
+
+
+class Operations(Alter, Compare, Database, Remove):
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
         pass
