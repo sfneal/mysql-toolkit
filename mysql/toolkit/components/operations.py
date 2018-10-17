@@ -44,8 +44,18 @@ class Operations(Database):
         self._printer(statement)
 
     def drop(self, table):
-        """Drop a table from a database."""
-        self.execute('DROP TABLE ' + wrap(table))
+        """
+        Drop a table from a database.
+
+        Accepts either a string representing a table name or a list of strings
+        representing a table names.
+        """
+        if isinstance(table, str):
+            self.execute('DROP TABLE ' + wrap(table))
+        elif isinstance(table, (list, set, tuple)):
+            # Join list of tables into comma separated string
+            tables_str = ', '.join([wrap(t) for t in table])
+            self.execute('DROP TABLE ' + tables_str)
         return table
 
     def drop_empty_tables(self):
