@@ -115,7 +115,6 @@ class Remove:
             if count < 1:
                 # Drop table if it contains no rows
                 self.drop(table)
-                self._printer('Dropped table', table)
                 drops.append(table)
         return drops
 
