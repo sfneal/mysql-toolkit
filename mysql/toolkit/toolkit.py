@@ -9,9 +9,6 @@ class MySQL(Connector, Query, SQL, Operations):
         """
         # Initialize inherited classes
         Connector.__init__(self, config, enable_printing)
-        Query.__init__(self)
-        SQL.__init__(self)
-        Operations.__init__(self)
 
     def __enter__(self):
         return self
