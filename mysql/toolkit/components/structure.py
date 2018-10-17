@@ -1,7 +1,27 @@
 from mysql.toolkit.utils import wrap
 
 
-class Structure:
+class PrimaryKey:
+    def get_primary_key_vals(self, table):
+        """Retrieve a list of primary key values in a table"""
+        return self.select(table, self.get_primary_key(table))
+
+    def get_primary_key(self, table):
+        """Retrieve the column which is the primary key for a table."""
+        for column in self.get_schema(table):
+            if len(column) > 3 and 'pri' in column[3].lower():
+                return column[0]
+
+    def set_primary_key(self, table, column):
+        """Create a Primary Key constraint on a specific column when the table is already created."""
+        self.execute('ALTER TABLE {0} ADD PRIMARY KEY ({1})'.format(table, column))
+
+    def drop_primary_key(self, table):
+        """Drop a Primary Key constraint for a specific table."""
+        self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(table))
+
+
+class Structure(PrimaryKey):
     """
     Result retrieval helper methods for the MySQL class.
 
@@ -18,16 +38,6 @@ class Structure:
     def databases(self):
         """Retrieve a list of databases that are accessible under the current connection"""
         return self.fetch('show databases')
-
-    def get_primary_key_vals(self, table):
-        """Retrieve a list of primary key values in a table"""
-        return self.select(table, self.get_primary_key(table))
-
-    def get_primary_key(self, table):
-        """Retrieve the column which is the primary key for a table."""
-        for column in self.get_schema(table):
-            if len(column) > 3 and 'pri' in column[3].lower():
-                return column[0]
 
     def get_columns(self, table):
         """Retrieve a list of columns in a table."""
