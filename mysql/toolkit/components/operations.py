@@ -5,9 +5,6 @@ from mysql.toolkit.components.database import Database
 
 
 class Operations(Database):
-    def __init__(self):
-        Database.__init__(self)
-
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
         pass

@@ -6,9 +6,6 @@ MAX_ROWS_PER_QUERY = 50000
 
 
 class Select:
-    def __init__(self):
-        pass
-
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
         # Determine if a row per query limit should be set

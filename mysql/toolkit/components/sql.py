@@ -9,9 +9,6 @@ class SQL:
     primary key values for a table, number of rows in a table, number of rows of all
     tables in a database.
     """
-    def __init__(self):
-        pass
-
     @property
     def tables(self):
         """Retrieve a list of tables in the connected database"""

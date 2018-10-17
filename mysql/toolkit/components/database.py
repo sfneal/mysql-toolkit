@@ -4,9 +4,6 @@ from tqdm import tqdm
 
 
 class Database:
-    def __init__(self):
-        pass
-
     def copy_database(self, source, destination):
         """
         Copy a database's content and structure.
