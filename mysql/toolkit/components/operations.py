@@ -4,106 +4,7 @@ from mysql.toolkit.script.script import SQLScript
 from mysql.toolkit.components.database import Database
 
 
-class Operations(Database):
-    def backup_database(self, structure=True, data=True):
-        # TODO: Create method
-        pass
-
-    def create_table(self, name, data, headers=None):
-        """Generate and execute a create table query by parsing a 2D dataset"""
-        # TODO: Finish writing method
-        # Set headers list
-        if not headers:
-            headers = data[0]
-
-        # Create dictionary columns and data types from headers list
-        data_types = {header: {'type': None, 'max': None} for header in headers}
-
-        # Confirm that each row of the dataset is the same length
-        for row in data:
-            assert len(row) == len(headers)
-            row_dict = dict(zip(headers, row))
-            for k, v in row_dict.items():
-                if data_types[k]['type'] is None:
-                    data_types[k]['type'] = type(v)
-                    data_types[k]['max'] = len(str(v))
-                else:
-                    data_types[k]['max'] = max(len(str(v)), data_types[k]['max'])
-
-        for k, v in data_types.items():
-            print(k, v)
-
-        # Create list of columns
-        columns = []
-        for column, v in data_types.items():
-            var_type = 'INT' if isinstance(v['type'], int) else 'VARCHAR'
-            var_max = str(v['max'])
-
-        self._printer(columns)
-        statement = "create table " + name + " ("
-        self._printer(statement)
-
-    def drop(self, table):
-        """
-        Drop a table from a database.
-
-        Accepts either a string representing a table name or a list of strings
-        representing a table names.
-        """
-        if isinstance(table, str):
-            self.execute('DROP TABLE ' + wrap(table))
-        elif isinstance(table, (list, set, tuple)):
-            # Join list of tables into comma separated string
-            tables_str = ', '.join([wrap(t) for t in table])
-            self.execute('DROP TABLE ' + tables_str)
-        return table
-
-    def drop_empty_tables(self):
-        """Drop all empty tables in a database."""
-        # Count number of rows in each table
-        counts = self.count_rows_all()
-        drops = []
-
-        # Loop through each table key and validate that rows count is not 0
-        for table, count in counts.items():
-            if count < 1:
-                # Drop table if it contains no rows
-                self.drop(table)
-                self._printer('Dropped table', table)
-                drops.append(table)
-        return drops
-
-    def truncate(self, table):
-        """Empty a table by deleting all of its rows."""
-        statement = "TRUNCATE " + wrap(table)
-        self.execute(statement)
-        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
-
-    def truncate_database(self, database=None):
-        """Drop all tables in a database."""
-        # Change database if needed
-        if database in self.databases and database is not self.database:
-            self.change_db(database)
-
-        # Get list of tables
-        tables = self.tables if isinstance(self.tables, list) else [self.tables]
-        if len(tables) > 0:
-            # Join list of tables into comma separated string
-            tables_str = ', '.join([wrap(table) for table in tables])
-            self.execute('DROP TABLE ' + tables_str)
-            self._printer('\t' + str(len(tables)), 'tables truncated from', database)
-        return tables
-
-    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
-                       dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
-        """Wrapper method for SQLScript class"""
-        ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
-        ss.execute(commands, ignored_commands=ignored_commands, execute_fails=execute_fails)
-
-    def script(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True):
-        """Wrapper method providing access to the SQLScript class's methods and properties"""
-        return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
-
+class Compare:
     def compare_dbs(self, db_x, db_y, show=True):
         """Compare the tables and row counts of two databases."""
         self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
@@ -155,3 +56,104 @@ class Operations(Database):
         if self.database != db:
             self.change_db(db)
         return self.count_rows_all()
+
+
+class Remove:
+    def truncate(self, table):
+        """Empty a table by deleting all of its rows."""
+        statement = "TRUNCATE " + wrap(table)
+        self.execute(statement)
+        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
+
+    def truncate_database(self, database=None):
+        """Drop all tables in a database."""
+        # Change database if needed
+        if database in self.databases and database is not self.database:
+            self.change_db(database)
+
+        # Get list of tables
+        tables = self.tables if isinstance(self.tables, list) else [self.tables]
+        if len(tables) > 0:
+            self.drop(tables)
+            self._printer('\t' + str(len(tables)), 'tables truncated from', database)
+        return tables
+
+    def drop(self, table):
+        """
+        Drop a table from a database.
+
+        Accepts either a string representing a table name or a list of strings
+        representing a table names.
+        """
+        if isinstance(table, str):
+            self.execute('DROP TABLE ' + wrap(table))
+        elif isinstance(table, (list, set, tuple)):
+            # Join list of tables into comma separated string
+            tables_str = ', '.join([wrap(t) for t in table])
+            self.execute('DROP TABLE ' + tables_str)
+        return table
+
+    def drop_empty_tables(self):
+        """Drop all empty tables in a database."""
+        # Count number of rows in each table
+        counts = self.count_rows_all()
+        drops = []
+
+        # Loop through each table key and validate that rows count is not 0
+        for table, count in counts.items():
+            if count < 1:
+                # Drop table if it contains no rows
+                self.drop(table)
+                self._printer('Dropped table', table)
+                drops.append(table)
+        return drops
+
+
+class Operations(Database, Compare, Remove):
+    def backup_database(self, structure=True, data=True):
+        # TODO: Create method
+        pass
+
+    def create_table(self, name, data, headers=None):
+        """Generate and execute a create table query by parsing a 2D dataset"""
+        # TODO: Finish writing method
+        # Set headers list
+        if not headers:
+            headers = data[0]
+
+        # Create dictionary columns and data types from headers list
+        data_types = {header: {'type': None, 'max': None} for header in headers}
+
+        # Confirm that each row of the dataset is the same length
+        for row in data:
+            assert len(row) == len(headers)
+            row_dict = dict(zip(headers, row))
+            for k, v in row_dict.items():
+                if data_types[k]['type'] is None:
+                    data_types[k]['type'] = type(v)
+                    data_types[k]['max'] = len(str(v))
+                else:
+                    data_types[k]['max'] = max(len(str(v)), data_types[k]['max'])
+
+        for k, v in data_types.items():
+            print(k, v)
+
+        # Create list of columns
+        columns = []
+        for column, v in data_types.items():
+            var_type = 'INT' if isinstance(v['type'], int) else 'VARCHAR'
+            var_max = str(v['max'])
+
+        self._printer(columns)
+        statement = "create table " + name + " ("
+        self._printer(statement)
+
+    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
+                       dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
+        """Wrapper method for SQLScript class"""
+        ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
+        ss.execute(commands, ignored_commands=ignored_commands, execute_fails=execute_fails)
+
+    def script(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True):
+        """Wrapper method providing access to the SQLScript class's methods and properties"""
+        return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
