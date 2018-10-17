@@ -68,9 +68,11 @@ class Connector:
                 return True
             except Exception as e:
                 attempts += 1
+                if attempts > max_attempts:
+                    print(command)
+                    raise e
                 self.reconnect()
                 continue
-        raise e
 
     def _connect(self, config):
         """Establish a connection with a MySQL database."""
