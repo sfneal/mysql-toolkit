@@ -15,6 +15,9 @@ class Select:
         else:
             return self.select(table, '*', execute=execute)
 
+    def select_distinct(self, table):
+        pass
+
     def select(self, table, cols, execute=True):
         """Query every row and only certain columns from a table."""
         # Concatenate statement
