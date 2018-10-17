@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: mysql-toolkit
-Version: 1.5.4
+Version: 1.5.5
 Summary: Pure Python MySQL development toolkit.
 Home-page: https://github.com/mrstephenneal/mysql-toolkit
 Author: Stephen Neal
