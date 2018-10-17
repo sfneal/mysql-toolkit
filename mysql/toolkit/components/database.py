@@ -45,7 +45,7 @@ class Database:
         # Change database to destination
         self.change_db(destination)
         print('\n')
-        for table in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source)):
+        for table in tqdm(tables, total=len(tables), desc='Copying {0} table (onequery)'.format(source)):
             self.execute('CREATE TABLE {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
     def copy_database_structure(self, source, destination, tables=None):
