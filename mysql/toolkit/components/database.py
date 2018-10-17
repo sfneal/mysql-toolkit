@@ -3,50 +3,14 @@ from mysql.toolkit.utils import wrap
 from tqdm import tqdm
 
 
-class Database:
-    def copy_database(self, source, destination, optimized=False, one_query=False):
-        """
-        Copy a database's content and structure.
+class DatabaseCopy:
+    """Extension of Database class for particular use cases."""
+    def __init__(self, source, destination, optimized=False):
+        # Copy table structures
+        self.copy_database_structure(source, destination)
 
-        Using optimized is about 178% faster
-        Using one_query is about 200% faster
-        """
-        print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
-        with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
-            # Create destination database if it does not exist
-            if destination in self.databases:
-                self.truncate_database(destination)
-            # Truncate database if it does exist
-            else:
-                self.create_database(destination)
-
-            if not one_query:
-                # Copy table structures
-                self.copy_database_structure(source, destination)
-
-                # Copy table data
-                self.copy_database_data(source, destination, optimized)
-            else:
-                self.copy_tables_onequery(source, destination)
-
-    def create_database(self, name):
-        """Create a new database."""
-        statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
-        return self.execute(statement)
-
-    def copy_tables_onequery(self, source, destination, tables=None):
-        """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
-        # Change database to source
-        self.change_db(source)
-
-        if tables is None:
-            tables = self.tables
-
-        # Change database to destination
-        self.change_db(destination)
-        print('\n')
-        for table in tqdm(tables, total=len(tables), desc='Copying {0} table (onequery)'.format(source)):
-            self.execute('CREATE TABLE {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
+        # Copy table data
+        self.copy_database_data(source, destination, optimized)
 
     def copy_database_structure(self, source, destination, tables=None):
         """Copy multiple tables from one database to another."""
@@ -180,3 +144,45 @@ class Database:
                 self.executemany(stmt, params)
             elif 'insert' in query:
                 self.execute(query['insert'])
+
+
+class Database:
+    def copy_database(self, source, destination, optimized=False, one_query=False):
+        """
+        Copy a database's content and structure.
+
+        Using optimized is about 178% faster
+        Using one_query is about 200% faster
+        """
+        print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
+        with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
+            # Create destination database if it does not exist
+            if destination in self.databases:
+                self.truncate_database(destination)
+            # Truncate database if it does exist
+            else:
+                self.create_database(destination)
+
+            if not one_query:
+                DatabaseCopy(source, destination, optimized)
+            else:
+                self.copy_tables_onequery(source, destination)
+
+    def create_database(self, name):
+        """Create a new database."""
+        statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
+        return self.execute(statement)
+
+    def copy_tables_onequery(self, source, destination, tables=None):
+        """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
+        # Change database to source
+        self.change_db(source)
+
+        if tables is None:
+            tables = self.tables
+
+        # Change database to destination
+        self.change_db(destination)
+        print('\n')
+        for table in tqdm(tables, total=len(tables), desc='Copying {0} table (onequery)'.format(source)):
+            self.execute('CREATE TABLE {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
