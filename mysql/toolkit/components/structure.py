@@ -1,7 +1,7 @@
 from mysql.toolkit.utils import wrap
 
 
-class SQL:
+class Structure:
     """
     Result retrieval helper methods for the MySQL class.
 
