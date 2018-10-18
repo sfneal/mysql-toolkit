@@ -34,8 +34,6 @@ class PrimaryKey:
         """
         tables = tables if tables else self.tables
         for t in tables:
-            if show:
-                self._printer('\t{0}'.format(t))
             # Confirm no primary key exists
             if not self.get_primary_key(t):
                 # Determine if there is a unique column that can become the PK
@@ -49,7 +47,7 @@ class PrimaryKey:
                 else:
                     self.add_column(t, primary_key=True)
         if show:
-            for s in ['\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col) for t in tables
+            for s in ['\t{6}\n\t\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col, t) for t in tables
                       for col in self.get_schema(t, True)]:
                 print(s)
 
