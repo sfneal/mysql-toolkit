@@ -70,6 +70,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     with MySQL(config, enable_printing=printing) as sql:
         print(sql.get_column_definition('project', 'project'))
