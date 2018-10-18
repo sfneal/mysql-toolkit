@@ -17,6 +17,8 @@ def sandbox():
         print(sql.get_schema('project', with_headers=True))
         print(sql.get_columns('project'))
         print('\n')
+        sql.drop_column('project', 'test')
+        sql.add_column('project', 'test')
 
         print(sql.count_rows_duplicates('project', 'project'))
         print(sql.count_rows_distinct('project', 'project'))
@@ -70,4 +72,4 @@ def duplicates():
 
 
 if __name__ == '__main__':
-    duplicates()
+    sandbox()

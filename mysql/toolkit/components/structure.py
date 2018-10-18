@@ -1,4 +1,5 @@
 from mysql.toolkit.utils import join_cols, wrap
+from mysql.connector.errors import ProgrammingError
 
 
 class PrimaryKey:
@@ -14,8 +15,8 @@ class PrimaryKey:
 
     def set_primary_key(self, table, column):
         """Create a Primary Key constraint on a specific column when the table is already created."""
-        self.execute('ALTER TABLE {0} ADD PRIMARY KEY ({1})'.format(table, column))
-        self._printer('\tAdded primary key to {0} on column {1}'.format(table, column))
+        self.execute('ALTER TABLE {0} ADD PRIMARY KEY ({1})'.format(wrap(table), column))
+        self._printer('\tAdded primary key to {0} on column {1}'.format(wrap(table), column))
 
     def drop_primary_key(self, table):
         """Drop a Primary Key constraint for a specific table."""
@@ -29,7 +30,24 @@ class ForeignKey:
                                                                                         child_table, child_column))
 
 
-class Structure(PrimaryKey, ForeignKey):
+class Alter(PrimaryKey, ForeignKey):
+    def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False):
+        """Add a column to an existing table."""
+        location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
+        null_ = 'NULL' if null else 'NOT NULL'
+        query = 'ALTER TABLE {0} ADD {1} {2} {3} {4}'.format(wrap(table), name, data_type, null_, location)
+        self.execute(query)
+
+    def drop_column(self, table, name):
+        """Add a column to an existing table."""
+        try:
+            self.execute('ALTER TABLE {0} DROP COLUMN {1}'.format(wrap(table), name))
+            self._printer('\tDropped column {0} from {1}'.format(name, table))
+        except ProgrammingError:
+            self._printer("\tCan't DROP '{0}'; check that column/key exists in '{1}'".format(name, table))
+
+
+class Structure(Alter):
     """
     Result retrieval helper methods for the MySQL class.
 
