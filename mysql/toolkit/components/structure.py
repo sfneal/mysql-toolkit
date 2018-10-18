@@ -65,9 +65,15 @@ class Structure(PrimaryKey, ForeignKey):
             schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return schema
 
-    def count_rows_non_distinct(self, table, cols='*'):
+    def get_unique_column(self, table):
+        """Determine if any of the columns in a table contain exclusively unique values."""
+        for col in self.get_columns(table):
+            if self.count_rows_duplicates(table, col) == 0:
+                return col
+
+    def count_rows_duplicates(self, table, cols='*'):
         """Get the number of rows that do not contain distinct values."""
-        return self.count_rows(table, cols) - self.count_rows_distinct(table, cols)
+        return self.count_rows(table, '*') - self.count_rows_distinct(table, cols)
 
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""
