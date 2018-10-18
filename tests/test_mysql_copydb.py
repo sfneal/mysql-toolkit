@@ -30,6 +30,7 @@ def optimized():
 
 def one():
     with MySQL(config, enable_printing=printing) as sql:
+        sql.get_column_definition('project', 'year')
         src, dst = 'hpa_pt', 'hpa_sandbox'
         sql.copy_database(src, dst, one_query=True)
         sql.compare_dbs(src, dst)
@@ -69,4 +70,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
+    with MySQL(config, enable_printing=printing) as sql:
+        print(sql.get_column_definition('project', 'project'))

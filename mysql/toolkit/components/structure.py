@@ -32,7 +32,7 @@ class ForeignKey:
 
 
 class Alter(PrimaryKey, ForeignKey):
-    def create_primary_keys(self, tables=None, show=False):
+    def set_primary_keys_all(self, tables=None, show=False):
         """
         Create primary keys for every table in the connected database.
 
@@ -80,8 +80,36 @@ class Alter(PrimaryKey, ForeignKey):
             self._printer("\tCan't DROP '{0}'; check that column/key exists in '{1}'".format(name, table))
         return name
 
+    def add_comment(self, table, column, comment):
+        """Add a comment to an existing column in a table"""
+        col_def = self.get_column_definition(table, column)
+        query = 'ALTER TABLE {0} MODIFY COLUMN {1} {2} COMMENT {3}'.format(table, column, col_def, comment)
+        self.execute(query)
+        return True
 
-class Structure(Alter):
+
+class Definition:
+    def get_table_definition(self, table):
+        """Retrieve a CREATE TABLE statement for an existing table."""
+        return self.fetch('SHOW CREATE TABLE {0}'.format(table))[1]
+
+    def get_column_definition_all(self, table):
+        """Retrieve the column definition statement for a column from a table."""
+        # Get complete table definition
+        col_defs = self.get_table_definition(table).split('\n')
+
+        # Return only column definitions
+        return [i.strip() for i in col_defs if i.strip().startswith('`')]
+
+    def get_column_definition(self, table, column):
+        """Retrieve the column definition statement for a column from a table."""
+        # Parse column definitions for match
+        for col in self.get_column_definition_all(table):
+            if col.strip('`').startswith(column):
+                return col.strip(',')
+
+
+class Structure(Alter, Definition):
     """
     Result retrieval helper methods for the MySQL class.
 
