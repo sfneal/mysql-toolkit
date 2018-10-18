@@ -3,6 +3,7 @@ from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
 MAX_ROWS_PER_QUERY = 50000
+SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
 
 
 class Select:
@@ -15,13 +16,18 @@ class Select:
         else:
             return self.select(table, '*', execute=execute)
 
-    def select_distinct(self, table):
-        pass
+    def select_distinct(self, table, cols='*', execute=True):
+        """Query distinct values from a table."""
+        return self.select(table, cols, execute, 'SELECT DISTINCT')
 
-    def select(self, table, cols, execute=True):
+    def select(self, table, cols, execute=True, select_type='SELECT'):
         """Query every row and only certain columns from a table."""
+        # Validate query type
+        select_type = select_type.upper()
+        assert select_type in SELECT_QUERY_TYPES
+
         # Concatenate statement
-        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
+        statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
         if execute:  # Execute commands
             return self.fetch(statement)
         else:  # Return command
