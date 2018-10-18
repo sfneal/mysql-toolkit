@@ -11,27 +11,35 @@ config = {
     "raise_on_warnings": True,
     "user": "stephen_hpa"
 }
+printing = True
 
 
 def standard():
-    with MySQL(config, enable_printing=False) as sql:
+    with MySQL(config, enable_printing=printing) as sql:
         src, dst = 'hpa_pt', 'hpa_sandbox'
         sql.copy_database(src, dst)
         sql.compare_dbs(src, dst)
 
 
 def optimized():
-    with MySQL(config, enable_printing=False) as sql:
+    with MySQL(config, enable_printing=printing) as sql:
         src, dst = 'hpa_pt', 'hpa_sandbox'
         sql.copy_database(src, dst, optimized=True)
         sql.compare_dbs(src, dst)
 
 
 def one():
-    with MySQL(config, enable_printing=False) as sql:
+    with MySQL(config, enable_printing=printing) as sql:
         src, dst = 'hpa_pt', 'hpa_sandbox'
         sql.copy_database(src, dst, one_query=True)
         sql.compare_dbs(src, dst)
+
+        print('-' * 200)
+        for t in sql.tables:
+            print(t)
+            for col in sql.get_schema(t, True):
+                print('\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
+        print('-' * 200)
 
 
 def main():
@@ -41,15 +49,15 @@ def main():
         'one': 0.0
     }
 
-    t1 = Timer()
-    standard()
-    t1.end
-    times['standard'] += float(t1)
+    # t1 = Timer()
+    # standard()
+    # t1.end
+    # times['standard'] += float(t1)
 
-    t2 = Timer()
-    optimized()
-    t2.end
-    times['optimized'] += float(t2)
+    # t2 = Timer()
+    # optimized()
+    # t2.end
+    # times['optimized'] += float(t2)
 
     t3 = Timer()
     one()
