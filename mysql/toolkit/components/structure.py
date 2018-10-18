@@ -1,4 +1,4 @@
-from mysql.toolkit.utils import wrap
+from mysql.toolkit.utils import join_cols, wrap
 
 
 class PrimaryKey:
@@ -69,6 +69,14 @@ class Structure(PrimaryKey, ForeignKey):
         """Get the number of rows for every table in the database."""
         return {table: self.count_rows(table) for table in self.tables}
 
-    def count_rows(self, table):
+    def count_rows(self, table, cols='*'):
         """Get the number of rows in a particular table"""
-        return self.fetch('SELECT COUNT(*) FROM {0}'.format(wrap(table)))
+        return self.fetch('SELECT COUNT({0}) FROM {1}'.format(wrap(table), join_cols(cols)))
+
+    def count_rows_all_distinct(self):
+        """Get the number of rows for every table in the database."""
+        return {table: self.count_rows_distinct(table) for table in self.tables}
+
+    def count_rows_distinct(self, table, cols='*'):
+        """Get the number of rows in a particular table"""
+        return self.fetch('SELECT DISTINCT COUNT({0}) FROM {1}'.format(wrap(table), join_cols(cols)))
