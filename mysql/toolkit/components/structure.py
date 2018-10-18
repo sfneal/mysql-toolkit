@@ -65,18 +65,24 @@ class Structure(PrimaryKey, ForeignKey):
             schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return schema
 
+    def count_row_non_distinct(self, table, cols='*'):
+        """Get the number of rows that do not contain distinct values."""
+        return self.count_rows(table, cols) - self.count_rows_distinct(table, cols)
+
     def count_rows_all(self):
         """Get the number of rows for every table in the database."""
         return {table: self.count_rows(table) for table in self.tables}
 
     def count_rows(self, table, cols='*'):
         """Get the number of rows in a particular table"""
-        return self.fetch('SELECT COUNT({0}) FROM {1}'.format(wrap(table), join_cols(cols)))
+        query = 'SELECT COUNT({0}) FROM {1}'.format(join_cols(cols), wrap(table))
+        result = self.fetch(query)
+        return result if result is not None else 0
 
     def count_rows_all_distinct(self):
-        """Get the number of rows for every table in the database."""
+        """Get the number of distinct rows for every table in the database."""
         return {table: self.count_rows_distinct(table) for table in self.tables}
 
     def count_rows_distinct(self, table, cols='*'):
-        """Get the number of rows in a particular table"""
-        return self.fetch('SELECT DISTINCT COUNT({0}) FROM {1}'.format(wrap(table), join_cols(cols)))
+        """Get the number distinct of rows in a particular table"""
+        return self.fetch('SELECT DISTINCT COUNT({0}) FROM {1}'.format(join_cols(cols)), wrap(table))
