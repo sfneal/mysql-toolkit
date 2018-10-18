@@ -65,7 +65,7 @@ class Structure(PrimaryKey, ForeignKey):
             schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return schema
 
-    def count_row_non_distinct(self, table, cols='*'):
+    def count_rows_non_distinct(self, table, cols='*'):
         """Get the number of rows that do not contain distinct values."""
         return self.count_rows(table, cols) - self.count_rows_distinct(table, cols)
 
@@ -85,4 +85,4 @@ class Structure(PrimaryKey, ForeignKey):
 
     def count_rows_distinct(self, table, cols='*'):
         """Get the number distinct of rows in a particular table"""
-        return self.fetch('SELECT DISTINCT COUNT({0}) FROM {1}'.format(join_cols(cols)), wrap(table))
+        return self.fetch('SELECT COUNT(DISTINCT {0}) FROM {1}'.format(join_cols(cols), wrap(table)))
