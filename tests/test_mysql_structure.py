@@ -14,11 +14,10 @@ def sandbox():
 
     with MySQL(config) as sql:
         # Show databases
-        print(sql.get_schema('project', with_headers=True))
-        print(sql.get_columns('project'))
-        print('\n')
+        print(sql.get_primary_key('project'))
         sql.drop_column('project', 'test')
-        sql.add_column('project', 'test')
+        sql.drop_primary_key('project')
+        sql.add_column('project', 'test', primary_key=True)
 
         print(sql.count_rows_duplicates('project', 'project'))
         print(sql.count_rows_distinct('project', 'project'))

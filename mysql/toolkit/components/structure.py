@@ -20,7 +20,8 @@ class PrimaryKey:
 
     def drop_primary_key(self, table):
         """Drop a Primary Key constraint for a specific table."""
-        self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(table))
+        if self.get_primary_key(table):
+            self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(wrap(table)))
 
 
 class ForeignKey:
@@ -31,12 +32,14 @@ class ForeignKey:
 
 
 class Alter(PrimaryKey, ForeignKey):
-    def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False):
+    def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=True):
         """Add a column to an existing table."""
         location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
         null_ = 'NULL' if null else 'NOT NULL'
-        query = 'ALTER TABLE {0} ADD {1} {2} {3} {4}'.format(wrap(table), name, data_type, null_, location)
+        pk = 'AUTO_INCREMENT PRIMARY KEY' if primary_key else ''
+        query = 'ALTER TABLE {0} ADD COLUMN {1} {2} {3} {4} {5}'.format(wrap(table), name, data_type, null_, pk, location)
         self.execute(query)
+        return name
 
     def drop_column(self, table, name):
         """Add a column to an existing table."""
@@ -45,6 +48,7 @@ class Alter(PrimaryKey, ForeignKey):
             self._printer('\tDropped column {0} from {1}'.format(name, table))
         except ProgrammingError:
             self._printer("\tCan't DROP '{0}'; check that column/key exists in '{1}'".format(name, table))
+        return name
 
 
 class Structure(Alter):
