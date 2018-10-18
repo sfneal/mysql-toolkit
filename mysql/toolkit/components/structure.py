@@ -23,7 +23,7 @@ class PrimaryKey:
         if self.get_primary_key(table):
             self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(wrap(table)))
 
-    def set_primary_keys_all(self, tables=None, show=False):
+    def set_primary_keys_all(self, tables=None):
         """
         Create primary keys for every table in the connected database.
 
@@ -46,10 +46,6 @@ class PrimaryKey:
                 # Create unique 'ID' column
                 else:
                     self.add_column(t, primary_key=True)
-        if show:
-            for s in ['\t{6}\n\t\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col, t) for t in tables
-                      for col in self.get_schema(t, True)]:
-                print(s)
 
 
 class ForeignKey:
