@@ -57,9 +57,10 @@ class Alter(PrimaryKey, ForeignKey):
                 # Create unique 'ID' column
                 else:
                     self.add_column(t, primary_key=True)
-            if show:
-                for col in self.get_schema(t, True):
-                    self._printer('\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
+        if show:
+            for s in ['\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col) for t in tables
+                      for col in self.get_schema(t, True)]:
+                print(s)
 
     def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=False):
         """Add a column to an existing table."""
