@@ -123,6 +123,26 @@ class Structure(Alter, Definition):
         """Retrieve a list of databases that are accessible under the current connection"""
         return self.fetch('show databases')
 
+    def show_schema(self, tables=None):
+        """Print schema information."""
+        tables = tables if tables else self.tables
+        for t in tables:
+            self._printer('\t{0}'.format(t))
+            # Confirm no primary key exists
+            if not self.get_primary_key(t):
+                # Determine if there is a unique column that can become the PK
+                unique_col = self.get_unique_column(t)
+
+                # Set primary key
+                if unique_col:
+                    self.set_primary_key(t, unique_col)
+
+                # Create unique 'ID' column
+                else:
+                    self.add_column(t, primary_key=True)
+            for col in self.get_schema(t, True):
+                self._printer('\t\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
+
     def get_columns(self, table):
         """Retrieve a list of columns in a table."""
         return [schema[0] for schema in self.get_schema(table)]
