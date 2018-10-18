@@ -54,5 +54,20 @@ def allin():
         print('-' * 200)
 
 
+def duplicates():
+    config = {
+        "database": "hpa_allin_og1",
+        "host": "stephenneal.net",
+        "password": "Stealth19!",
+        "port": 3306,
+        "raise_on_warnings": True,
+        "user": "stephen_hpa"
+    }
+
+    with MySQL(config) as sql:
+        for col in sql.get_columns('PersonAddress'):
+            print(sql.get_duplicate_vals('PersonAddress', col))
+
+
 if __name__ == '__main__':
-    allin()
+    duplicates()
