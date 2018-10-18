@@ -32,13 +32,43 @@ class ForeignKey:
 
 
 class Alter(PrimaryKey, ForeignKey):
-    def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=True):
+    def create_primary_keys(self, tables=None, show=False):
+        """
+        Create primary keys for every table in the connected database.
+
+        Checks that each table has a primary key.  If a table does not have a key
+        then each column is analyzed to determine if it contains only unique values.
+        If no columns exist containing only unique values then a new 'ID' column
+        is created to serve as a auto_incrementing primary key.
+        """
+        tables = tables if tables else self.tables
+        for t in tables:
+            if show:
+                self._printer('\t{0}'.format(t))
+            # Confirm no primary key exists
+            if not self.get_primary_key(t):
+                # Determine if there is a unique column that can become the PK
+                unique_col = self.get_unique_column(t)
+
+                # Set primary key
+                if unique_col:
+                    self.set_primary_key(t, unique_col)
+
+                # Create unique 'ID' column
+                else:
+                    self.add_column(t, primary_key=True)
+            if show:
+                for col in self.get_schema(t, True):
+                    self._printer('\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
+
+    def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=False):
         """Add a column to an existing table."""
         location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
         null_ = 'NULL' if null else 'NOT NULL'
         pk = 'AUTO_INCREMENT PRIMARY KEY' if primary_key else ''
         query = 'ALTER TABLE {0} ADD COLUMN {1} {2} {3} {4} {5}'.format(wrap(table), name, data_type, null_, pk, location)
         self.execute(query)
+        self._printer("\tAdded column '{0}' to '{1}' {2}".format(name, table, '(Primary Key)' if primary_key else ''))
         return name
 
     def drop_column(self, table, name):
