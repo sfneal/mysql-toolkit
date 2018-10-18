@@ -23,15 +23,6 @@ class PrimaryKey:
         if self.get_primary_key(table):
             self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(wrap(table)))
 
-
-class ForeignKey:
-    def set_foreign_key(self, parent_table, parent_column, child_table, child_column):
-        """Create a Foreign Key constraint on a column from a table."""
-        self.execute('ALTER TABLE {0} ADD FOREIGN KEY ({1}) REFERENCES {2}({3})'.format(parent_table, parent_column,
-                                                                                        child_table, child_column))
-
-
-class Alter(PrimaryKey, ForeignKey):
     def set_primary_keys_all(self, tables=None, show=False):
         """
         Create primary keys for every table in the connected database.
@@ -62,6 +53,15 @@ class Alter(PrimaryKey, ForeignKey):
                       for col in self.get_schema(t, True)]:
                 print(s)
 
+
+class ForeignKey:
+    def set_foreign_key(self, parent_table, parent_column, child_table, child_column):
+        """Create a Foreign Key constraint on a column from a table."""
+        self.execute('ALTER TABLE {0} ADD FOREIGN KEY ({1}) REFERENCES {2}({3})'.format(parent_table, parent_column,
+                                                                                        child_table, child_column))
+
+
+class Alter(PrimaryKey, ForeignKey):
     def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=False):
         """Add a column to an existing table."""
         location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
