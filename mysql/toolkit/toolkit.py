@@ -1,7 +1,7 @@
-from mysql.toolkit.components import Connector, Query, SQL, Operations
+from mysql.toolkit.components import Connector, Manipulate, Structure, Operations
 
 
-class MySQL(Connector, Query, SQL, Operations):
+class MySQL(Connector, Manipulate, Structure, Operations):
     def __init__(self, config, enable_printing=True):
         """
         Connect to MySQL database and execute queries
@@ -9,9 +9,6 @@ class MySQL(Connector, Query, SQL, Operations):
         """
         # Initialize inherited classes
         Connector.__init__(self, config, enable_printing)
-        Query.__init__(self)
-        SQL.__init__(self)
-        Operations.__init__(self)
 
     def __enter__(self):
         return self

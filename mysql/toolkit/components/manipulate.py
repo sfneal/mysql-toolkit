@@ -3,12 +3,10 @@ from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 
 MAX_ROWS_PER_QUERY = 50000
+SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
 
 
 class Select:
-    def __init__(self):
-        pass
-
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
         # Determine if a row per query limit should be set
@@ -18,10 +16,18 @@ class Select:
         else:
             return self.select(table, '*', execute=execute)
 
-    def select(self, table, cols, execute=True):
+    def select_distinct(self, table, cols='*', execute=True):
+        """Query distinct values from a table."""
+        return self.select(table, cols, execute, 'SELECT DISTINCT')
+
+    def select(self, table, cols, execute=True, select_type='SELECT'):
         """Query every row and only certain columns from a table."""
+        # Validate query type
+        select_type = select_type.upper()
+        assert select_type in SELECT_QUERY_TYPES
+
         # Concatenate statement
-        statement = 'SELECT {0} FROM {1}'.format(join_cols(cols), wrap(table))
+        statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
         if execute:  # Execute commands
             return self.fetch(statement)
         else:  # Return command
@@ -87,9 +93,6 @@ class Select:
 
 
 class Insert:
-    def __init__(self):
-        pass
-
     def insert_uniques(self, table, columns, values):
         """
         Insert multiple rows into a table that do not already exist.
@@ -159,7 +162,7 @@ class Insert:
             return False
 
         # Make values a list of lists if it is a flat list
-        if not isinstance(values[0], list):
+        if not isinstance(values[0], (list, set, tuple)):
             values = []
             for v in values:
                 if v is not None and len(v) > 0:
@@ -189,9 +192,6 @@ class Insert:
 
 
 class Update:
-    def __init__(self):
-        pass
-
     def update(self, table, columns, values, where):
         """
         Update the values of a particular row where a value is met.
@@ -220,8 +220,18 @@ class Update:
             self.update(table, columns, row, (where_col, row[where_index]))
 
 
-class Query(Select, Insert, Update):
+class Delete:
+    def delete(self, table, where=None):
+        """Delete existing rows from a table."""
+        if where:
+            where_key, where_val = where
+            query = 'DELETE FROM {0} WHERE {1}={2}'.format(wrap(table), where_key, wrap(where_val))
+        else:
+            query = 'DELETE FROM {0}'.format(wrap(table))
+        self.execute(query)
+        return True
+
+
+class Manipulate(Select, Insert, Update, Delete):
     def __init__(self):
-        Select.__init__(self)
-        Insert.__init__(self)
-        Update.__init__(self)
+        pass

@@ -10,26 +10,25 @@ class Connector:
     Handles opening and closing a connection to a database source, fetching results
     from a query, executing a query and batch executing multiple queries.
     """
-    _config = None
-    enable_printing = True
-    _cursor = None
-    _cnx = None
-    database = None
-    CONFIGURED = False
+    def __init__(self, config, enable_printing):
+        self._config = config
+        self.enable_printing = enable_printing
+        self._cursor = None
+        self._cnx = None
+        self._connect(config)
+        self.database = config['database']
 
-    def __init__(self, config=None, enable_printing=None):
-        if self._config is None and config is not None:
-            self.configure(config, enable_printing)
+    def change_db(self, db):
+        """Change connect database."""
+        # Get original config and change database key
+        config = self._config
+        config['database'] = db
 
-    @classmethod
-    def configure(cls, config, enable_printing):
-        cls._config = config
-        cls.enable_printing = enable_printing
-        cls._cursor = None
-        cls._cnx = None
-        cls._connect(config)
-        cls.database = config['database']
-        cls.CONFIGURED = True
+        # Close current database connection
+        self._disconnect()
+
+        # Reconnect to the new database
+        self._connect(config)
 
     def disconnect(self):
         """Disconnect from a MySQL database."""
@@ -71,29 +70,15 @@ class Connector:
                 attempts += 1
                 self.reconnect()
                 continue
-        raise e
 
-    def change_db(self, db):
-        """Change connect database."""
-        # Get original config and change database key
-        config = self._config
-        config['database'] = db
-
-        # Close current database connection
-        self._disconnect()
-
-        # Reconnect to the new database
-        self._connect(config)
-
-    @classmethod
-    def _connect(cls, config):
+    def _connect(self, config):
         """Establish a connection with a MySQL database."""
-        if 'connection_timeout' not in cls._config:
-            cls._config['connection_timeout'] = 480
+        if 'connection_timeout' not in self._config:
+            self._config['connection_timeout'] = 480
         try:
-            cls._cnx = connect(**config)
-            cls._cursor = cls._cnx.cursor()
-            cls._printer('\tMySQL DB connection established with db', config['database'])
+            self._cnx = connect(**config)
+            self._cursor = self._cnx.cursor()
+            self._printer('\tMySQL DB connection established with db', config['database'])
         except Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 print("Something is wrong with your user name or password")
@@ -101,10 +86,14 @@ class Connector:
                 print("Database does not exist")
             raise err
 
-    @classmethod
-    def _printer(cls, *msg):
+    def _disconnect(self):
+        """Destroy connection with MySQL database."""
+        self._commit()
+        self._close()
+
+    def _printer(self, *msg):
         """Printing method for internal use."""
-        if cls.enable_printing:
+        if self.enable_printing:
             print(*msg)
 
     def _close(self):
@@ -116,10 +105,16 @@ class Connector:
         """Commit the changes made during the current connection."""
         self._cnx.commit()
 
-    def _disconnect(self):
-        """Destroy connection with MySQL database."""
-        self._commit()
-        self._close()
+    @staticmethod
+    def _fetch_rows(fetch):
+        """Retrieve fetched rows from a MySQL cursor."""
+        rows = []
+        for row in fetch:
+            if len(row) == 1:
+                rows.append(row[0])
+            else:
+                rows.append(list(row))
+        return rows
 
     def _fetch(self, statement, commit, max_attempts=5):
         """
@@ -145,14 +140,3 @@ class Connector:
                 self.reconnect()
                 continue
         raise e
-
-    @staticmethod
-    def _fetch_rows(fetch):
-        """Retrieve fetched rows from a MySQL cursor."""
-        rows = []
-        for row in fetch:
-            if len(row) == 1:
-                rows.append(row[0])
-            else:
-                rows.append(list(row))
-        return rows
