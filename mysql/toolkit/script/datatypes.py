@@ -30,13 +30,14 @@ class Text:
     def __init__(self, data):
         self.data = data
         self.type = None
-        self.len = len(self.data)
+        self.len = None
 
     def is_varchar(self):
         """Determine if a data record is of the type VARCHAR."""
         dt = DATA_TYPES['varchar']
-        if type(self.data) is dt['type'] and self.len < dt['max']:
+        if type(self.data) is dt['type'] and len(self.data) < dt['max']:
             self.type = 'VARCHAR'
+            self.len = len(self.data)
             return True
 
     def is_tinytext(self):
@@ -60,6 +61,7 @@ class Text:
         dt = DATA_TYPES[data_type]
         if type(self.data) is dt['type'] and self.len < dt['max'] and all(type(char) == str for char in self.data):
             self.type = data_type.upper()
+            self.len = len(self.data)
             return True
 
 
@@ -85,13 +87,6 @@ class Numeric:
         """Determine if a data record is of the type BIGINT."""
         return self._is_numeric_data('bigint')
 
-    def _is_numeric_data(self, data_type):
-        """Private method for testing text data types."""
-        dt = DATA_TYPES[data_type]
-        if type(self.data) is dt['type'] and dt['min'] < self.len < dt['max']:
-            self.type = data_type.upper()
-            return True
-
     def is_float(self):
         """Determine if a data record is of the type float."""
         dt = DATA_TYPES['float']
@@ -100,6 +95,15 @@ class Numeric:
             num_split = str(self.data).split('.', 1)
             self.len = '{0}, {1}'.format(len(num_split[0]), len(num_split[1]))
             return True
+
+    def _is_numeric_data(self, data_type):
+        """Private method for testing text data types."""
+        dt = DATA_TYPES[data_type]
+        if dt['min'] and dt['max']:
+            if type(self.data) is dt['type'] and dt['min'] < self.data < dt['max']:
+                self.type = data_type.upper()
+                self.len = len(str(self.data))
+                return True
 
 
 class Dates:
@@ -134,6 +138,7 @@ class Dates:
         if isinstance(self.data, dt['type']):
             self.type = data_type.upper()
             self.len = None
+            return True
 
 
 class Record(Text, Numeric, Dates):
@@ -141,14 +146,42 @@ class Record(Text, Numeric, Dates):
         super(Record, self).__init__(data)
         self.data = data
         self.type = None
-        self.len = len(self.data)
+        self.len = None
 
     @property
     def datatype(self):
+        if not self.type:
+            self.get_type()
+
         if self.len:
             return '{0} ({1})'.format(self.type, self.len)
         else:
             return '{0}'.format(self.type)
+
+    def get_type(self):
+        """Retrieve the data type for a data record."""
+        test_method = [
+            self.is_varchar,
+            self.is_tinytext,
+            self.is_text,
+            self.is_mediumtext,
+            self.is_longtext,
+            self.is_tinyint,
+            self.is_mediumint,
+            self.is_int,
+            self.is_bigint,
+            self.is_float,
+            self.is_date,
+            self.is_datetime,
+            self.is_timestamp,
+            self.is_time,
+            self.is_year,
+            self.is_year,
+        ]
+        # Loop through test methods until a test returns True
+        for method in test_method:
+            if method():
+                return self.datatype
 
 
 class DataTypes:
