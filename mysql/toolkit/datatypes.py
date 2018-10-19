@@ -108,6 +108,14 @@ class Numeric:
 
 
 class Dates:
+    # MySQL accepted datetime ranges
+    _years = range(1000, 9999)
+    _months = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
+    _days = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
+    _hours = range(-838, 838)
+    _minutes = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+    _seconds = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+
     def __init__(self, data):
         self.data = data
         self.type = None
@@ -115,21 +123,16 @@ class Dates:
 
     def is_date(self):
         """Determine if a data record is of type DATE."""
-        years = range(1000, 9999)
-        months = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
-        days = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
-
         dt = DATA_TYPES['date']
         if type(self.data) is dt['type'] and '-' in self.data and self.data.count('-') == 2:
+            # Separate year, month and day
             date_split = self.data.split('-')
-            y = date_split[0]
-            m = date_split[1]
-            d = date_split[2]
+            y, m, d = date_split[0], date_split[1], date_split[2]
 
-            valid_year = y in years
-            valid_months = m in months
-            valid_days = d in days
+            # Validate values
+            valid_year, valid_months, valid_days = y in self._years, m in self._months, d in self._days
 
+            # Check that all validations are True
             if all(i is True for i in (valid_year, valid_months, valid_days)):
                 self.type = 'date'.upper()
                 self.len = len(str(self.data))
@@ -141,20 +144,14 @@ class Dates:
 
     def is_time(self):
         """Determine if a data record is of type TIME."""
-        hours = range(-838, 838)
-        minutes = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
-        seconds = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
-
         dt = DATA_TYPES['date']
         if type(self.data) is dt['type'] and ':' in self.data and self.data.count(':') == 2:
+            # Separate hour, month, second
             date_split = self.data.split(':')
-            h = date_split[0]
-            m = date_split[1]
-            s = date_split[2]
+            h, m, s = date_split[0], date_split[1], date_split[2]
 
-            valid_hour = h in hours
-            valid_min = m in minutes
-            valid_sec = s in seconds
+            # Validate values
+            valid_hour, valid_min, valid_sec = h in self._hours, s in self._seconds, m in self._minutes
 
             if all(i is True for i in (valid_hour, valid_min, valid_sec)):
                 self.type = 'time'.upper()

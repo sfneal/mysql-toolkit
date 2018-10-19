@@ -1,5 +1,5 @@
 # Migrate SQL databases
-from mysql.toolkit.script.datatypes import Record, column_datatype
+from mysql.toolkit.datatypes import Record, column_datatype
 from datetime import datetime
 
 
