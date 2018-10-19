@@ -1,7 +1,7 @@
 from differentiate import diff
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.script.script import SQLScript
-from mysql.toolkit.components.database import Database
+from mysql.toolkit.components.clone import Clone
 
 
 class Compare:
@@ -222,10 +222,15 @@ class Alter:
         return old_table, new_table
 
 
-class Operations(Alter, Compare, Database, Remove):
+class Operations(Alter, Compare, Clone, Remove):
     def backup_database(self, structure=True, data=True):
         # TODO: Create method
         pass
+
+    def create_database(self, name):
+        """Create a new database."""
+        statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
+        return self.execute(statement)
 
     def create_table(self, name, data, headers=None):
         """Generate and execute a create table query by parsing a 2D dataset"""

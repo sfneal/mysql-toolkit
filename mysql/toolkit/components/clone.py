@@ -3,7 +3,7 @@ from mysql.toolkit.utils import wrap
 from tqdm import tqdm
 
 
-class DatabaseCopy:
+class CloneDatabase:
     """Extension of Database class for particular use cases."""
     def copy_database_slow(self, source, destination, optimized=False):
         # Copy table structures
@@ -146,7 +146,7 @@ class DatabaseCopy:
                 self.execute(query['insert'])
 
 
-class Database(DatabaseCopy):
+class Clone(CloneDatabase):
     def copy_database(self, source, destination, optimized=False, one_query=False):
         """
         Copy a database's content and structure.
@@ -172,11 +172,6 @@ class Database(DatabaseCopy):
                 self.copy_database_slow(source, destination, optimized)
             else:
                 self._copy_tables_onequery(source, destination)
-
-    def create_database(self, name):
-        """Create a new database."""
-        statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
-        return self.execute(statement)
 
     def _copy_tables_onequery(self, source, destination, tables=None, primary_keys=True):
         """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
