@@ -161,11 +161,6 @@ class Record(Text, Numeric, Dates):
     def get_type(self):
         """Retrieve the data type for a data record."""
         test_method = [
-            self.is_varchar,
-            self.is_tinytext,
-            self.is_text,
-            self.is_mediumtext,
-            self.is_longtext,
             self.is_tinyint,
             self.is_mediumint,
             self.is_int,
@@ -176,7 +171,11 @@ class Record(Text, Numeric, Dates):
             self.is_timestamp,
             self.is_time,
             self.is_year,
-            self.is_year,
+            self.is_varchar,
+            self.is_tinytext,
+            self.is_text,
+            self.is_mediumtext,
+            self.is_longtext,
         ]
         # Loop through test methods until a test returns True
         for method in test_method:
