@@ -4,13 +4,14 @@ setup.py
 mysql/__init__.py
 mysql/toolkit/__init__.py
 mysql/toolkit/_version.py
+mysql/toolkit/datatypes.py
 mysql/toolkit/toolkit.py
 mysql/toolkit/utils.py
 mysql/toolkit/components/__init__.py
+mysql/toolkit/components/clone.py
 mysql/toolkit/components/connector.py
-mysql/toolkit/components/database.py
+mysql/toolkit/components/manipulate.py
 mysql/toolkit/components/operations.py
-mysql/toolkit/components/query.py
 mysql/toolkit/components/structure.py
 mysql/toolkit/script/__init__.py
 mysql/toolkit/script/dump.py
