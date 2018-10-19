@@ -144,7 +144,7 @@ class Schema:
         headers = schema.pop(0)
 
         # Create dictionary by zipping headers with each row
-        return {values[0]: dict(zip(headers, values[1:])) for values in schema}
+        return {values[0]: dict(zip(headers, values[0:])) for values in schema}
 
 
 class Structure(Alter, Definition, Schema):
