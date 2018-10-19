@@ -182,7 +182,7 @@ class Remove:
 
     def _drop(self, table, existing_tables=None):
         """Private method for executing table drop commands."""
-        # Retrieve list of exisiting tables for comparison
+        # Retrieve list of existing tables for comparison
         existing_tables = existing_tables if existing_tables else self.tables
 
         # Only drop table if it exists
