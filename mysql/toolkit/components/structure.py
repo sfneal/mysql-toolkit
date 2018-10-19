@@ -105,41 +105,12 @@ class Definition:
                 return col.strip(',')
 
 
-class Structure(Alter, Definition):
-    """
-    Result retrieval helper methods for the MySQL class.
-
-    Capable of fetching list of available tables/databases, the primary for a table,
-    primary key values for a table, number of rows in a table, number of rows of all
-    tables in a database.
-    """
-    @property
-    def tables(self):
-        """Retrieve a list of tables in the connected database"""
-        return self.fetch('show tables')
-
-    @property
-    def databases(self):
-        """Retrieve a list of databases that are accessible under the current connection"""
-        return self.fetch('show databases')
-
+class Schema:
     def show_schema(self, tables=None):
         """Print schema information."""
         tables = tables if tables else self.tables
         for t in tables:
             self._printer('\t{0}'.format(t))
-            # Confirm no primary key exists
-            if not self.get_primary_key(t):
-                # Determine if there is a unique column that can become the PK
-                unique_col = self.get_unique_column(t)
-
-                # Set primary key
-                if unique_col:
-                    self.set_primary_key(t, unique_col)
-
-                # Create unique 'ID' column
-                else:
-                    self.add_column(t, primary_key=True)
             for col in self.get_schema(t, True):
                 self._printer('\t\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
 
@@ -160,6 +131,39 @@ class Structure(Alter, Definition):
         if with_headers:
             schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
         return schema
+
+    def get_schema_dict(self, table):
+        """
+        Retrieve the database schema in key, value pairs for easier
+        references and comparisons.
+        """
+        # Retrieve schema in list form
+        schema = self.get_schema(table, with_headers=True)
+
+        # Pop headers from first item in list
+        headers = schema.pop(0)
+
+        # Create dictionary by zipping headers with each row
+        return {values[0]: dict(zip(headers, values[1:])) for values in schema}
+
+
+class Structure(Alter, Definition, Schema):
+    """
+    Result retrieval helper methods for the MySQL class.
+
+    Capable of fetching list of available tables/databases, the primary for a table,
+    primary key values for a table, number of rows in a table, number of rows of all
+    tables in a database.
+    """
+    @property
+    def tables(self):
+        """Retrieve a list of tables in the connected database"""
+        return self.fetch('show tables')
+
+    @property
+    def databases(self):
+        """Retrieve a list of databases that are accessible under the current connection"""
+        return self.fetch('show databases')
 
     def get_unique_column(self, table):
         """Determine if any of the columns in a table contain exclusively unique values."""
