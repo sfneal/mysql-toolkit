@@ -220,6 +220,18 @@ class Update:
             self.update(table, columns, row, (where_col, row[where_index]))
 
 
-class Manipulate(Select, Insert, Update):
+class Delete:
+    def delete(self, table, where=None):
+        """Delete existing rows from a table."""
+        if where:
+            where_key, where_val = where
+            query = 'DELETE FROM {0} WHERE {1}={2}'.format(wrap(table), where_key, wrap(where_val))
+        else:
+            query = 'DELETE FROM {0}'.format(wrap(table))
+        self.execute(query)
+        return True
+
+
+class Manipulate(Select, Insert, Update, Delete):
     def __init__(self):
         pass
