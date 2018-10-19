@@ -171,14 +171,14 @@ class Database(DatabaseCopy):
             if not one_query:
                 self.copy_database_slow(source, destination, optimized)
             else:
-                self.copy_tables_onequery(source, destination)
+                self._copy_tables_onequery(source, destination)
 
     def create_database(self, name):
         """Create a new database."""
         statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
         return self.execute(statement)
 
-    def copy_tables_onequery(self, source, destination, tables=None, primary_keys=True):
+    def _copy_tables_onequery(self, source, destination, tables=None, primary_keys=True):
         """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
         # Change database to source
         self.change_db(source)
