@@ -26,6 +26,14 @@ DATA_TYPES = {
     'year': {'type': int, 'min': 1901, 'max': 2155},
 }
 
+# MySQL accepted datetime ranges
+YEARS = range(1000, 9999)
+MONTHS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
+DAYS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
+HOURS = range(-838, 838)
+MINUTES = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+SECONDS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+
 
 class Text:
     def __init__(self, data):
@@ -108,14 +116,6 @@ class Numeric:
 
 
 class Dates:
-    # MySQL accepted datetime ranges
-    _years = range(1000, 9999)
-    _months = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
-    _days = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
-    _hours = range(-838, 838)
-    _minutes = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
-    _seconds = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
-
     def __init__(self, data):
         self.data = data
         self.type = None
@@ -130,7 +130,7 @@ class Dates:
             y, m, d = date_split[0], date_split[1], date_split[2]
 
             # Validate values
-            valid_year, valid_months, valid_days = y in self._years, m in self._months, d in self._days
+            valid_year, valid_months, valid_days = y in YEARS, m in MONTHS, d in DAYS
 
             # Check that all validations are True
             if all(i is True for i in (valid_year, valid_months, valid_days)):
@@ -151,7 +151,7 @@ class Dates:
             h, m, s = date_split[0], date_split[1], date_split[2]
 
             # Validate values
-            valid_hour, valid_min, valid_sec = h in self._hours, s in self._seconds, m in self._minutes
+            valid_hour, valid_min, valid_sec = h in HOURS, s in SECONDS, m in MINUTES
 
             if all(i is True for i in (valid_hour, valid_min, valid_sec)):
                 self.type = 'time'.upper()
@@ -236,6 +236,7 @@ def column_datatype(data_set):
 
     Accepts a iterable of values ONLY for the column whose data type
     is in question.
+
     :param data_set: Iterable of values
     :return: data type
     """
