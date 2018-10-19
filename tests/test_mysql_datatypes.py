@@ -1,5 +1,5 @@
 # Migrate SQL databases
-from mysql.toolkit.script.datatypes import Record
+from mysql.toolkit.script.datatypes import Record, column_datatype
 from datetime import datetime
 
 
@@ -17,8 +17,14 @@ def datatypes():
         print('{0:15} {1}'.format(Record(t).datatype, t))
 
 
+def col_types():
+    d = ['sdad', 'asdasdasd', 'dfsdf', 'azxcwe', 'asccs', 'asasc']
+    print(column_datatype(d))
+
+
 def main():
     datatypes()
+    col_types()
 
 
 if __name__ == '__main__':

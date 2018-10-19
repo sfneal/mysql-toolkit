@@ -1,4 +1,5 @@
 from datetime import datetime
+from operator import itemgetter
 
 
 DATA_TYPES = {
@@ -18,11 +19,11 @@ DATA_TYPES = {
     'float': {'type': float},
 
     # Date Data Types
-    'date': {'type': datetime.date},
-    'datetime': {'type': datetime.timetuple},
+    'date': {'type': str},
+    'datetime': {'type': datetime},
     'timestamp': {'type': datetime.timestamp},
     'time': {'type': datetime.time},
-    'year': {'type': datetime.year},
+    'year': {'type': int, 'min': 1901, 'max': 2155},
 }
 
 
@@ -114,23 +115,60 @@ class Dates:
 
     def is_date(self):
         """Determine if a data record is of type DATE."""
-        return self._is_date_data('date')
+        years = range(1000, 9999)
+        months = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
+        days = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
+
+        dt = DATA_TYPES['date']
+        if type(self.data) is dt['type'] and '-' in self.data and self.data.count('-') == 2:
+            date_split = self.data.split('-')
+            y = date_split[0]
+            m = date_split[1]
+            d = date_split[2]
+
+            valid_year = y in years
+            valid_months = m in months
+            valid_days = d in days
+
+            if all(i is True for i in (valid_year, valid_months, valid_days)):
+                self.type = 'date'.upper()
+                self.len = len(str(self.data))
+                return True
 
     def is_datetime(self):
         """Determine if a data record is of type DATETIME."""
         return self._is_date_data('datetime')
 
-    def is_timestamp(self):
-        """Determine if a data record is of type TIMESTAMP."""
-        return self._is_date_data('timestamp')
-
     def is_time(self):
         """Determine if a data record is of type TIME."""
-        return self._is_date_data('time')
+        hours = range(-838, 838)
+        minutes = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+        seconds = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+
+        dt = DATA_TYPES['date']
+        if type(self.data) is dt['type'] and ':' in self.data and self.data.count(':') == 2:
+            date_split = self.data.split(':')
+            h = date_split[0]
+            m = date_split[1]
+            s = date_split[2]
+
+            valid_hour = h in hours
+            valid_min = m in minutes
+            valid_sec = s in seconds
+
+            if all(i is True for i in (valid_hour, valid_min, valid_sec)):
+                self.type = 'time'.upper()
+                self.len = len(str(self.data))
+                return True
 
     def is_year(self):
         """Determine if a data record is of type YEAR."""
-        return self._is_date_data('year')
+        dt = DATA_TYPES['year']
+        if dt['min'] and dt['max']:
+            if type(self.data) is dt['type'] and dt['min'] < self.data < dt['max']:
+                self.type = 'year'.upper()
+                self.len = len(str(self.data))
+                return True
 
     def _is_date_data(self, data_type):
         """Private method for determining if a data record is of type DATE."""
@@ -168,7 +206,6 @@ class Record(Text, Numeric, Dates):
             self.is_float,
             self.is_date,
             self.is_datetime,
-            self.is_timestamp,
             self.is_time,
             self.is_year,
             self.is_varchar,
@@ -194,3 +231,29 @@ class DataTypes:
     def text(self):
         """Retrieve the data type of a data record suspected to a VARCHAR."""
         return self.record.datatype if self.record.is_text() else False
+
+
+def column_datatype(data_set):
+    """
+    Retrieve the best fit data type for a column of a MySQL table.
+
+    Accepts a iterable of values ONLY for the column whose data type
+    is in question.
+    :param data_set: Iterable of values
+    :return: data type
+    """
+    types = []
+    type_len = []
+    for record in data_set:
+        r = Record(record)
+        r.datatype
+        type_len.append((r.type, r.len))
+        types.append(r.type)
+    types_count = {t: types.count(t) for t in set(types)}
+    most_frequent = max(types_count.items(), key=itemgetter(1))[0]
+
+    max_len = 0
+    for t, l in type_len:
+        if t == most_frequent and l > max_len:
+            max_len = l
+    return '{0} ({1})'.format(most_frequent, max_len)
