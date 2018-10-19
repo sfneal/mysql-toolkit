@@ -14,11 +14,6 @@ def sandbox():
 
     with MySQL(config) as sql:
         # Show databases
-        print(sql.get_primary_key('project'))
-        sql.drop_column('project', 'test')
-        sql.drop_primary_key('project')
-        sql.add_column('project', 'test', primary_key=True)
-
         print(sql.count_rows_duplicates('project', 'project'))
         print(sql.count_rows_distinct('project', 'project'))
 
@@ -27,6 +22,12 @@ def sandbox():
             print(t)
             for col in sql.get_schema(t, True):
                 print('\t{0:30} {1:15} {2:10} {3:10} {4:10} {5:10}'.format(*col))
+        print('-' * 200)
+
+        print('-' * 200)
+        for t in sql.tables:
+            print(t)
+            print(sql.get_schema_dict(t))
         print('-' * 200)
 
 

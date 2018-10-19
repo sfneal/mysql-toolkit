@@ -57,6 +57,26 @@ class Compare:
             self.change_db(db)
         return self.count_rows_all()
 
+    def compare_schemas(self, db_x, db_y):
+        """
+        Compare the structures of two databases.
+
+        Analysis's and compares the column definitions of each table
+        in both databases's.  Identifies differences in column names,
+        data types and keys.
+        """
+        pass
+
+    def compare_data(self, db_x, db_y):
+        """
+        Compare the data stored in two databases.
+
+        Executes a SELECT * query for each table in both databases and
+        compares the rows in corresponding tables to identify unique
+        and shared values.
+        """
+        pass
+
 
 class Remove:
     def truncate(self, table):
@@ -99,7 +119,6 @@ class Remove:
         """
         existing_tables = self.tables
         if isinstance(table, (list, set, tuple)):
-            # Join list of tables into comma separated string
             for t in table:
                 self._drop(t, existing_tables)
         else:
