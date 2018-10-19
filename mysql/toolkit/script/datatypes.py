@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 DATA_TYPES = {
     # Text Data Types
     'varchar': {'type': str, 'max': 255},
@@ -13,6 +16,13 @@ DATA_TYPES = {
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
     'bigint': {'type': int, 'min': -2147483648, 'max': 2147483647},
     'float': {'type': float},
+
+    # Date Data Types
+    'date': {'type': datetime.date},
+    'datetime': {'type': datetime.timetuple},
+    'timestamp': {'type': datetime.timestamp},
+    'time': {'type': datetime.time},
+    'year': {'type': datetime.year},
 }
 
 
@@ -49,7 +59,7 @@ class Text:
         """Private method for testing text data types."""
         dt = DATA_TYPES[data_type]
         if type(self.data) is dt['type'] and self.len < dt['max'] and all(type(char) == str for char in self.data):
-            self.type = data_type.uppercase
+            self.type = data_type.upper()
             return True
 
 
@@ -79,7 +89,7 @@ class Numeric:
         """Private method for testing text data types."""
         dt = DATA_TYPES[data_type]
         if type(self.data) is dt['type'] and dt['min'] < self.len < dt['max']:
-            self.type = data_type.uppercase
+            self.type = data_type.upper()
             return True
 
     def is_float(self):
@@ -92,7 +102,41 @@ class Numeric:
             return True
 
 
-class Record(Text, Numeric):
+class Dates:
+    def __init__(self, data):
+        self.data = data
+        self.type = None
+        self.len = len(self.data)
+
+    def is_date(self):
+        """Determine if a data record is of type DATE."""
+        return self._is_date_data('date')
+
+    def is_datetime(self):
+        """Determine if a data record is of type DATETIME."""
+        return self._is_date_data('datetime')
+
+    def is_timestamp(self):
+        """Determine if a data record is of type TIMESTAMP."""
+        return self._is_date_data('timestamp')
+
+    def is_time(self):
+        """Determine if a data record is of type TIME."""
+        return self._is_date_data('time')
+
+    def is_year(self):
+        """Determine if a data record is of type YEAR."""
+        return self._is_date_data('year')
+
+    def _is_date_data(self, data_type):
+        """Private method for determining if a data record is of type DATE."""
+        dt = DATA_TYPES[data_type]
+        if isinstance(self.data, dt['type']):
+            self.type = data_type.upper()
+            self.len = None
+
+
+class Record(Text, Numeric, Dates):
     def __init__(self, data):
         super(Record, self).__init__(data)
         self.data = data
@@ -101,7 +145,10 @@ class Record(Text, Numeric):
 
     @property
     def datatype(self):
-        return '{0} ({1})'.format(self.type, self.len)
+        if self.len:
+            return '{0} ({1})'.format(self.type, self.len)
+        else:
+            return '{0}'.format(self.type)
 
 
 class DataTypes:
