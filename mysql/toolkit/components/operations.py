@@ -61,7 +61,19 @@ class Compare:
 class Remove:
     def truncate(self, table):
         """Empty a table by deleting all of its rows."""
-        statement = "TRUNCATE " + wrap(table)
+        if isinstance(table, (list, set, tuple)):
+            for t in table:
+                self._truncate(t)
+        else:
+            self._truncate(table)
+
+    def _truncate(self, table):
+        """
+        Remove all records from a table in MySQL
+
+        It performs the same function as a DELETE statement without a WHERE clause.
+        """
+        statement = "TRUNCATE TABLE {0}".format(wrap(table))
         self.execute(statement)
         self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
 
