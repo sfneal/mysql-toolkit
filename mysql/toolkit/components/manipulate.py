@@ -220,6 +220,6 @@ class Update:
             self.update(table, columns, row, (where_col, row[where_index]))
 
 
-class Query(Select, Insert, Update):
+class Manipulate(Select, Insert, Update):
     def __init__(self):
         pass
