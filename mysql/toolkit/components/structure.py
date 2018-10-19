@@ -4,7 +4,7 @@ from mysql.connector.errors import ProgrammingError
 
 class PrimaryKey:
     def get_primary_key_vals(self, table):
-        """Retrieve a list of primary key values in a table"""
+        """Retrieve a list of primary key values in a table."""
         return self.select(table, self.get_primary_key(table))
 
     def get_primary_key(self, table):
@@ -17,11 +17,6 @@ class PrimaryKey:
         """Create a Primary Key constraint on a specific column when the table is already created."""
         self.execute('ALTER TABLE {0} ADD PRIMARY KEY ({1})'.format(wrap(table), column))
         self._printer('\tAdded primary key to {0} on column {1}'.format(wrap(table), column))
-
-    def drop_primary_key(self, table):
-        """Drop a Primary Key constraint for a specific table."""
-        if self.get_primary_key(table):
-            self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(wrap(table)))
 
     def set_primary_keys_all(self, tables=None):
         """
@@ -47,6 +42,11 @@ class PrimaryKey:
                 else:
                     self.add_column(t, primary_key=True)
 
+    def drop_primary_key(self, table):
+        """Drop a Primary Key constraint for a specific table."""
+        if self.get_primary_key(table):
+            self.execute('ALTER TABLE {0} DROP PRIMARY KEY'.format(wrap(table)))
+
 
 class ForeignKey:
     def set_foreign_key(self, parent_table, parent_column, child_table, child_column):
@@ -68,7 +68,7 @@ class Alter(PrimaryKey, ForeignKey):
         return name
 
     def drop_column(self, table, name):
-        """Add a column to an existing table."""
+        """Remove a column to an existing table."""
         try:
             self.execute('ALTER TABLE {0} DROP COLUMN {1}'.format(wrap(table), name))
             self._printer('\tDropped column {0} from {1}'.format(name, table))
@@ -77,7 +77,7 @@ class Alter(PrimaryKey, ForeignKey):
         return name
 
     def add_comment(self, table, column, comment):
-        """Add a comment to an existing column in a table"""
+        """Add a comment to an existing column in a table."""
         col_def = self.get_column_definition(table, column)
         query = "ALTER TABLE {0} MODIFY COLUMN {1} {2} COMMENT '{3}'".format(table, column, col_def, comment)
         self.execute(query)
@@ -118,20 +118,6 @@ class Schema:
         """Retrieve a list of columns in a table."""
         return [schema[0] for schema in self.get_schema(table)]
 
-    def get_schema(self, table, with_headers=False):
-        """Retrieve the database schema for a particular table."""
-        f = self.fetch('desc ' + wrap(table))
-        if not isinstance(f[0], list):
-            f = [f]
-
-        # Replace None with ''
-        schema = [['' if col is None else col for col in row] for row in f]
-
-        # If with_headers is True, insert headers to first row before returning
-        if with_headers:
-            schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
-        return schema
-
     def get_schema_dict(self, table):
         """
         Retrieve the database schema in key, value pairs for easier
@@ -145,6 +131,20 @@ class Schema:
 
         # Create dictionary by zipping headers with each row
         return {values[0]: dict(zip(headers, values[0:])) for values in schema}
+
+    def get_schema(self, table, with_headers=False):
+        """Retrieve the database schema for a particular table."""
+        f = self.fetch('desc ' + wrap(table))
+        if not isinstance(f[0], list):
+            f = [f]
+
+        # Replace None with ''
+        schema = [['' if col is None else col for col in row] for row in f]
+
+        # If with_headers is True, insert headers to first row before returning
+        if with_headers:
+            schema.insert(0, ['Column', 'Type', 'Null', 'Key', 'Default', 'Extra'])
+        return schema
 
 
 class Structure(Alter, Definition, Schema):
@@ -180,7 +180,7 @@ class Structure(Alter, Definition, Schema):
         return {table: self.count_rows(table) for table in self.tables}
 
     def count_rows(self, table, cols='*'):
-        """Get the number of rows in a particular table"""
+        """Get the number of rows in a particular table."""
         query = 'SELECT COUNT({0}) FROM {1}'.format(join_cols(cols), wrap(table))
         result = self.fetch(query)
         return result if result is not None else 0
@@ -190,7 +190,7 @@ class Structure(Alter, Definition, Schema):
         return {table: self.count_rows_distinct(table) for table in self.tables}
 
     def count_rows_distinct(self, table, cols='*'):
-        """Get the number distinct of rows in a particular table"""
+        """Get the number distinct of rows in a particular table."""
         return self.fetch('SELECT COUNT(DISTINCT {0}) FROM {1}'.format(join_cols(cols), wrap(table)))
 
     def get_duplicate_vals(self, table, column):
