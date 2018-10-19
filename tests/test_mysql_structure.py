@@ -25,9 +25,7 @@ def sandbox():
         print('-' * 200)
 
         print('-' * 200)
-        for t in sql.tables:
-            print(t)
-            print(sql.get_schema_dict(t))
+        sql.compare_schemas('hpa_pm1', 'hpa_pm2')
         print('-' * 200)
 
 
