@@ -47,13 +47,15 @@ class Select:
         # Either join list of columns into string or set columns to * (all)
         if isinstance(cols, list):
             cols_str = join_cols(cols)
-        else:
+        elif cols == '*':
             cols_str = "*"
+        else:
+            cols_str = cols
 
         # Unpack WHERE clause dictionary into tuple
         where_col, where_val = where
 
-        statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
+        statement = "SELECT {0} FROM {1} WHERE {2}='{3}'".format(cols_str, wrap(table), where_col, where_val)
         self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
@@ -140,7 +142,7 @@ class Insert:
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
-        statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
+        statement = "INSERT INTO {0} ({1}) VALUES ({2})".format(wrap(table), cols, vals)
 
         # Execute statement
         if execute:
