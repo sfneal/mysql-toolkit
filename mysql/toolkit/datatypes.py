@@ -63,7 +63,7 @@ class Text:
     def _is_text_data(self, data_type):
         """Private method for testing text data types."""
         dt = DATA_TYPES[data_type]
-        if type(self.data) is dt['type'] and self.len < dt['max'] and all(type(char) == str for char in self.data):
+        if type(self.data) is dt['type'] and len(self.data) < dt['max'] and all(type(char) == str for char in self.data):
             self.type = data_type.upper()
             self.len = len(self.data)
             return True
@@ -200,8 +200,8 @@ class Record(Text, Numeric, Dates):
             self.is_int,
             self.is_bigint,
             self.is_float,
-            self.is_varchar,
             self.is_tinytext,
+            self.is_varchar,
             self.is_mediumtext,
             self.is_longtext,
         ]
