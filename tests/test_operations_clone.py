@@ -24,8 +24,8 @@ class TestOperationsRemove(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.sql.truncate_database('testing_employees')
         cls.sql.disconnect()
+        print('Restoring Original testing_employees database')
         employees_db_restore()
         if os.path.exists(FAILS_DIR):
             shutil.rmtree(FAILS_DIR)
