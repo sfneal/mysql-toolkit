@@ -9,10 +9,10 @@ def setup_sample_data():
     config = {
         "database": "testing_models",
         "host": "stephenneal.net",
-        "password": "Stealth19!",
+        "password": "thisisfortesting",
         "port": 3306,
         "raise_on_warnings": True,
-        "user": "stephen_master"
+        "user": "stephen_testing"
     }
 
     sql_files = [
@@ -20,6 +20,7 @@ def setup_sample_data():
     ]
 
     with MySQL(config) as sql:
+        sql.truncate_database()
         for dump in sql_files:
             p = os.path.join(BASE, dump)
             sql.execute_script(p)

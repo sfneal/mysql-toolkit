@@ -8,10 +8,10 @@ class TestManipulateSelect(unittest.TestCase):
         config = {
             "database": "testing_employees",
             "host": "stephenneal.net",
-            "password": "Stealth19!",
+            "password": "thisisfortesting",
             "port": 3306,
             "raise_on_warnings": True,
-            "user": "stephen_master"
+            "user": "stephen_testing"
         }
         cls.sql = MySQL(config)
 
