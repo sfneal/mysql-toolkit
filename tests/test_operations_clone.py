@@ -5,7 +5,6 @@ from mysql.toolkit import MySQL
 
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
-SQL_SCRIPT = os.path.join(TEST_DATA_DIR, 'models.sql')
 FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
@@ -26,7 +25,6 @@ class TestOperationsClone(unittest.TestCase):
     def tearDownClass(cls):
         cls.sql.change_db('testing_models')
         cls.sql.truncate_database('testing_models')
-        cls.sql.execute_script(SQL_SCRIPT)
 
         print('Restoring Original testing_employees database')
         sql_scripts = [os.path.join(TEST_DATA_DIR, script) for script in os.listdir(TEST_DATA_DIR)
