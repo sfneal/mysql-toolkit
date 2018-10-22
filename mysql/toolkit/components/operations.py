@@ -160,6 +160,7 @@ class Remove:
 
         # Get list of tables
         tables = self.tables if isinstance(self.tables, list) else [self.tables]
+        print(tables)
         if len(tables) > 0:
             self.drop(tables)
             self._printer('\t' + str(len(tables)), 'tables truncated from', database)
@@ -187,7 +188,14 @@ class Remove:
 
         # Only drop table if it exists
         if table in existing_tables:
-            self.execute('DROP TABLE {0}'.format(wrap(table)))
+            # Set to avoid foreign key errorrs
+            self.execute('SET FOREIGN_KEY_CHECKS = 0')
+
+            query = 'DROP TABLE {0}'.format(wrap(table))
+            self.execute(query)
+
+            # Set again
+            self.execute('SET FOREIGN_KEY_CHECKS = 1')
             self._printer('\tDropped table {0}'.format(table))
 
     def drop_empty_tables(self):
