@@ -1,0 +1,60 @@
+import unittest
+from mysql.toolkit import MySQL
+
+
+class TestManipulateSelect(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        config = {
+            "database": "toolkit_testing",
+            "host": "stephenneal.net",
+            "password": "Stealth19!",
+            "port": 3306,
+            "raise_on_warnings": True,
+            "user": "stephen_master"
+        }
+        cls.sql = MySQL(config)
+        if cls.sql.count_rows('departments') == 0:
+            cls.sql.execute('''
+                INSERT INTO `departments` 
+                VALUES 
+                    ('d001','Marketing'),
+                    ('d002','Finance'),
+                    ('d003','Human Resources'),
+                    ('d004','Production'),
+                    ('d005','Development'),
+                    ('d006','Quality Management'),
+                    ('d007','Sales'),
+                    ('d008','Research'),
+                    ('d009','Customer Service');
+            ''')
+        cls.original_data = cls.sql.select_all('departments')
+
+    @classmethod
+    def tearDownClass(cls):
+        table = 'departments'
+        cls.sql.truncate(table)
+        cls.sql.insert(table, cls.sql.get_columns(table), cls.original_data)
+        cls.sql.disconnect()
+
+    def tearDown(self):
+        table = 'departments'
+        self.sql.truncate(table)
+        self.sql.insert(table, self.sql.get_columns(table), self.original_data)
+
+    def test_insert_uniques(self):
+        table = 'departments'
+        cols = ['dept_no', 'dept_name']
+        vals = [
+            ['d009', 'Customer Service'],
+            ['d002', 'Finance'],
+            ['d010', 'Information Technology'],
+            ['d011', 'Software Development'],
+        ]
+
+        self.sql.insert_uniques(table, cols, vals)
+        self.assertEqual(len(self.sql.select_all(table)), 11)
+
+
+if __name__ == '__main__':
+    unittest.main()

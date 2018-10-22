@@ -104,7 +104,7 @@ class Insert:
         existing_rows = self.select(table, columns)
 
         # Rows that DO NOT exist in the table
-        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
+        unique = diff(existing_rows, values, y_only=True)  # Get values that are not in existing_rows
 
         # Keys that exist in the table
         keys = self.get_primary_key_vals(table)
@@ -144,7 +144,7 @@ class Insert:
 
         # Execute statement
         if execute:
-            self._cursor.execute(statement, values)
+            self.executemany(statement, values)
             self._printer('\tMySQL row successfully inserted')
 
         # Only return statement
