@@ -5,8 +5,8 @@ from differentiate import diff
 from mysql.toolkit import MySQL
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'models.sql')
-FAILS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'fails')
+SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
+FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
 class TestOperationsRemove(unittest.TestCase):

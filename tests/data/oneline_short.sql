@@ -1,1 +1,0 @@
-INSERT INTO `Activity` VALUES (848109,'2016-08-12 08:35:08',1273,'GET','timeline/index.cfm','','',18,0,1)

@@ -2,10 +2,11 @@ import os
 import shutil
 import unittest
 from mysql.toolkit import MySQL
+from tests.data.employees import main as employees_db_restore
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'models.sql')
-FAILS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'fails')
+SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
+FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
 class TestOperationsRemove(unittest.TestCase):
@@ -23,13 +24,15 @@ class TestOperationsRemove(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.sql.truncate_database('testing_employees')
+        cls.sql.disconnect()
+        employees_db_restore()
         if os.path.exists(FAILS_DIR):
             shutil.rmtree(FAILS_DIR)
-        cls.sql.disconnect()
 
     def tearDown(self):
         self.sql.change_db('testing_models')
-        self.sql.truncate_database()
+        self.sql.truncate_database('testing_models')
         self.sql.execute_script(SQL_SCRIPT)
 
     def test_clone_standard(self):
