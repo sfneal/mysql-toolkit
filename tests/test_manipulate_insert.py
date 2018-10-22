@@ -55,6 +55,29 @@ class TestManipulateSelect(unittest.TestCase):
         self.sql.insert_uniques(table, cols, vals)
         self.assertEqual(len(self.sql.select_all(table)), 11)
 
+    def test_insert(self):
+        table = 'departments'
+        cols = ['dept_no', 'dept_name']
+        vals = [
+            ['d010', 'Information Technology'],
+            ['d011', 'Software Development'],
+        ]
+
+        self.sql.insert(table, cols, vals)
+        self.assertEqual(len(self.sql.select_all(table)), 11)
+
+    def test_insert_many(self):
+        table = 'departments'
+        cols = ['dept_no', 'dept_name']
+        vals = [
+            ['d010', 'Information Technology'],
+            ['d011', 'Software Development'],
+            ['d012', 'Database Admin'],
+        ]
+
+        self.sql.insert_many(table, cols, vals)
+        self.assertEqual(len(self.sql.select_all(table)), 12)
+
 
 if __name__ == '__main__':
     unittest.main()
