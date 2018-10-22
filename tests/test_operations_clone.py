@@ -5,7 +5,8 @@ from mysql.toolkit import MySQL
 from tests.data.employees import main as employees_db_restore
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
+TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
+SQL_SCRIPT = os.path.join(TEST_DATA_DIR, 'models.sql')
 FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
@@ -24,16 +25,22 @@ class TestOperationsRemove(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.sql.disconnect()
+        cls.sql.change_db('testing_models')
+        cls.sql.truncate_database('testing_models')
+        cls.sql.execute_script(SQL_SCRIPT)
+
         print('Restoring Original testing_employees database')
-        employees_db_restore()
+        sql_scripts = [os.path.join(TEST_DATA_DIR, script) for script in os.listdir(TEST_DATA_DIR)
+                       if script.endswith('.sql')]
+        for s in sql_scripts:
+            cls.sql.execute_script(s)
+        cls.sql.disconnect()
         if os.path.exists(FAILS_DIR):
             shutil.rmtree(FAILS_DIR)
 
     def tearDown(self):
         self.sql.change_db('testing_models')
         self.sql.truncate_database('testing_models')
-        self.sql.execute_script(SQL_SCRIPT)
 
     def test_clone_standard(self):
         src, dst = 'testing_employees', 'testing_models'
