@@ -7,7 +7,7 @@ BASE = os.path.dirname(__file__)
 
 def setup_sample_data():
     config = {
-        "database": "toolkit_testing",
+        "database": "testing_models",
         "host": "stephenneal.net",
         "password": "Stealth19!",
         "port": 3306,
@@ -16,17 +16,7 @@ def setup_sample_data():
     }
 
     sql_files = [
-        # 'employees.sql',
-        'load_departments.dump',
-        'load_dept_emp.dump',
-        'load_dept_manager.dump',
-        'load_employees.dump',
-        'load_salaries1.dump',
-        'load_salaries2.dump',
-        'load_salaries3.dump',
-        'load_titles.dump',
-        'objects.dump',
-        'show_elapsed.dump',
+        'models.sql',
     ]
 
     with MySQL(config) as sql:
