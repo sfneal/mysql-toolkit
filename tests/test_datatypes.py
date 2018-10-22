@@ -3,9 +3,6 @@ from datetime import datetime
 from mysql.toolkit.datatypes import Record
 
 
-NOW = datetime.now()
-
-
 class TestDataTypes(unittest.TestCase):
     def test_num_tinyint(self):
         value = 14
@@ -45,22 +42,22 @@ class TestDataTypes(unittest.TestCase):
         self.assertEqual(dt, 'TINYTEXT (25)')
 
     def test_date_date(self):
-        value = NOW.date()
+        value = datetime.now().date()
         dt = Record(value).datatype
         self.assertEqual(dt, 'DATE')
 
     def test_date_datetime(self):
-        value = NOW
+        value = datetime.now()
         dt = Record(value).datatype
         self.assertEqual(dt, 'DATETIME')
 
     def test_date_time(self):
-        value = NOW.time()
+        value = datetime.now().time()
         dt = Record(value).datatype
         self.assertEqual(dt, 'TIME')
 
     def test_date_year(self):
-        value = NOW.year
+        value = datetime.now().year
         dt = Record(value).datatype
         self.assertEqual(dt, 'YEAR')
 
