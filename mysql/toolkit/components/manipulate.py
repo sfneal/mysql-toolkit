@@ -208,16 +208,26 @@ class Update:
         cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
-        statement = "UPDATE " + str(table) + " SET " + str(cols) + ' WHERE ' + str(where_col) + '=' + str(where_val)
+        statement = "UPDATE {0} SET {1} WHERE {2}='{3}'".format(wrap(table), cols, where_col, where_val)
 
         # Execute statement
         self._cursor.execute(statement, values)
         self._printer('\tMySQL cols (' + str(len(values)) + ') successfully UPDATED')
 
     def update_many(self, table, columns, values, where_col, where_index):
-        """Update the values of several rows."""
+        """
+        Update the values of several rows.
+
+        :param table: Name of the MySQL table
+        :param columns: List of columns
+        :param values: 2D list of rows
+        :param where_col: Column name for where clause
+        :param where_index: Row index of value to be used for where comparison
+        :return:
+        """
         for row in values:
-            self.update(table, columns, row, (where_col, row[where_index]))
+            wi = row.pop(where_index)
+            self.update(table, columns, row, (where_col, wi))
 
 
 class Delete:
