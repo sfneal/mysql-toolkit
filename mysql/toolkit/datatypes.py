@@ -4,6 +4,7 @@ from operator import itemgetter
 
 DATA_TYPES = {
     # Text Data Types
+    # TODO: Add accepted characters to varchar and tinychar
     'varchar': {'type': str, 'max': 255},
     'tinytext': {'type': str, 'max': 255},
     'text': {'type': str, 'max': 65535},
@@ -15,7 +16,7 @@ DATA_TYPES = {
     'smallint': {'type': int, 'min': -32768, 'max': 32767},
     'mediumint': {'type': int, 'min': -8388608, 'max': 8388607},
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
-    'bigint': {'type': int, 'min': -2147483648, 'max': 2147483647},
+    'bigint': {'type': int, 'min': -9223372036854775808, 'max': 9223372036854775807},
     'float': {'type': float},
 
     # Date Data Types
@@ -90,7 +91,7 @@ class Numeric:
 
     def is_int(self):
         """Determine if a data record is of the type INT."""
-        return self._is_numeric_data('mediumint')
+        return self._is_numeric_data('int')
 
     def is_bigint(self):
         """Determine if a data record is of the type BIGINT."""
@@ -196,15 +197,15 @@ class Record(Text, Numeric, Dates):
     def get_type(self):
         """Retrieve the data type for a data record."""
         test_method = [
+            self.is_date,
+            self.is_datetime,
+            self.is_time,
+            self.is_year,
             self.is_tinyint,
             self.is_mediumint,
             self.is_int,
             self.is_bigint,
             self.is_float,
-            self.is_date,
-            self.is_datetime,
-            self.is_time,
-            self.is_year,
             self.is_varchar,
             self.is_tinytext,
             self.is_text,
