@@ -1,4 +1,4 @@
-differentiate==1.1.6
+differentiate==1.1.9
 dirutility==0.3.4
 looptools==1.0.2
 mysql-connector==2.1.6
