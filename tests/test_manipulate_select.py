@@ -35,7 +35,7 @@ class TestManipulateSelect(unittest.TestCase):
         self.assertEqual(len(rows[0]), len(cols))
 
     def test_select_distinct(self):
-        table = 'department'
+        table = 'departments'
         cols = ['dept_name']
 
         rows = self.sql.select_distinct(table, cols)

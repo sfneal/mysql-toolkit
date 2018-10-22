@@ -3,7 +3,7 @@ from mysql.toolkit import MySQL
 from differentiate import diff
 
 
-class TestManipulateSelect(unittest.TestCase):
+class TestManipulateUpdate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {

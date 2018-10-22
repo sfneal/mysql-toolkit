@@ -2,7 +2,7 @@ import unittest
 from mysql.toolkit import MySQL
 
 
-class TestManipulateSelect(unittest.TestCase):
+class TestManipulateInsert(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
