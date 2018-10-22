@@ -6,7 +6,7 @@ class TestManipulateSelect(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
-            "database": "toolkit_testing",
+            "database": "testing_employees",
             "host": "stephenneal.net",
             "password": "Stealth19!",
             "port": 3306,

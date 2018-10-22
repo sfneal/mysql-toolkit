@@ -6,7 +6,7 @@ class TestStructureKeys(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
-            "database": "toolkit_testing_cm",
+            "database": "testing_models",
             "host": "stephenneal.net",
             "password": "Stealth19!",
             "port": 3306,

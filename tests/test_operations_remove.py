@@ -5,15 +5,15 @@ from differentiate import diff
 from mysql.toolkit import MySQL
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'mysqlsampledatabase.sql')
-FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
+SQL_SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'models.sql')
+FAILS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'fails')
 
 
 class TestOperationsRemove(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
-            "database": "toolkit_testing_cm",
+            "database": "testing_models",
             "host": "stephenneal.net",
             "password": "Stealth19!",
             "port": 3306,

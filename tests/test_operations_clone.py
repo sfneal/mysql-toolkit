@@ -4,7 +4,7 @@ import unittest
 from mysql.toolkit import MySQL
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'mysqlsampledatabase.sql')
+SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
 FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
@@ -12,7 +12,7 @@ class TestOperationsRemove(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
-            "database": "toolkit_testing_cm",
+            "database": "testing_models",
             "host": "stephenneal.net",
             "password": "Stealth19!",
             "port": 3306,
