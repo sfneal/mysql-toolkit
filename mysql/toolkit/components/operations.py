@@ -266,7 +266,7 @@ class Operations(Alter, Compare, Clone, Remove):
         statement = "create table " + name + " ("
         self._printer(statement)
 
-    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
+    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=False,
                        dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
         """Wrapper method for SQLScript class."""
         ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
