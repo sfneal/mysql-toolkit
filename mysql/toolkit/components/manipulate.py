@@ -56,7 +56,7 @@ class Select:
         where_col, where_val = where
 
         statement = "SELECT {0} FROM {1} WHERE {2}='{3}'".format(cols_str, wrap(table), where_col, where_val)
-        self.fetch(statement)
+        return self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""

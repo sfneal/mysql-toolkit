@@ -48,6 +48,13 @@ class TestManipulateSelect(unittest.TestCase):
         rows = self.sql.select_limit(table, limit=limit)
         self.assertEqual(len(rows), 22125)
 
+    def test_select_where(self):
+        table = 'titles'
+        cols = ['title']
+
+        row = self.sql.select_where(table, cols, ('emp_no', 10001))
+        self.assertEqual(row, 'Senior Engineer')
+
 
 if __name__ == '__main__':
     unittest.main()
