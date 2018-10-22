@@ -187,7 +187,14 @@ class Remove:
 
         # Only drop table if it exists
         if table in existing_tables:
-            self.execute('DROP TABLE {0}'.format(wrap(table)))
+            # Set to avoid foreign key errorrs
+            self.execute('SET FOREIGN_KEY_CHECKS = 0')
+
+            query = 'DROP TABLE {0}'.format(wrap(table))
+            self.execute(query)
+
+            # Set again
+            self.execute('SET FOREIGN_KEY_CHECKS = 1')
             self._printer('\tDropped table {0}'.format(table))
 
     def drop_empty_tables(self):
@@ -266,7 +273,7 @@ class Operations(Alter, Compare, Clone, Remove):
         statement = "create table " + name + " ("
         self._printer(statement)
 
-    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=True,
+    def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=False,
                        dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
         """Wrapper method for SQLScript class."""
         ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)

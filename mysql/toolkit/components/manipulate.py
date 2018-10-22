@@ -18,7 +18,7 @@ class Select:
 
     def select_distinct(self, table, cols='*', execute=True):
         """Query distinct values from a table."""
-        return self.select(table, cols, execute, 'SELECT DISTINCT')
+        return self.select(table, cols, execute, select_type='SELECT DISTINCT')
 
     def select(self, table, cols, execute=True, select_type='SELECT'):
         """Query every row and only certain columns from a table."""
@@ -47,14 +47,16 @@ class Select:
         # Either join list of columns into string or set columns to * (all)
         if isinstance(cols, list):
             cols_str = join_cols(cols)
-        else:
+        elif cols == '*':
             cols_str = "*"
+        else:
+            cols_str = cols
 
         # Unpack WHERE clause dictionary into tuple
         where_col, where_val = where
 
-        statement = ("SELECT " + cols_str + " FROM " + wrap(table) + ' WHERE ' + str(where_col) + '=' + str(where_val))
-        self.fetch(statement)
+        statement = "SELECT {0} FROM {1} WHERE {2}='{3}'".format(cols_str, wrap(table), where_col, where_val)
+        return self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""
@@ -104,7 +106,7 @@ class Insert:
         existing_rows = self.select(table, columns)
 
         # Rows that DO NOT exist in the table
-        unique = diff(existing_rows, values)  # Get values that are not in existing_rows
+        unique = diff(existing_rows, values, y_only=True)  # Get values that are not in existing_rows
 
         # Keys that exist in the table
         keys = self.get_primary_key_vals(table)
@@ -140,11 +142,11 @@ class Insert:
         """Insert a single row into a table."""
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
-        statement = "INSERT INTO " + wrap(table) + " (" + cols + ") " + "VALUES (" + vals + ")"
+        statement = "INSERT INTO {0} ({1}) VALUES ({2})".format(wrap(table), cols, vals)
 
         # Execute statement
         if execute:
-            self._cursor.execute(statement, values)
+            self.executemany(statement, values)
             self._printer('\tMySQL row successfully inserted')
 
         # Only return statement
@@ -208,16 +210,26 @@ class Update:
         cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
-        statement = "UPDATE " + str(table) + " SET " + str(cols) + ' WHERE ' + str(where_col) + '=' + str(where_val)
+        statement = "UPDATE {0} SET {1} WHERE {2}='{3}'".format(wrap(table), cols, where_col, where_val)
 
         # Execute statement
         self._cursor.execute(statement, values)
         self._printer('\tMySQL cols (' + str(len(values)) + ') successfully UPDATED')
 
     def update_many(self, table, columns, values, where_col, where_index):
-        """Update the values of several rows."""
+        """
+        Update the values of several rows.
+
+        :param table: Name of the MySQL table
+        :param columns: List of columns
+        :param values: 2D list of rows
+        :param where_col: Column name for where clause
+        :param where_index: Row index of value to be used for where comparison
+        :return:
+        """
         for row in values:
-            self.update(table, columns, row, (where_col, row[where_index]))
+            wi = row.pop(where_index)
+            self.update(table, columns, row, (where_col, wi))
 
 
 class Delete:
@@ -225,7 +237,7 @@ class Delete:
         """Delete existing rows from a table."""
         if where:
             where_key, where_val = where
-            query = 'DELETE FROM {0} WHERE {1}={2}'.format(wrap(table), where_key, wrap(where_val))
+            query = "DELETE FROM {0} WHERE {1}='{2}'".format(wrap(table), where_key, where_val)
         else:
             query = 'DELETE FROM {0}'.format(wrap(table))
         self.execute(query)

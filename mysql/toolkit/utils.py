@@ -1,3 +1,8 @@
+def wrap(item):
+    """Wrap a string with `` characters for SQL queries."""
+    return '`' + str(item) + '`'
+
+
 def get_col_val_str(columns, query_type='insert'):
     cols = ""
     vals = ""
@@ -22,8 +27,3 @@ def get_col_val_str(columns, query_type='insert'):
 def join_cols(cols):
     """Join list of columns into a string for a SQL query"""
     return ", ".join([i for i in cols]) if isinstance(cols, (list, tuple, set)) else cols
-
-
-def wrap(item):
-    """Wrap a string with `` characters for SQL queries."""
-    return '`' + str(item) + '`'

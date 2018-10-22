@@ -1,12 +1,11 @@
-from datetime import datetime
+import datetime
 from operator import itemgetter
 
 
 DATA_TYPES = {
     # Text Data Types
-    'varchar': {'type': str, 'max': 255},
     'tinytext': {'type': str, 'max': 255},
-    'text': {'type': str, 'max': 65535},
+    'varchar': {'type': str, 'max': 65535},
     'mediumtext': {'type': str, 'max': 16777215},
     'longtext': {'type': str, 'max': 4294967295},
 
@@ -15,22 +14,22 @@ DATA_TYPES = {
     'smallint': {'type': int, 'min': -32768, 'max': 32767},
     'mediumint': {'type': int, 'min': -8388608, 'max': 8388607},
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
-    'bigint': {'type': int, 'min': -2147483648, 'max': 2147483647},
+    'bigint': {'type': int, 'min': -9223372036854775808, 'max': 9223372036854775807},
     'float': {'type': float},
 
     # Date Data Types
-    'date': {'type': str},
-    'datetime': {'type': datetime},
-    'timestamp': {'type': datetime.timestamp},
+    'date': {'type': datetime.date},
+    'datetime': {'type': datetime.datetime},
+    'timestamp': {'type': datetime.datetime.timestamp},
     'time': {'type': datetime.time},
     'year': {'type': int, 'min': 1901, 'max': 2155},
 }
 
 # MySQL accepted datetime ranges
-YEARS = range(1000, 9999)
+YEARS = list(range(1000, 9999))
 MONTHS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
 DAYS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
-HOURS = range(-838, 838)
+HOURS = list(range(-838, 838))
 MINUTES = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
 SECONDS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
 
@@ -53,10 +52,6 @@ class Text:
         """Determine if a data record is of the type VARCHAR."""
         return self._is_text_data('tinytext')
 
-    def is_text(self):
-        """Determine if a data record is of the type TEXT."""
-        return self._is_text_data('text')
-
     def is_mediumtext(self):
         """Determine if a data record is of the type MEDIUMTEXT."""
         return self._is_text_data('mediumtext')
@@ -68,7 +63,7 @@ class Text:
     def _is_text_data(self, data_type):
         """Private method for testing text data types."""
         dt = DATA_TYPES[data_type]
-        if type(self.data) is dt['type'] and self.len < dt['max'] and all(type(char) == str for char in self.data):
+        if type(self.data) is dt['type'] and len(self.data) < dt['max'] and all(type(char) == str for char in self.data):
             self.type = data_type.upper()
             self.len = len(self.data)
             return True
@@ -90,7 +85,7 @@ class Numeric:
 
     def is_int(self):
         """Determine if a data record is of the type INT."""
-        return self._is_numeric_data('mediumint')
+        return self._is_numeric_data('int')
 
     def is_bigint(self):
         """Determine if a data record is of the type BIGINT."""
@@ -124,18 +119,18 @@ class Dates:
     def is_date(self):
         """Determine if a data record is of type DATE."""
         dt = DATA_TYPES['date']
-        if type(self.data) is dt['type'] and '-' in self.data and self.data.count('-') == 2:
+        if type(self.data) is dt['type'] and '-' in str(self.data) and str(self.data).count('-') == 2:
             # Separate year, month and day
-            date_split = self.data.split('-')
+            date_split = str(self.data).split('-')
             y, m, d = date_split[0], date_split[1], date_split[2]
 
             # Validate values
-            valid_year, valid_months, valid_days = y in YEARS, m in MONTHS, d in DAYS
+            valid_year, valid_months, valid_days = int(y) in YEARS, int(m) in MONTHS, int(d) in DAYS
 
             # Check that all validations are True
             if all(i is True for i in (valid_year, valid_months, valid_days)):
                 self.type = 'date'.upper()
-                self.len = len(str(self.data))
+                self.len = None
                 return True
 
     def is_datetime(self):
@@ -144,18 +139,18 @@ class Dates:
 
     def is_time(self):
         """Determine if a data record is of type TIME."""
-        dt = DATA_TYPES['date']
-        if type(self.data) is dt['type'] and ':' in self.data and self.data.count(':') == 2:
+        dt = DATA_TYPES['time']
+        if type(self.data) is dt['type'] and ':' in str(self.data) and str(self.data).count(':') == 2:
             # Separate hour, month, second
-            date_split = self.data.split(':')
+            date_split = str(self.data).split(':')
             h, m, s = date_split[0], date_split[1], date_split[2]
 
             # Validate values
-            valid_hour, valid_min, valid_sec = h in HOURS, s in SECONDS, m in MINUTES
+            valid_hour, valid_min, valid_sec = int(h) in HOURS, int(m) in MINUTES, int(float(s)) in SECONDS
 
             if all(i is True for i in (valid_hour, valid_min, valid_sec)):
                 self.type = 'time'.upper()
-                self.len = len(str(self.data))
+                self.len = None
                 return True
 
     def is_year(self):
@@ -164,7 +159,7 @@ class Dates:
         if dt['min'] and dt['max']:
             if type(self.data) is dt['type'] and dt['min'] < self.data < dt['max']:
                 self.type = 'year'.upper()
-                self.len = len(str(self.data))
+                self.len = None
                 return True
 
     def _is_date_data(self, data_type):
@@ -196,18 +191,17 @@ class Record(Text, Numeric, Dates):
     def get_type(self):
         """Retrieve the data type for a data record."""
         test_method = [
+            self.is_date,
+            self.is_datetime,
+            self.is_time,
+            self.is_year,
             self.is_tinyint,
             self.is_mediumint,
             self.is_int,
             self.is_bigint,
             self.is_float,
-            self.is_date,
-            self.is_datetime,
-            self.is_time,
-            self.is_year,
-            self.is_varchar,
             self.is_tinytext,
-            self.is_text,
+            self.is_varchar,
             self.is_mediumtext,
             self.is_longtext,
         ]
