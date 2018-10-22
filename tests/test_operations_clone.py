@@ -4,8 +4,8 @@ import unittest
 from mysql.toolkit import MySQL
 
 
-SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
-FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
+SQL_SCRIPT = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'models.sql')
+FAILS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'samples', 'fails')
 
 
 class TestOperationsRemove(unittest.TestCase):
@@ -28,13 +28,13 @@ class TestOperationsRemove(unittest.TestCase):
         cls.sql.disconnect()
 
     def tearDown(self):
-        self.sql.change_db('toolkit_testing_cm')
+        self.sql.change_db('testing_models')
         self.sql.truncate_database()
         self.sql.execute_script(SQL_SCRIPT)
 
     def test_clone_standard(self):
-        src, dst = 'toolkit_testing', 'toolkit_testing_cm'
-        self.sql.truncate_database('toolkit_testing_cm')
+        src, dst = 'testing_employees', 'testing_models'
+        self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst)
@@ -51,8 +51,8 @@ class TestOperationsRemove(unittest.TestCase):
         self.assertEqual(src_pks, dst_pks)
 
     def test_clone_optimized(self):
-        src, dst = 'toolkit_testing', 'toolkit_testing_cm'
-        self.sql.truncate_database('toolkit_testing_cm')
+        src, dst = 'testing_employees', 'testing_models'
+        self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst, optimized=True)
@@ -69,8 +69,8 @@ class TestOperationsRemove(unittest.TestCase):
         self.assertEqual(src_pks, dst_pks)
 
     def test_clone_onequery(self):
-        src, dst = 'toolkit_testing', 'toolkit_testing_cm'
-        self.sql.truncate_database('toolkit_testing_cm')
+        src, dst = 'testing_employees', 'testing_models'
+        self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst, one_query=True)
