@@ -2,7 +2,6 @@ import os
 import shutil
 import unittest
 from mysql.toolkit import MySQL
-from tests.data.employees import main as employees_db_restore
 
 
 TEST_DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
