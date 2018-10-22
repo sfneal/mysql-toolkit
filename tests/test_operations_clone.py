@@ -9,7 +9,7 @@ SQL_SCRIPT = os.path.join(TEST_DATA_DIR, 'models.sql')
 FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
-class TestOperationsRemove(unittest.TestCase):
+class TestOperationsClone(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         config = {
@@ -37,13 +37,9 @@ class TestOperationsRemove(unittest.TestCase):
         if os.path.exists(FAILS_DIR):
             shutil.rmtree(FAILS_DIR)
 
-    def tearDown(self):
-        self.sql.change_db('testing_models')
-        self.sql.truncate_database('testing_models')
-
     def test_clone_standard(self):
         src, dst = 'testing_employees', 'testing_models'
-        self.sql.truncate_database('testing_models')
+        # self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst)
@@ -61,7 +57,7 @@ class TestOperationsRemove(unittest.TestCase):
 
     def test_clone_optimized(self):
         src, dst = 'testing_employees', 'testing_models'
-        self.sql.truncate_database('testing_models')
+        # self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst, optimized=True)
@@ -79,7 +75,7 @@ class TestOperationsRemove(unittest.TestCase):
 
     def test_clone_onequery(self):
         src, dst = 'testing_employees', 'testing_models'
-        self.sql.truncate_database('testing_models')
+        # self.sql.truncate_database('testing_models')
         self.sql.change_db(src)
 
         self.sql.copy_database(src, dst, one_query=True)
