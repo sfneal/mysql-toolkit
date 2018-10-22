@@ -5,6 +5,10 @@ from differentiate import diff
 from mysql.toolkit import MySQL
 
 
+SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'mysqlsampledatabase.sql')
+FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
+
+
 class TestOperationsRemove(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -20,24 +24,22 @@ class TestOperationsRemove(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        fails_dir = os.path.join(os.path.dirname(__file__), 'data', 'fails')
-        if os.path.exists(fails_dir):
-            shutil.rmtree(fails_dir)
+        if os.path.exists(FAILS_DIR):
+            shutil.rmtree(FAILS_DIR)
         cls.sql.disconnect()
 
     def tearDown(self):
         self.sql.truncate_database()
-        self.sql.execute_script(os.path.join(os.path.dirname(__file__), 'data', 'mysqlsampledatabase.sql'))
+        self.sql.execute_script(SQL_SCRIPT)
 
     def test_truncate(self):
-        table = 'orders'
+        table = 'payments'
         self.sql.truncate(table)
         self.assertEqual(self.sql.count_rows(table), 0)
 
     def test_truncate_database(self):
-        table = 'orders'
-        self.sql.truncate_database(table)
-        self.assertEqual(self.sql.tables, 0)
+        self.sql.truncate_database()
+        self.assertEqual(len(self.sql.tables), 0)
 
     def test_drop(self):
         tables = ['orders', 'payments']

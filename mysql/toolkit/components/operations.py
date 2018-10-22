@@ -160,7 +160,6 @@ class Remove:
 
         # Get list of tables
         tables = self.tables if isinstance(self.tables, list) else [self.tables]
-        print(tables)
         if len(tables) > 0:
             self.drop(tables)
             self._printer('\t' + str(len(tables)), 'tables truncated from', database)
