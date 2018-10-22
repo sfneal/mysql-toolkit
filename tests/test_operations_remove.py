@@ -50,6 +50,18 @@ class TestOperationsRemove(unittest.TestCase):
 
         self.assertEqual(len(difference), 2)
 
+    def test_drop_empty_tables(self):
+        existing = self.sql.tables
+
+        table = 'payments'
+        self.sql.truncate(table)
+        self.assertEqual(self.sql.count_rows(table), 0)
+        self.sql.drop_empty_tables()
+
+        modified = self.sql.tables
+        difference = diff(existing, modified)
+        self.assertEqual(len(difference), 1)
+
 
 if __name__ == '__main__':
     unittest.main()
