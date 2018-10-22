@@ -1,7 +1,6 @@
 import os
 import shutil
 import unittest
-from differentiate import diff
 from mysql.toolkit import MySQL
 
 
