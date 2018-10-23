@@ -21,9 +21,9 @@ class TestOperationsRemove(unittest.TestCase):
             shutil.rmtree(FAILS_DIR)
         cls.sql.disconnect()
 
-    # def tearDown(self):
-    #     self.sql.truncate_database()
-    #     self.sql.execute_script(SQL_SCRIPT)
+    def tearDown(self):
+        self.sql.truncate_database()
+        self.sql.execute_script(SQL_SCRIPT)
 
     def test_drop_empty_tables(self):
         rows = self.sql.select_all('employees')
