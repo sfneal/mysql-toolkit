@@ -108,13 +108,7 @@ class Connector:
     @staticmethod
     def _fetch_rows(fetch):
         """Retrieve fetched rows from a MySQL cursor."""
-        rows = []
-        for row in fetch:
-            if len(row) == 1:
-                rows.append(row[0])
-            else:
-                rows.append(list(row))
-        return rows
+        return [row[0] if len(row) == 1 else list(row) for row in fetch]
 
     def _fetch(self, statement, commit, max_attempts=5):
         """
