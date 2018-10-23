@@ -121,6 +121,45 @@ class TestManipulateSelect(unittest.TestCase):
                                           anywhere=None, index=(None, None), length=20)
         self.assertEqual(len(rows), 68)
 
+    def test_select_join_left(self):
+        self.sql.change_db('testing_models')
+        cols = [
+            ('employees', 'email'),
+            ('employees', 'jobTitle'),
+            ('customers', 'customerName'),
+        ]
+        rows = self.sql.select_join('customers', 'employees', cols, table1_col='salesRepEmployeeNumber',
+                                    table2_col='employeeNumber')
+        self.assertEqual(len(rows), 122)
+        for i in rows:
+            self.assertEqual(len(i), 3)
+
+    def test_select_join_right(self):
+        self.sql.change_db('testing_models')
+        cols = [
+            ('employees', 'email'),
+            ('employees', 'jobTitle'),
+            ('customers', 'customerName'),
+        ]
+        rows = self.sql.select_join('customers', 'employees', cols, table1_col='salesRepEmployeeNumber',
+                                    table2_col='employeeNumber', join_type='RIGHT JOIN')
+        self.assertEqual(len(rows), 108)
+        for i in rows:
+            self.assertEqual(len(i), 3)
+
+    def test_select_join_inner(self):
+        self.sql.change_db('testing_models')
+        cols = [
+            ('employees', 'email'),
+            ('employees', 'jobTitle'),
+            ('customers', 'customerName'),
+        ]
+        rows = self.sql.select_join('customers', 'employees', cols, table1_col='salesRepEmployeeNumber',
+                                    table2_col='employeeNumber', join_type='INNER')
+        self.assertEqual(len(rows), 100)
+        for i in rows:
+            self.assertEqual(len(i), 3)
+
 
 if __name__ == '__main__':
     unittest.main()
