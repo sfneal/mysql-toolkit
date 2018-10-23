@@ -177,18 +177,18 @@ class Dates:
             return True
 
 
-class Record(Text, Numeric, Dates):
+class ValueType(Text, Numeric, Dates):
     def __init__(self, data):
-        super(Record, self).__init__(data)
+        super(ValueType, self).__init__(data)
         self.data = data
         self.type = None
         self.len = None
         self.len_decimal = None
 
     @property
-    def datatype(self):
+    def sql(self):
         if not self.type:
-            self.get_type()
+            self.get_sql()
 
         if self.len and self.len_decimal:
             return '{0} ({1}, {2})'.format(self.type, self.len, self.len_decimal)
@@ -197,7 +197,7 @@ class Record(Text, Numeric, Dates):
         else:
             return '{0}'.format(self.type)
 
-    def get_type(self):
+    def get_sql(self):
         """Retrieve the data type for a data record."""
         test_method = [
             self.is_time,
@@ -218,30 +218,30 @@ class Record(Text, Numeric, Dates):
         # Loop through test methods until a test returns True
         for method in test_method:
             if method():
-                return self.datatype
+                return self.sql
 
     @property
     def get_type_len(self):
         """Retrieve the type and length for a data record."""
         # Check types and set type/len
-        self.get_type()
+        self.get_sql()
         return self.type, self.len, self.len_decimal
 
 
 class DataTypes:
     def __init__(self, data):
-        self.record = Record(data)
+        self.record = ValueType(data)
 
     def varchar(self):
         """Retrieve the data type of a data record suspected to a VARCHAR."""
-        return self.record.datatype if self.record.is_varchar() else False
+        return self.record.sql if self.record.is_varchar() else False
 
     def text(self):
         """Retrieve the data type of a data record suspected to a VARCHAR."""
-        return self.record.datatype if self.record.is_text() else False
+        return self.record.sql if self.record.is_text() else False
 
 
-def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
+def sql_column_type(column_data, prefer_varchar=False, prefer_int=False):
     """
     Retrieve the best fit data type for a column of a MySQL table.
 
@@ -254,7 +254,7 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     :return: data type
     """
     # Collect list of type, length tuples
-    type_len_pairs = [Record(record).get_type_len for record in column_data]
+    type_len_pairs = [ValueType(record).get_type_len for record in column_data]
 
     # Retrieve frequency counts of each type
     types_count = {t: type_len_pairs.count(t) for t in set([type_ for type_, len_, len_dec in type_len_pairs])}

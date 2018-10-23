@@ -1,6 +1,6 @@
 import unittest
 from mysql.toolkit import MySQL
-from mysql.toolkit.datatypes import column_datatype
+from mysql.toolkit.datatypes import sql_column_type
 
 
 class TestDataTypesColumns(unittest.TestCase):
@@ -27,47 +27,47 @@ class TestDataTypesColumns(unittest.TestCase):
     def test_column_tinyint(self):
         self.sql.change_db('testing_models')
         column = self.sql.select_where('payments', ['customerNumber'], ('customerNumber', '<', 127))
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('TINYINT (3)', dt)
 
     def test_column_smallint(self):
         column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('SMALLINT (5)', dt)
 
     def test_column_int_preferred(self):
         column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
-        dt = column_datatype(column, prefer_int=True)
+        dt = sql_column_type(column, prefer_int=True)
         self.assertEqual('INT (5)', dt)
 
     def test_column_decimal(self):
         self.sql.change_db('testing_models')
         column = self.sql.select('payments', 'amount')
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('DECIMAL (6, 2)', dt)
 
     def test_column_tinytext(self):
         column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
 
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('TINYTEXT (4)', dt)
 
     def test_column_tinytext_varchar_preferred(self):
         column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
 
-        dt = column_datatype(column, prefer_varchar=True)
+        dt = sql_column_type(column, prefer_varchar=True)
         self.assertEqual('VARCHAR (4)', dt)
 
     def test_column_varchar(self):
         self.sql.change_db('testing_models')
         column = self.sql.select('productlines', 'textDescription')
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('VARCHAR (735)', dt)
 
     def test_column_date(self):
         column = self.sql.select_limit('dept_emp', ['from_date'], limit=500)
 
-        dt = column_datatype(column)
+        dt = sql_column_type(column)
         self.assertEqual('DATE', dt)
 
 
