@@ -183,13 +183,14 @@ class Record(Text, Numeric, Dates):
         self.data = data
         self.type = None
         self.len = None
+        self.len_decimal = None
 
     @property
     def datatype(self):
         if not self.type:
             self.get_type()
 
-        if hasattr(self, 'len_decimal') and self.len and self.len_decimal:
+        if self.len and self.len_decimal:
             return '{0} ({1}, {2})'.format(self.type, self.len, self.len_decimal)
         elif self.len:
             return '{0} ({1})'.format(self.type, self.len)
