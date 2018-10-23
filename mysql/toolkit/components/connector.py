@@ -23,6 +23,7 @@ class Connector:
         # Get original config and change database key
         config = self._config
         config['database'] = db
+        self.database = db
 
         # Close current database connection
         self._disconnect()
