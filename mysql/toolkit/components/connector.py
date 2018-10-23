@@ -132,7 +132,9 @@ class Connector:
                 # Return a single item if the list only has one item
                 return rows[0] if len(rows) == 1 else rows
             except Exception as e:
-                attempts += 1
-                self.reconnect()
-                continue
-        raise e
+                if attempts >= max_attempts:
+                    raise e
+                else:
+                    attempts += 1
+                    self.reconnect()
+                    continue
