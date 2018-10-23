@@ -112,10 +112,10 @@ class Select:
         """
         # Retrieve search pattern
         pattern = self._like_pattern(start, end, anywhere, index, length)
+        print(pattern)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
-        print(statement)
         return self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
@@ -165,6 +165,10 @@ class Select:
         :param length: Minimum character length
         :return: WHERE pattern
         """
+        # Unpack index tuple
+        index_num, index_char = index
+        index = None
+
         # Start, end, anywhere
         if all(i for i in [start, end, anywhere]) and not any(i for i in [index, length]):
             return '{start}%{anywhere}%{end}'.format(start=start, end=end, anywhere=anywhere)
@@ -179,7 +183,7 @@ class Select:
 
         # End, anywhere
         elif all(i for i in [end, anywhere]) and not any(i for i in [start, index, length]):
-            return '%{anywhere}&{end}'.format(end=end, anywhere=anywhere)
+            return '%{anywhere}%{end}'.format(end=end, anywhere=anywhere)
 
         # Start
         elif start and not any(i for i in [end, anywhere, index, length]):
@@ -194,9 +198,8 @@ class Select:
             return '%{anywhere}%'.format(anywhere=anywhere)
 
         # Index
-        elif index and not any(i for i in [start, end, anywhere, length]):
-            index_num, index_char = index
-            return '{index_num}{index_char}%'.format(index_num='_' * index_num, index_char=index_char)
+        elif index_num and index_char and not any(i for i in [start, end, anywhere, length]):
+            return '{index_num}{index_char}%'.format(index_num='_' * (index_num + 1), index_char=index_char)
 
         # Length
         elif length and not any(i for i in [start, end, anywhere, index]):
