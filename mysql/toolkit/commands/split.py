@@ -1,4 +1,4 @@
-# Split SQL script file into list of commands
+# Split SQL commands file into list of commands
 import os
 import sqlparse
 from tqdm import tqdm
@@ -39,7 +39,7 @@ class SplitCommands:
         try:
             return set(commands)
         except:
-            print('\tSet error in script.split.SplitCommands.parse')
+            print('\tSet error in commands.split.SplitCommands.parse')
             return {c for c in commands}
 
     @property
@@ -50,14 +50,14 @@ class SplitCommands:
         try:
             return set(commands)
         except:
-            print('\tSet error in script.split.SplitCommands.parse')
+            print('\tSet error in commands.split.SplitCommands.parse')
             return {c for c in commands}
 
     def sql_split(self, text=None, disable_tqdm=True, iteration=None):
         data = self.sql_data if not text else text
 
         # Set progress bar description
-        _desc = 'Parsing SQL script file'
+        _desc = 'Parsing SQL commands file'
         desc = _desc + ' ' + str(iteration) if iteration else _desc
 
         results = []
@@ -143,6 +143,6 @@ class SplitCommands:
         return results
 
     def simple_split(self, split_char=';'):
-        """Read a SQL script file and split on a particular char"""
+        """Read a SQL commands file and split on a particular char"""
         # Open and read the file as a single buffer
         return self.sql_data.split(split_char)
