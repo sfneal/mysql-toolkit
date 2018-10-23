@@ -19,6 +19,10 @@ class TestManipulateSelect(unittest.TestCase):
     def tearDownClass(cls):
         cls.sql.disconnect()
 
+    def tearDown(self):
+        if self.sql.database != 'testing_employees':
+            self.sql.change_db('testing_employees')
+
     def test_select_all(self):
         table = 'dept_manager'
 
@@ -54,6 +58,21 @@ class TestManipulateSelect(unittest.TestCase):
 
         row = self.sql.select_where(table, cols, ('emp_no', 10001))
         self.assertEqual(row, 'Senior Engineer')
+
+    def test_select_where_less(self):
+        self.sql.change_db('testing_models')
+        rows = self.sql.select_where('payments', ['customerNumber'], ('customerNumber', '<', 127))
+        self.assertEqual(len(rows), 26)
+
+    def test_select_where_more(self):
+        self.sql.change_db('testing_models')
+        rows = self.sql.select_where('payments', ['customerNumber'], ('customerNumber', '>', 127))
+        self.assertEqual(len(rows), 247)
+
+    def test_select_where_between(self):
+        self.sql.change_db('testing_models')
+        rows = self.sql.select_where_between('payments', ['amount'], 'amount', (1500, 10000))
+        self.assertEqual(len(rows), 39)
 
 
 if __name__ == '__main__':
