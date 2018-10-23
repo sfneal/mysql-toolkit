@@ -30,10 +30,15 @@ class TestDataTypesColumns(unittest.TestCase):
         dt = column_datatype(column)
         self.assertEqual('TINYINT (3)', dt)
 
-    def test_column_mediumint(self):
+    def test_column_smallint(self):
         column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
         dt = column_datatype(column)
         self.assertEqual('SMALLINT (5)', dt)
+
+    def test_column_int_preferred(self):
+        column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
+        dt = column_datatype(column, prefer_int=True)
+        self.assertEqual('INT (5)', dt)
 
     def test_column_decimal(self):
         self.sql.change_db('testing_models')
@@ -41,16 +46,23 @@ class TestDataTypesColumns(unittest.TestCase):
         dt = column_datatype(column)
         self.assertEqual('DECIMAL (6, 2)', dt)
 
-    def test_column_int_preferred(self):
-        column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
-        dt = column_datatype(column, prefer_int=True)
-        self.assertEqual('INT (5)', dt)
-
     def test_column_tinytext(self):
         column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
 
         dt = column_datatype(column)
         self.assertEqual('TINYTEXT (4)', dt)
+
+    def test_column_tinytext_varchar_preferred(self):
+        column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
+
+        dt = column_datatype(column, prefer_varchar=True)
+        self.assertEqual('VARCHAR (4)', dt)
+
+    def test_column_varchar(self):
+        self.sql.change_db('testing_models')
+        column = self.sql.select('productlines', 'textDescription')
+        dt = column_datatype(column)
+        self.assertEqual('VARCHAR (735)', dt)
 
     def test_column_date(self):
         column = self.sql.select_limit('dept_emp', ['from_date'], limit=500)
