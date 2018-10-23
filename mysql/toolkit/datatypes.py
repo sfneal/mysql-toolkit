@@ -209,6 +209,13 @@ class Record(Text, Numeric, Dates):
             if method():
                 return self.datatype
 
+    @property
+    def get_type_len(self):
+        """Retrieve the type and length for a data record."""
+        # Check types and set type/len
+        self.get_type()
+        return self.type, self.len
+
 
 class DataTypes:
     def __init__(self, data):
@@ -223,28 +230,35 @@ class DataTypes:
         return self.record.datatype if self.record.is_text() else False
 
 
-def column_datatype(data_set):
+def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     """
     Retrieve the best fit data type for a column of a MySQL table.
 
     Accepts a iterable of values ONLY for the column whose data type
     is in question.
 
-    :param data_set: Iterable of values
+    :param column_data: Iterable of values from a MySQL table column
+    :param prefer_varchar: Use type VARCHAR if valid
+    :param prefer_int: Use type INT if valid
     :return: data type
     """
-    types = []
-    type_len = []
-    for record in data_set:
-        r = Record(record)
-        r.datatype
-        type_len.append((r.type, r.len))
-        types.append(r.type)
-    types_count = {t: types.count(t) for t in set(types)}
+    # Collect list of type, length tuples
+    type_len_pairs = [Record(record).get_type_len for record in column_data]
+
+    # Retrieve frequency counts of each type
+    types_count = {t: type_len_pairs.count(t) for t in set([t for t, l in type_len_pairs])}
+
+    # Most frequently occurring datatype
     most_frequent = max(types_count.items(), key=itemgetter(1))[0]
 
-    max_len = 0
-    for t, l in type_len:
-        if t == most_frequent and l > max_len:
-            max_len = l
+    # Get max length of all rows to determine suitable limit
+    max_len = max([l for t, l in type_len_pairs if t == most_frequent])
+
+    # Return VARCHAR or INT type if flag is on
+    if prefer_varchar and most_frequent != 'VARCHAR' and 'text' in most_frequent.lower():
+        most_frequent = 'VARCHAR'
+    elif prefer_int and most_frequent != 'INT' and 'int' in most_frequent.lower():
+        most_frequent = 'INT'
+
+    # Return MySQL datatype in proper format
     return '{0} ({1})'.format(most_frequent, max_len)
