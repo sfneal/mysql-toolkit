@@ -6,7 +6,7 @@ from tests import config
 class TestStructureKeys(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.sql = MySQL(config())
+        cls.sql = MySQL(config('testing_models'))
 
     @classmethod
     def tearDownClass(cls):
