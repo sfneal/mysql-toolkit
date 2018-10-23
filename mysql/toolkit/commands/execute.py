@@ -1,9 +1,9 @@
 import os
 from tqdm import tqdm
 from looptools import Timer
-from mysql.toolkit.script.dump import dump_commands, get_commands_from_dir
-from mysql.toolkit.script.split import SplitCommands
-from mysql.toolkit.script.prepare import prepare_sql, filter_commands
+from mysql.toolkit.commands.dump import dump_commands, get_commands_from_dir
+from mysql.toolkit.commands.split import SplitCommands
+from mysql.toolkit.commands.prepare import prepare_sql, filter_commands
 
 # Conditional import of multiprocessing module
 try:
@@ -17,14 +17,14 @@ except ImportError:
 MAX_EXECUTION_ATTEMPTS = 5
 
 
-class SQLScript:
+class Execute:
     def __init__(self, sql_script=None, split_algo='sql_split', prep_statements=True, dump_fails=True,
                  mysql_instance=None):
         """Execute a sql file one command at a time."""
         # Pass MySQL instance from execute_script method to ExecuteScript class
         self._MySQL = mysql_instance
 
-        # SQL script to be executed
+        # SQL commands to be executed
         self.sql_script = sql_script
 
         # Function to use to split SQL commands
@@ -42,7 +42,7 @@ class SQLScript:
     @property
     def commands(self):
         """
-        Fetch individual SQL commands from a SQL script containing many commands.
+        Fetch individual SQL commands from a SQL commands containing many commands.
 
         :return: List of commands
         """
@@ -64,7 +64,7 @@ class SQLScript:
             elif self.split_algo is 'sql_parse_nosplit':
                 commands = SplitCommands(self.sql_script).sql_parse_nosplit
 
-            # Parse every char of the SQL script and determine breakpoints
+            # Parse every char of the SQL commands and determine breakpoints
             elif self.split_algo is 'sql_split':
                 commands = SplitCommands(self.sql_script).sql_split(disable_tqdm=False)
             else:
@@ -72,9 +72,6 @@ class SQLScript:
 
             # remove dbo. prefixes from table names
             cleaned_commands = [com.replace("dbo.", '') for com in commands]
-
-            # Prepare commands for SQL execution
-            setattr(self, 'fetched_commands', cleaned_commands)
         return cleaned_commands
 
     def execute(self, commands=None, ignored_commands=('DROP', 'UNLOCK', 'LOCK'), execute_fails=True,

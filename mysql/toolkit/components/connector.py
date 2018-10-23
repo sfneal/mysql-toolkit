@@ -18,11 +18,14 @@ class Connector:
         self._connect(config)
         self.database = config['database']
 
-    def change_db(self, db):
+    def change_db(self, db, user=None):
         """Change connect database."""
         # Get original config and change database key
         config = self._config
         config['database'] = db
+        if user:
+            config['user'] = user
+        self.database = db
 
         # Close current database connection
         self._disconnect()
@@ -108,13 +111,7 @@ class Connector:
     @staticmethod
     def _fetch_rows(fetch):
         """Retrieve fetched rows from a MySQL cursor."""
-        rows = []
-        for row in fetch:
-            if len(row) == 1:
-                rows.append(row[0])
-            else:
-                rows.append(list(row))
-        return rows
+        return [row[0] if len(row) == 1 else list(row) for row in fetch]
 
     def _fetch(self, statement, commit, max_attempts=5):
         """
@@ -136,7 +133,9 @@ class Connector:
                 # Return a single item if the list only has one item
                 return rows[0] if len(rows) == 1 else rows
             except Exception as e:
-                attempts += 1
-                self.reconnect()
-                continue
-        raise e
+                if attempts >= max_attempts:
+                    raise e
+                else:
+                    attempts += 1
+                    self.reconnect()
+                    continue

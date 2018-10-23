@@ -3,6 +3,7 @@ import shutil
 import unittest
 from differentiate import diff
 from mysql.toolkit import MySQL
+from tests import config
 
 
 SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
@@ -12,15 +13,7 @@ FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 class TestOperationsRemove(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config = {
-            "database": "testing_models",
-            "host": "stephenneal.net",
-            "password": "thisisfortesting",
-            "port": 3306,
-            "raise_on_warnings": True,
-            "user": "stephen_testing"
-        }
-        cls.sql = MySQL(config)
+        cls.sql = MySQL(config('testing_models'))
 
     @classmethod
     def tearDownClass(cls):

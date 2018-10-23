@@ -1,12 +1,14 @@
 from differentiate import diff
-from mysql.toolkit.utils import wrap
-from mysql.toolkit.script.script import SQLScript
+from mysql.toolkit.utils import wrap, join_cols
+from mysql.toolkit.datatypes import sql_column_type
+from mysql.toolkit.commands.execute import Execute
 from mysql.toolkit.components.clone import Clone
 
 
 class Compare:
     def compare_dbs(self, db_x, db_y, show=True):
         """Compare the tables and row counts of two databases."""
+        # TODO: Improve method
         self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
 
         # Run compare_dbs_getter to get row counts
@@ -65,6 +67,7 @@ class Compare:
         in both databases's.  Identifies differences in column names,
         data types and keys.
         """
+        # TODO: Improve method
         self._printer("\tComparing database schema's {0} and {1}".format(db_x, db_y))
 
         # Run compare_dbs_getter to get row counts
@@ -130,6 +133,7 @@ class Compare:
         compares the rows in corresponding tables to identify unique
         and shared values.
         """
+        # TODO: Improve method
         pass
 
 
@@ -239,46 +243,38 @@ class Operations(Alter, Compare, Clone, Remove):
         statement = "CREATE DATABASE " + wrap(name) + " DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci"
         return self.execute(statement)
 
-    def create_table(self, name, data, headers=None):
+    def create_table(self, name, data, columns=None, add_pk=True):
         """Generate and execute a create table query by parsing a 2D dataset"""
-        # TODO: Finish writing method
+        # Remove if the table exists
+        if name in self.tables:
+            self.drop(name)
+
         # Set headers list
-        if not headers:
-            headers = data[0]
+        if not columns:
+            columns = data[0]
 
-        # Create dictionary columns and data types from headers list
-        data_types = {header: {'type': None, 'max': None} for header in headers}
-
-        # Confirm that each row of the dataset is the same length
+        # Validate data shape
         for row in data:
-            assert len(row) == len(headers)
-            row_dict = dict(zip(headers, row))
-            for k, v in row_dict.items():
-                if data_types[k]['type'] is None:
-                    data_types[k]['type'] = type(v)
-                    data_types[k]['max'] = len(str(v))
-                else:
-                    data_types[k]['max'] = max(len(str(v)), data_types[k]['max'])
+            assert len(row) == len(columns)
 
-        for k, v in data_types.items():
-            print(k, v)
+        # Create dictionary of column types
+        col_types = {columns[i]: sql_column_type([d[i] for d in data], prefer_int=True, prefer_varchar=True)
+                     for i in range(0, len(columns))}
 
-        # Create list of columns
-        columns = []
-        for column, v in data_types.items():
-            var_type = 'INT' if isinstance(v['type'], int) else 'VARCHAR'
-            var_max = str(v['max'])
-
-        self._printer(columns)
-        statement = "create table " + name + " ("
-        self._printer(statement)
+        # Join column types into SQL string
+        cols = ''.join(['\t{0} {1},\n'.format(name, type_) for name, type_ in col_types.items()])[:-2] + '\n'
+        statement = 'CREATE TABLE {0} ({1}{2})'.format(name, '\n', cols)
+        self.execute(statement)
+        if add_pk:
+            self.set_primary_keys_all()
+        return True
 
     def execute_script(self, sql_script=None, commands=None, split_algo='sql_split', prep_statements=False,
                        dump_fails=True, execute_fails=True, ignored_commands=('DROP', 'UNLOCK', 'LOCK')):
         """Wrapper method for SQLScript class."""
-        ss = SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
+        ss = Execute(sql_script, split_algo, prep_statements, dump_fails, self)
         ss.execute(commands, ignored_commands=ignored_commands, execute_fails=execute_fails)
 
     def script(self, sql_script, split_algo='sql_split', prep_statements=True, dump_fails=True):
         """Wrapper method providing access to the SQLScript class's methods and properties."""
-        return SQLScript(sql_script, split_algo, prep_statements, dump_fails, self)
+        return Execute(sql_script, split_algo, prep_statements, dump_fails, self)
