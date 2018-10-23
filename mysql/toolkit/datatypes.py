@@ -259,7 +259,6 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     # Get max length of all rows to determine suitable limit
     len_lst, len_decimals_lst = [], []
     for type_, len_, len_dec in type_len_pairs:
-        print(type_, len_, len_dec)
         if type_ == most_frequent:
             if type(len_) is int:
                 len_lst.append(len_)
