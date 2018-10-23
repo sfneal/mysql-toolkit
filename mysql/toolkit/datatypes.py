@@ -26,10 +26,10 @@ DATA_TYPES = {
 
 # MySQL accepted datetime ranges
 YEARS = list(range(1000, 9999))
-MONTHS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
-DAYS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
+MONTHS = list(range(1, 13))
+DAYS = list(range(1, 32))
 HOURS = list(range(-838, 838))
-MINUTES = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+MINUTES = list(range(1, 60))
 SECONDS = list(range(0, 60))
 
 
@@ -252,7 +252,11 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     most_frequent = max(types_count.items(), key=itemgetter(1))[0]
 
     # Get max length of all rows to determine suitable limit
-    max_len = max([l for t, l in type_len_pairs if t == most_frequent])
+    try:
+        max_len = max([l for t, l in type_len_pairs if t == most_frequent and type(l) is int])
+    except ValueError:
+        # Current type has no len
+        max_len = None
 
     # Return VARCHAR or INT type if flag is on
     if prefer_varchar and most_frequent != 'VARCHAR' and 'text' in most_frequent.lower():
@@ -260,5 +264,5 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     elif prefer_int and most_frequent != 'INT' and 'int' in most_frequent.lower():
         most_frequent = 'INT'
 
-    # Return MySQL datatype in proper format
-    return '{0} ({1})'.format(most_frequent, max_len)
+    # Return MySQL datatype in proper format, only include length if it is set
+    return '{0} ({1})'.format(most_frequent, max_len) if max_len else most_frequent

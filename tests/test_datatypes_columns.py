@@ -20,23 +20,23 @@ class TestDataTypesColumns(unittest.TestCase):
     def tearDownClass(cls):
         cls.sql.disconnect()
 
-    def test_column_int(self):
-        column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
-
-        dt = column_datatype(column)
-        self.assertEqual('MEDIUMINT (5)', dt)
-
-    def test_column_tinytext(self):
-        column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
-
-        dt = column_datatype(column)
-        self.assertEqual('TINYTEXT (4)', dt)
-
-    # def test_column_date(self):
-    #     column = self.sql.select_limit('dept_emp', ['from_date'], limit=500)
+    # def test_column_int(self):
+    #     column = self.sql.select_limit('dept_emp', ['emp_no'], limit=500)
     #
     #     dt = column_datatype(column)
-    #     self.assertEqual('DATE', dt)
+    #     self.assertEqual('MEDIUMINT (5)', dt)
+    #
+    # def test_column_tinytext(self):
+    #     column = self.sql.select_limit('dept_emp', ['dept_no'], limit=500)
+    #
+    #     dt = column_datatype(column)
+    #     self.assertEqual('TINYTEXT (4)', dt)
+
+    def test_column_date(self):
+        column = self.sql.select_limit('dept_emp', ['from_date'], limit=500)
+
+        dt = column_datatype(column)
+        self.assertEqual('DATE', dt)
 
 
 if __name__ == '__main__':
