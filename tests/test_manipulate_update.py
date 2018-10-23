@@ -1,20 +1,13 @@
 import unittest
-from mysql.toolkit import MySQL
 from differentiate import diff
+from mysql.toolkit import MySQL
+from tests import config
 
 
 class TestManipulateUpdate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config = {
-            "database": "testing_employees",
-            "host": "stephenneal.net",
-            "password": "thisisfortesting",
-            "port": 3306,
-            "raise_on_warnings": True,
-            "user": "stephen_testing"
-        }
-        cls.sql = MySQL(config)
+        cls.sql = MySQL(config())
         if cls.sql.count_rows('departments') == 0:
             cls.sql.execute('''
                 INSERT INTO `departments` 

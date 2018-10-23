@@ -1,20 +1,13 @@
 import unittest
 from mysql.toolkit import MySQL
 from mysql.toolkit.datatypes import sql_column_type
+from tests import config
 
 
 class TestDataTypesColumns(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        config = {
-            "database": "testing_employees",
-            "host": "stephenneal.net",
-            "password": "thisisfortesting",
-            "port": 3306,
-            "raise_on_warnings": True,
-            "user": "stephen_testing"
-        }
-        cls.sql = MySQL(config)
+        cls.sql = MySQL(config())
 
     @classmethod
     def tearDownClass(cls):

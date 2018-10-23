@@ -18,11 +18,13 @@ class Connector:
         self._connect(config)
         self.database = config['database']
 
-    def change_db(self, db):
+    def change_db(self, db, user=None):
         """Change connect database."""
         # Get original config and change database key
         config = self._config
         config['database'] = db
+        if user:
+            config['user'] = user
         self.database = db
 
         # Close current database connection
