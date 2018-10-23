@@ -1,5 +1,6 @@
 import datetime
 from operator import itemgetter
+from decimal import Decimal
 
 
 DATA_TYPES = {
@@ -15,7 +16,7 @@ DATA_TYPES = {
     'mediumint': {'type': int, 'min': -8388608, 'max': 8388607},
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
     'bigint': {'type': int, 'min': -9223372036854775808, 'max': 9223372036854775807},
-    'decimal': {'type': float},
+    'decimal': {'type': Decimal},
 
     # Date Data Types
     'date': {'type': datetime.date},
@@ -72,7 +73,8 @@ class Numeric:
     def __init__(self, data):
         self.data = data
         self.type = None
-        self.len = len(self.data)
+        self.len = None
+        self.len_decimal = None
 
     def is_tinyint(self):
         """Determine if a data record is of the type TINYINT."""
@@ -96,7 +98,8 @@ class Numeric:
         if type(self.data) is dt['type']:
             self.type = 'DECIMAL'
             num_split = str(self.data).split('.', 1)
-            self.len = '{0}, {1}'.format(len(num_split[0]), len(num_split[1]))
+            self.len = len(num_split[0])
+            self.len_decimal = len(num_split[1])
             return True
 
     def _is_numeric_data(self, data_type):
@@ -182,7 +185,9 @@ class Record(Text, Numeric, Dates):
         if not self.type:
             self.get_type()
 
-        if self.len:
+        if self.len and self.len_decimal:
+            return '{0} ({1}, {2})'.format(self.type, self.len, self.len_decimal)
+        elif self.len:
             return '{0} ({1})'.format(self.type, self.len)
         else:
             return '{0}'.format(self.type)
@@ -214,7 +219,7 @@ class Record(Text, Numeric, Dates):
         """Retrieve the type and length for a data record."""
         # Check types and set type/len
         self.get_type()
-        return self.type, self.len
+        return self.type, self.len, self.len_decimal
 
 
 class DataTypes:
@@ -246,17 +251,30 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
     type_len_pairs = [Record(record).get_type_len for record in column_data]
 
     # Retrieve frequency counts of each type
-    types_count = {t: type_len_pairs.count(t) for t in set([t for t, l in type_len_pairs])}
+    types_count = {t: type_len_pairs.count(t) for t in set([type_ for type_, len_, len_dec in type_len_pairs])}
 
     # Most frequently occurring datatype
     most_frequent = max(types_count.items(), key=itemgetter(1))[0]
 
     # Get max length of all rows to determine suitable limit
+    len_lst, len_decimals_lst = [], []
+    for type_, len_, len_dec in type_len_pairs:
+        print(type_, len_, len_dec)
+        if type_ == most_frequent:
+            if type(len_) is int:
+                len_lst.append(len_)
+            if type(len_dec) is int:
+                len_decimals_lst.append(len_dec)
+
+    # Catch errors if current type has no len
     try:
-        max_len = max([l for t, l in type_len_pairs if t == most_frequent and type(l) is int])
+        max_len = max(len_lst)
     except ValueError:
-        # Current type has no len
         max_len = None
+    try:
+        max_len_decimal = max(len_decimals_lst)
+    except ValueError:
+        max_len_decimal = None
 
     # Return VARCHAR or INT type if flag is on
     if prefer_varchar and most_frequent != 'VARCHAR' and 'text' in most_frequent.lower():
@@ -265,4 +283,9 @@ def column_datatype(column_data, prefer_varchar=False, prefer_int=False):
         most_frequent = 'INT'
 
     # Return MySQL datatype in proper format, only include length if it is set
-    return '{0} ({1})'.format(most_frequent, max_len) if max_len else most_frequent
+    if max_len and max_len_decimal:
+        return '{0} ({1}, {2})'.format(most_frequent, max_len, max_len_decimal)
+    elif max_len:
+        return '{0} ({1})'.format(most_frequent, max_len)
+    else:
+        return most_frequent
