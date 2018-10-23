@@ -20,8 +20,7 @@ class TestManipulateSelect(unittest.TestCase):
         cls.sql.disconnect()
 
     def tearDown(self):
-        if self.sql.database != 'testing_employees':
-            self.sql.change_db('testing_employees')
+        self.sql.change_db('testing_employees')
 
     def test_select_all(self):
         table = 'dept_manager'
@@ -76,9 +75,9 @@ class TestManipulateSelect(unittest.TestCase):
 
     def test_select_where_like_1(self):
         self.sql.change_db('testing_models')
-        rows = self.sql.select_where_like('customers', ['customerName'], 'customerName', start='A', end='.',
+        rows = self.sql.select_where_like('customers', ['customerName'], 'customerName', start='a', end='.',
                                           anywhere='&')
-        self.assertEqual(len(rows), 7)
+        self.assertEqual(len(rows), 2)
 
     def test_select_where_like_2(self):
         self.sql.change_db('testing_models')

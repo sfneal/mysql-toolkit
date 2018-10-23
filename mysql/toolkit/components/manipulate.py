@@ -112,7 +112,6 @@ class Select:
         """
         # Retrieve search pattern
         pattern = self._like_pattern(start, end, anywhere, index, length)
-        print(pattern)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
