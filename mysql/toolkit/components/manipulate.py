@@ -91,7 +91,7 @@ class Select:
     @staticmethod
     def _select_limit_statement(table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
         """Concatenate a select with offset and limit statement."""
-        return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(cols, wrap(table), offset, limit)
+        return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(join_cols(cols), wrap(table), offset, limit)
 
 
 class Insert:
