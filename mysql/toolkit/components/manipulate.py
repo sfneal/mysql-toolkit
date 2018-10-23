@@ -4,6 +4,7 @@ from mysql.toolkit.utils import get_col_val_str, join_cols, wrap
 
 MAX_ROWS_PER_QUERY = 50000
 SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
+SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=')
 
 
 class Select:
@@ -66,6 +67,7 @@ class Select:
         else:
             where_col, where_val = where
             operator = '='
+        assert operator in SELECT_WHERE_OPERATORS
 
         # Concatenate WHERE clause (ex: **first_name='John'**)
         where_statement = "{0}{1}'{2}'".format(where_col, operator, where_val)
