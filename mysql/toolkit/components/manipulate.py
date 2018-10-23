@@ -58,9 +58,6 @@ class Select:
             three-part: (where_column, comparison_operator, where_value)
         :return: Queried rows
         """
-        # Either join list of columns into string or set columns to * (all)
-        cols_str = join_cols(cols) if isinstance(cols, (list, tuple, set)) else cols
-
         # Unpack WHERE clause dictionary into tuple
         if len(where) == 3:
             where_col, operator, where_val = where
@@ -73,7 +70,7 @@ class Select:
         where_statement = "{0}{1}'{2}'".format(where_col, operator, where_val)
 
         # Concatenate full statement and execute
-        statement = "SELECT {0} FROM {1} WHERE {2}".format(cols_str, wrap(table), where_statement)
+        statement = "SELECT {0} FROM {1} WHERE {2}".format(join_cols(cols), wrap(table), where_statement)
         return self.fetch(statement)
 
     def select_where_between(self, table, cols, where_col, between):
@@ -86,14 +83,11 @@ class Select:
         :param between: Tuple with min and max values for comparison
         :return: Queried rows
         """
-        # Either join list of columns into string or set columns to * (all)
-        cols_str = join_cols(cols) if isinstance(cols, (list, tuple, set)) else cols
-
         # Unpack WHERE clause dictionary into tuple
         min_val, max_val = between
 
         # Concatenate full statement and execute
-        statement = "SELECT {0} FROM {1} WHERE {2} BETWEEN {3} AND {4}".format(cols_str, wrap(table), where_col,
+        statement = "SELECT {0} FROM {1} WHERE {2} BETWEEN {3} AND {4}".format(join_cols(cols), wrap(table), where_col,
                                                                                min_val, max_val)
         return self.fetch(statement)
 
