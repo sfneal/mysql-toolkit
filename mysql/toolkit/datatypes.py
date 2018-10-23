@@ -20,7 +20,6 @@ DATA_TYPES = {
     # Date Data Types
     'date': {'type': datetime.date},
     'datetime': {'type': datetime.datetime},
-    'timestamp': {'type': datetime.datetime.timestamp},
     'time': {'type': datetime.time},
     'year': {'type': int, 'min': 1901, 'max': 2155},
 }
@@ -31,7 +30,7 @@ MONTHS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 13)]
 DAYS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 32)]
 HOURS = list(range(-838, 838))
 MINUTES = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
-SECONDS = ['0{0}'.format(i) if len(str(i)) == 1 else i for i in range(1, 60)]
+SECONDS = list(range(0, 60))
 
 
 class Text:
@@ -191,15 +190,15 @@ class Record(Text, Numeric, Dates):
     def get_type(self):
         """Retrieve the data type for a data record."""
         test_method = [
+            self.is_time,
             self.is_date,
             self.is_datetime,
-            self.is_time,
+            self.is_float,
             self.is_year,
             self.is_tinyint,
             self.is_mediumint,
             self.is_int,
             self.is_bigint,
-            self.is_float,
             self.is_tinytext,
             self.is_varchar,
             self.is_mediumtext,
