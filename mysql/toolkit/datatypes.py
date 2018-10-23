@@ -15,7 +15,7 @@ DATA_TYPES = {
     'mediumint': {'type': int, 'min': -8388608, 'max': 8388607},
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
     'bigint': {'type': int, 'min': -9223372036854775808, 'max': 9223372036854775807},
-    'float': {'type': float},
+    'decimal': {'type': float},
 
     # Date Data Types
     'date': {'type': datetime.date},
@@ -90,11 +90,11 @@ class Numeric:
         """Determine if a data record is of the type BIGINT."""
         return self._is_numeric_data('bigint')
 
-    def is_float(self):
+    def is_decimal(self):
         """Determine if a data record is of the type float."""
-        dt = DATA_TYPES['float']
+        dt = DATA_TYPES['decimal']
         if type(self.data) is dt['type']:
-            self.type = 'FLOAT'
+            self.type = 'DECIMAL'
             num_split = str(self.data).split('.', 1)
             self.len = '{0}, {1}'.format(len(num_split[0]), len(num_split[1]))
             return True
@@ -193,7 +193,7 @@ class Record(Text, Numeric, Dates):
             self.is_time,
             self.is_date,
             self.is_datetime,
-            self.is_float,
+            self.is_decimal,
             self.is_year,
             self.is_tinyint,
             self.is_mediumint,

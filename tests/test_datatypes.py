@@ -24,10 +24,10 @@ class TestDataTypes(unittest.TestCase):
         dt = Record(value).datatype
         self.assertEqual(dt, 'INT (8)')
 
-    def test_num_float(self):
+    def test_num_decimal(self):
         value = 362.45
         dt = Record(value).datatype
-        self.assertEqual(dt, 'FLOAT (3, 2)')
+        self.assertEqual(dt, 'DECIMAL (3, 2)')
 
     def test_text_varchar(self):
         value = '''Hey I'm a varchar string! Hey I'm a varchar string! Hey I'm a varchar string! Hey I'm a varchar
