@@ -228,19 +228,6 @@ class ValueType(Text, Numeric, Dates):
         return self.type, self.len, self.len_decimal
 
 
-class DataTypes:
-    def __init__(self, data):
-        self.record = ValueType(data)
-
-    def varchar(self):
-        """Retrieve the data type of a data record suspected to a VARCHAR."""
-        return self.record.sql if self.record.is_varchar() else False
-
-    def text(self):
-        """Retrieve the data type of a data record suspected to a VARCHAR."""
-        return self.record.sql if self.record.is_text() else False
-
-
 def sql_column_type(column_data, prefer_varchar=False, prefer_int=False):
     """
     Retrieve the best fit data type for a column of a MySQL table.
