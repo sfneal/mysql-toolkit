@@ -43,19 +43,35 @@ class Select:
         return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
     def select_where(self, table, cols, where):
-        """Query certain columns from a table where a particular value is found."""
+        """
+        Query certain columns from a table where a particular value is found.
+
+        cols parameter can be passed as a iterable (list, set, tuple) or a string if
+        only querying a single column.  where parameter can be passed as a two or three
+        part tuple.  If only two parts are passed the assumed operator is equals(=).
+
+        :param table: Name of table
+        :param cols: List, tuple or set of columns or string with single column name
+        :param where: WHERE clause, accepts either a two or three part tuple
+            two-part: (where_column, where_value)
+            three-part: (where_column, comparison_operator, where_value)
+        :return:
+        """
         # Either join list of columns into string or set columns to * (all)
-        if isinstance(cols, list):
-            cols_str = join_cols(cols)
-        elif cols == '*':
-            cols_str = "*"
-        else:
-            cols_str = cols
+        cols_str = join_cols(cols) if isinstance(cols, (list, tuple, set)) else cols
 
         # Unpack WHERE clause dictionary into tuple
-        where_col, where_val = where
+        if len(where) == 3:
+            where_col, operator, where_val = where
+        else:
+            where_col, where_val = where
+            operator = '='
 
-        statement = "SELECT {0} FROM {1} WHERE {2}='{3}'".format(cols_str, wrap(table), where_col, where_val)
+        # Concatenate WHERE clause (ex: **first_name='John'**)
+        where_statement = "{0}{1}'{2}'".format(where_col, operator, where_val)
+
+        # Concatenate full statement and execute
+        statement = "SELECT {0} FROM {1} WHERE {2}".format(cols_str, wrap(table), where_statement)
         return self.fetch(statement)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
