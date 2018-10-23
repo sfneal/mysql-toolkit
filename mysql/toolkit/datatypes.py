@@ -16,7 +16,7 @@ DATA_TYPES = {
     'mediumint': {'type': int, 'min': -8388608, 'max': 8388607},
     'int': {'type': int, 'min': -2147483648, 'max': 2147483647},
     'bigint': {'type': int, 'min': -9223372036854775808, 'max': 9223372036854775807},
-    'decimal': {'type': Decimal},
+    'decimal': {'type': (Decimal, float)},
 
     # Date Data Types
     'date': {'type': datetime.date},
@@ -80,6 +80,10 @@ class Numeric:
         """Determine if a data record is of the type TINYINT."""
         return self._is_numeric_data('tinyint')
 
+    def is_smallint(self):
+        """Determine if a data record is of the type SMALLINT."""
+        return self._is_numeric_data('smallint')
+
     def is_mediumint(self):
         """Determine if a data record is of the type MEDIUMINT."""
         return self._is_numeric_data('mediumint')
@@ -95,7 +99,7 @@ class Numeric:
     def is_decimal(self):
         """Determine if a data record is of the type float."""
         dt = DATA_TYPES['decimal']
-        if type(self.data) is dt['type']:
+        if type(self.data) in dt['type']:
             self.type = 'DECIMAL'
             num_split = str(self.data).split('.', 1)
             self.len = len(num_split[0])
@@ -185,7 +189,7 @@ class Record(Text, Numeric, Dates):
         if not self.type:
             self.get_type()
 
-        if self.len and self.len_decimal:
+        if hasattr(self, 'len_decimal') and self.len and self.len_decimal:
             return '{0} ({1}, {2})'.format(self.type, self.len, self.len_decimal)
         elif self.len:
             return '{0} ({1})'.format(self.type, self.len)
@@ -201,6 +205,7 @@ class Record(Text, Numeric, Dates):
             self.is_decimal,
             self.is_year,
             self.is_tinyint,
+            self.is_smallint,
             self.is_mediumint,
             self.is_int,
             self.is_bigint,

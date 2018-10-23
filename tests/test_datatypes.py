@@ -9,10 +9,15 @@ class TestDataTypes(unittest.TestCase):
         dt = Record(value).datatype
         self.assertEqual(dt, 'TINYINT (2)')
 
-    def test_num_mediumint(self):
+    def test_num_smallint(self):
         value = 4006
         dt = Record(value).datatype
-        self.assertEqual(dt, 'MEDIUMINT (4)')
+        self.assertEqual(dt, 'SMALLINT (4)')
+
+    def test_num_mediumint(self):
+        value = 42767
+        dt = Record(value).datatype
+        self.assertEqual(dt, 'MEDIUMINT (5)')
 
     def test_num_bigint(self):
         value = 53147483647
