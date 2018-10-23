@@ -91,6 +91,33 @@ class Select:
                                                                                min_val, max_val)
         return self.fetch(statement)
 
+    def select_where_like(self, table, cols, where_col, start=None, end=None, anywhere=None,
+                          index=(None, None), length=None):
+        """
+        Query rows from a table where a specific pattern is found in a column.
+
+        MySQL syntax assumptions:
+            (%) The percent sign represents zero, one, or multiple characters.
+            (_) The underscore represents a single character.
+
+        :param table: Name of the table
+        :param cols: List, tuple or set of columns or string with single column name
+        :param where_col: Column to check pattern against
+        :param start: Value to be found at the start
+        :param end: Value to be found at the end
+        :param anywhere: Value to be found anywhere
+        :param index: Value to be found at a certain index
+        :param length: Minimum character length
+        :return: Queried rows
+        """
+        # Retrieve search pattern
+        pattern = self._like_pattern(start, end, anywhere, index, length)
+
+        # Concatenate full statement and execute
+        statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
+        print(statement)
+        return self.fetch(statement)
+
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""
         # Execute select queries in small batches to avoid connection timeout
@@ -125,6 +152,58 @@ class Select:
     def _select_limit_statement(table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
         """Concatenate a select with offset and limit statement."""
         return 'SELECT {0} FROM {1} LIMIT {2}, {3}'.format(join_cols(cols), wrap(table), offset, limit)
+
+    @staticmethod
+    def _like_pattern(start, end, anywhere, index, length):
+        """
+        Create a LIKE pattern to use as a search parameter for a WHERE clause.
+
+        :param start: Value to be found at the start
+        :param end: Value to be found at the end
+        :param anywhere: Value to be found anywhere
+        :param index: Value to be found at a certain index
+        :param length: Minimum character length
+        :return: WHERE pattern
+        """
+        # Start, end, anywhere
+        if all(i for i in [start, end, anywhere]) and not any(i for i in [index, length]):
+            return '{start}%{anywhere}%{end}'.format(start=start, end=end, anywhere=anywhere)
+
+        # Start, end
+        elif all(i for i in [start, end]) and not any(i for i in [anywhere, index, length]):
+            return '{start}%{end}'.format(start=start, end=end)
+
+        # Start, anywhere
+        elif all(i for i in [start, anywhere]) and not any(i for i in [end, index, length]):
+            return '{start}%{anywhere}%'.format(start=start, anywhere=anywhere)
+
+        # End, anywhere
+        elif all(i for i in [end, anywhere]) and not any(i for i in [start, index, length]):
+            return '%{anywhere}&{end}'.format(end=end, anywhere=anywhere)
+
+        # Start
+        elif start and not any(i for i in [end, anywhere, index, length]):
+            return '{start}%'.format(start=start)
+
+        # End
+        elif end and not any(i for i in [start, anywhere, index, length]):
+            return '%{end}'.format(end=end)
+
+        # Anywhere
+        elif anywhere and not any(i for i in [start, end, index, length]):
+            return '%{anywhere}%'.format(anywhere=anywhere)
+
+        # Index
+        elif index and not any(i for i in [start, end, anywhere, length]):
+            index_num, index_char = index
+            return '{index_num}{index_char}%'.format(index_num='_' * index_num, index_char=index_char)
+
+        # Length
+        elif length and not any(i for i in [start, end, anywhere, index]):
+            return '{length}'.format(length='_%' * length)
+
+        else:
+            return None
 
 
 class Insert:
