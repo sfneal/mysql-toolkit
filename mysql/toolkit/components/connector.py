@@ -118,6 +118,7 @@ class Connector:
         Recursively disconnect and reconnect to the database
         if an error occurs.
         """
+        # TODO: Improve method
         attempts = 0
         while attempts < max_attempts:
             try:

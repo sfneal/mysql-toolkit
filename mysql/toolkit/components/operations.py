@@ -7,6 +7,7 @@ from mysql.toolkit.components.clone import Clone
 class Compare:
     def compare_dbs(self, db_x, db_y, show=True):
         """Compare the tables and row counts of two databases."""
+        # TODO: Improve method
         self._printer("\tComparing database's {0} and {1}".format(db_x, db_y))
 
         # Run compare_dbs_getter to get row counts
@@ -65,6 +66,7 @@ class Compare:
         in both databases's.  Identifies differences in column names,
         data types and keys.
         """
+        # TODO: Improve method
         self._printer("\tComparing database schema's {0} and {1}".format(db_x, db_y))
 
         # Run compare_dbs_getter to get row counts
@@ -130,6 +132,7 @@ class Compare:
         compares the rows in corresponding tables to identify unique
         and shared values.
         """
+        # TODO: Improve method
         pass
 
 
