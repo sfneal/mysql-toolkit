@@ -1,6 +1,6 @@
 from looptools import Timer
-from mysql.toolkit.utils import wrap
 from tqdm import tqdm
+from mysql.toolkit.utils import wrap
 
 
 class CloneDatabase:
