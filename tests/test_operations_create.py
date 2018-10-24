@@ -10,7 +10,7 @@ SQL_SCRIPT = os.path.join(os.path.dirname(__file__), 'data', 'models.sql')
 FAILS_DIR = os.path.join(os.path.dirname(__file__), 'data', 'fails')
 
 
-class TestOperationsRemove(unittest.TestCase):
+class TestOperationsCreate(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.sql = MySQL(config('testing_models'))
@@ -25,7 +25,7 @@ class TestOperationsRemove(unittest.TestCase):
         self.sql.truncate_database()
         self.sql.execute_script(SQL_SCRIPT)
 
-    def test_drop_empty_tables(self):
+    def test_create_table(self):
         rows = self.sql.select_all('employees')
 
         ct = self.sql.create_table('workers', rows, self.sql.get_columns('employees'))
