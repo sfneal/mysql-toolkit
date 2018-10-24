@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from looptools import Timer
 from differentiate import diff
 from mysql.toolkit import MySQL
 from tests import config
@@ -25,6 +26,7 @@ class TestOperationsCreate(unittest.TestCase):
         self.sql.truncate_database()
         self.sql.execute_script(SQL_SCRIPT)
 
+    @Timer.decorator
     def test_create_table(self):
         rows = self.sql.select_all('employees')
 
