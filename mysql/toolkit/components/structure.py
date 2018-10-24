@@ -55,7 +55,7 @@ class ForeignKey:
                                                                                         child_table, child_column))
 
 
-class Alter(PrimaryKey, ForeignKey):
+class AlterColumn(PrimaryKey, ForeignKey):
     def add_column(self, table, name='ID', data_type='int(11)', after_col=None, null=False, primary_key=False):
         """Add a column to an existing table."""
         location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
@@ -147,7 +147,7 @@ class Schema:
         return schema
 
 
-class Structure(Alter, Definition, Schema):
+class Structure(AlterColumn, Definition, Schema):
     """
     Result retrieval helper methods for the MySQL class.
 
