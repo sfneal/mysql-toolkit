@@ -1,4 +1,5 @@
 import unittest
+from looptools import Timer
 from differentiate import diff
 from mysql.toolkit import MySQL
 from tests import config
@@ -33,6 +34,7 @@ class TestManipulateDelete(unittest.TestCase):
         self.sql.truncate(table)
         self.sql.insert(table, self.sql.get_columns(table), self.original_data)
 
+    @Timer.decorator
     def test_update(self):
         table = 'departments'
         where = ('dept_no', 'd002')

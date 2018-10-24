@@ -1,6 +1,7 @@
 import os
 import shutil
 import unittest
+from looptools import Timer
 from differentiate import diff
 from mysql.toolkit import MySQL
 from tests import config
@@ -25,15 +26,18 @@ class TestOperationsRemove(unittest.TestCase):
         self.sql.truncate_database()
         self.sql.execute_script(SQL_SCRIPT)
 
+    @Timer.decorator
     def test_truncate(self):
         table = 'payments'
         self.sql.truncate(table)
         self.assertEqual(self.sql.count_rows(table), 0)
 
+    @Timer.decorator
     def test_truncate_database(self):
         self.sql.truncate_database()
         self.assertEqual(len(self.sql.tables), 0)
 
+    @Timer.decorator
     def test_drop(self):
         tables = ['orders', 'payments']
         existing = self.sql.tables
@@ -43,6 +47,7 @@ class TestOperationsRemove(unittest.TestCase):
 
         self.assertEqual(len(difference), 2)
 
+    @Timer.decorator
     def test_drop_empty_tables(self):
         existing = self.sql.tables
 

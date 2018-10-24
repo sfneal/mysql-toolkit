@@ -20,9 +20,9 @@ setup(
     install_requires=[
         'dirutility>=0.3.4',
         'mysql-connector>=2.1.6',
-        'differentiate>=1.1.9',
+        'differentiate>=1.2.0',
         'sqlparse',
-        'looptools',
+        'looptools>=1.1.1',
         'tqdm',
     ],
     url='https://github.com/mrstephenneal/mysql-toolkit',

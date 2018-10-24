@@ -1,4 +1,5 @@
 import unittest
+from looptools import Timer
 from differentiate import diff
 from mysql.toolkit import MySQL
 from tests import config
@@ -33,6 +34,7 @@ class TestManipulateUpdate(unittest.TestCase):
         self.sql.truncate(table)
         self.sql.insert(table, self.sql.get_columns(table), self.original_data)
 
+    @Timer.decorator
     def test_update(self):
         table = 'departments'
         cols = ['dept_name']
@@ -47,6 +49,7 @@ class TestManipulateUpdate(unittest.TestCase):
         self.assertEqual(len(changed_rows), 2)
         self.assertEqual(len(self.sql.select_all(table)), 9)
 
+    @Timer.decorator
     def test_update_many(self):
         table = 'departments'
         cols = ['dept_name']

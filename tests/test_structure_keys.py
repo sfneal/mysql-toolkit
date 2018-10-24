@@ -1,6 +1,7 @@
 import unittest
 from mysql.toolkit import MySQL
 from tests import config
+from looptools import Timer
 
 
 class TestStructureKeys(unittest.TestCase):
@@ -12,11 +13,13 @@ class TestStructureKeys(unittest.TestCase):
     def tearDownClass(cls):
         cls.sql.disconnect()
 
+    @Timer.decorator
     def test_get_primary_key(self):
         table = 'offices'
         pk = self.sql.get_primary_key(table)
         self.assertEqual(pk, 'officeCode')
 
+    @Timer.decorator
     def test_get_primary_key_vals(self):
         table = 'offices'
         pk_vals = self.sql.get_primary_key_vals(table)

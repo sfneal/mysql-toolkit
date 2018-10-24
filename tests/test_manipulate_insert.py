@@ -1,4 +1,5 @@
 import unittest
+from looptools import Timer
 from mysql.toolkit import MySQL
 from tests import config
 
@@ -35,6 +36,7 @@ class TestManipulateInsert(unittest.TestCase):
         self.sql.truncate(table)
         self.sql.insert(table, self.sql.get_columns(table), self.original_data)
 
+    @Timer.decorator
     def test_insert_uniques(self):
         table = 'departments'
         cols = ['dept_no', 'dept_name']
@@ -48,6 +50,7 @@ class TestManipulateInsert(unittest.TestCase):
         self.sql.insert_uniques(table, cols, vals)
         self.assertEqual(len(self.sql.select_all(table)), 11)
 
+    @Timer.decorator
     def test_insert(self):
         table = 'departments'
         cols = ['dept_no', 'dept_name']
@@ -59,6 +62,7 @@ class TestManipulateInsert(unittest.TestCase):
         self.sql.insert(table, cols, vals)
         self.assertEqual(len(self.sql.select_all(table)), 11)
 
+    @Timer.decorator
     def test_insert_many(self):
         table = 'departments'
         cols = ['dept_no', 'dept_name']
