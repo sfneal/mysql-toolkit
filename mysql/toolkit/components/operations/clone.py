@@ -1,6 +1,7 @@
 from looptools import Timer
 from tqdm import tqdm
 from mysql.toolkit.utils import wrap
+# TODO: Organize methods into database and table classes
 
 
 class CloneDatabase:
@@ -168,6 +169,12 @@ class Clone(CloneDatabase):
         LARGE Database speed improvements (DB size > 5mb)
         Using optimized is about 900% faster
         Using one_query is about 2600% faster
+
+        :param source: Source database
+        :param destination: Destination database
+        :param optimized: Use optimized method
+        :param one_query: Use one_query method
+        :return:
         """
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
         with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
