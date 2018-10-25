@@ -23,7 +23,6 @@ class CloneDatabase:
 
         # Change database to destination
         self.change_db(destination)
-        print('\n')
         for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source)):
             self.copy_table_structure(source, destination, t)
 
