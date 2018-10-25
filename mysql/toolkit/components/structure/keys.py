@@ -26,7 +26,11 @@ class PrimaryKey:
         If no columns exist containing only unique values then a new 'ID' column
         is created to serve as a auto_incrementing primary key.
         """
+        # Retrieve list of tables if not provided
         tables = tables if tables else self.tables
+
+        # Track new primary keys added and new columns added
+        actions = {'new_pk': [], 'new_col': []}
         for t in tables:
             # Confirm no primary key exists
             if not self.get_primary_key(t):
@@ -36,10 +40,13 @@ class PrimaryKey:
                 # Set primary key
                 if unique_col:
                     self.set_primary_key(t, unique_col)
+                    actions['new_pk'].append(unique_col)
 
                 # Create unique 'ID' column
                 else:
                     self.add_column(t, primary_key=True)
+                    actions['new_col'].append(unique_col)
+        return actions
 
     def drop_primary_key(self, table):
         """Drop a Primary Key constraint for a specific table."""
