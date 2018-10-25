@@ -26,7 +26,7 @@ class TestStructureKeys(unittest.TestCase):
         self.assertEqual(pk_vals, list(map(str, list(range(1, 8)))))
 
     @Timer.decorator
-    def test_set_primary_keys_all(self):
+    def test_set_primary_keys_auto(self):
         self.sql.change_db('testing_employees')
         table = 'employees'
         create_table = self.sql.get_table_definition(table)
@@ -34,10 +34,9 @@ class TestStructureKeys(unittest.TestCase):
         data = self.sql.select_all(table)
 
         self.sql.drop_primary_key(table)
-        actions = self.sql.set_primary_keys_all([table])
+        new_keys = self.sql.set_primary_keys_auto([table])
+        self.assertEqual([(table, 'emp_no')], new_keys)
         self.assertEqual(create_table, self.sql.get_table_definition(table))
-        self.assertEqual(actions['new_pk'][0], 'emp_no')
-        self.assertEqual(len(actions['new_pk']), 1)
 
         self.sql.drop(table)
         self.sql.execute(create_table)

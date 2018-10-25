@@ -17,7 +17,7 @@ class PrimaryKey:
         self.execute('ALTER TABLE {0} ADD PRIMARY KEY ({1})'.format(wrap(table), column))
         self._printer('\tAdded primary key to {0} on column {1}'.format(wrap(table), column))
 
-    def set_primary_keys_all(self, tables=None):
+    def set_primary_keys_auto(self, tables=None):
         """
         Create primary keys for every table in the connected database.
 
@@ -29,24 +29,35 @@ class PrimaryKey:
         # Retrieve list of tables if not provided
         tables = tables if tables else self.tables
 
-        # Track new primary keys added and new columns added
-        actions = {'new_pk': [], 'new_col': []}
-        for t in tables:
-            # Confirm no primary key exists
-            if not self.get_primary_key(t):
-                # Determine if there is a unique column that can become the PK
-                unique_col = self.get_unique_column(t)
+        # Resolve primary keys and return list of table, primary_key tuples
+        return [(table, self.set_primary_key_auto(table)) for table in tables]
 
-                # Set primary key
-                if unique_col:
-                    self.set_primary_key(t, unique_col)
-                    actions['new_pk'].append(unique_col)
+    def set_primary_key_auto(self, table):
+        """
+        Analysis a table and set a primary key.
 
-                # Create unique 'ID' column
-                else:
-                    self.add_column(t, primary_key=True)
-                    actions['new_col'].append(unique_col)
-        return actions
+        Determine primary key by identifying a column with unique values
+        or creating a new column.
+
+        :param table: Table to alter
+        :return: Primary Key column
+        """
+        # Confirm no primary key exists
+        pk = self.get_primary_key(table)
+        if not pk:
+            # Determine if there is a unique column that can become the PK
+            unique_col = self.get_unique_column(table)
+
+            # Set primary key
+            if unique_col:
+                self.set_primary_key(table, unique_col)
+
+            # Create unique 'ID' column
+            else:
+                unique_col = self.add_column(table, primary_key=True)
+            return unique_col
+        else:
+            return pk
 
     def drop_primary_key(self, table):
         """Drop a Primary Key constraint for a specific table."""
