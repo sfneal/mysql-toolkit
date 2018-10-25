@@ -34,8 +34,8 @@ class TestStructureKeys(unittest.TestCase):
         data = self.sql.select_all(table)
 
         self.sql.drop_primary_key(table)
-        new_keys = self.sql.set_primary_keys_auto([table])
-        self.assertEqual([(table, 'emp_no')], new_keys)
+        new_key = self.sql.set_primary_key_auto(table)
+        self.assertEqual('emp_no', new_key)
         self.assertEqual(create_table, self.sql.get_table_definition(table))
 
         self.sql.drop(table)
