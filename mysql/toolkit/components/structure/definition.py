@@ -4,12 +4,12 @@ class Definition:
         return self.fetch('SHOW CREATE TABLE {0}'.format(table))[1]
 
     def get_column_definition_all(self, table):
-        """Retrieve the column definition statement for a column from a table."""
+        """Retrieve the column definition statement for all columns in a table."""
         # Get complete table definition
         col_defs = self.get_table_definition(table).split('\n')
 
         # Return only column definitions
-        return [i.strip() for i in col_defs if i.strip().startswith('`')]
+        return [i[0:-1].strip().replace(',', ', ') for i in col_defs if i.strip().startswith('`')]
 
     def get_column_definition(self, table, column):
         """Retrieve the column definition statement for a column from a table."""
