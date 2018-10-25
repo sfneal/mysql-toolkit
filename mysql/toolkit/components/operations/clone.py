@@ -26,9 +26,15 @@ class CloneDatabase:
         for t in tqdm(tables, total=len(tables), desc='Copying {0} table structure'.format(source)):
             self.copy_table_structure(source, destination, t)
 
-    def copy_table_structure(self, source_db, destination_db, table):
-        """Copy a table from one database to another."""
-        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination_db, wrap(table), source_db))
+    def copy_table_structure(self, source, destination, table):
+        """
+        Copy a table from one database to another.
+
+        :param source: Source database
+        :param destination: Destination database
+        :param table: Table name
+        """
+        self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination, wrap(table), source))
 
     def copy_database_data(self, source, destination, optimized=False):
         """
@@ -42,37 +48,14 @@ class CloneDatabase:
         tables = self.tables
 
         if not optimized:
-            # Retrieve database rows
-            rows = self.get_database_rows(tables, source)
-
-            # Retrieve database columns
-            cols = self.get_database_columns(tables, source)
-
-            # Validate rows and columns
-            for r in list(rows.keys()):
-                assert r in tables, r
-            for c in list(cols.keys()):
-                assert c in tables, c
-
-            # Change database to destination
-            self.change_db(destination)
-
-            # Get insert queries
-            insert_queries = self._set_database_rows_insert_queries(rows, cols)
-
-            # Execute insert queries
-            self._set_database_rows_execute_queries(insert_queries)
+            self._copy_database_tables_data(tables, source, destination)
 
         # Copy database data by executing INSERT and SELECT commands in a single query
         else:
             for table in tqdm(tables, total=len(tables), desc='Copying table data (optimized)'):
-                self.copy_table_data_optimized(source, destination, table)
+                self._copy_table_data_optimized(source, destination, table)
 
         self.enable_printing = True
-
-    def copy_table_data_optimized(self, source, destination, table):
-        """Select rows from a source database and insert them into a destination db in one query"""
-        self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
     def get_database_rows(self, tables=None, database=None):
         """Retrieve a dictionary of table keys and list of rows values for every table."""
@@ -93,6 +76,33 @@ class CloneDatabase:
         tables = tables if tables else self.tables
         return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
                                                            desc='Getting {0} columns'.format(source))}
+
+    def _copy_database_tables_data(self, tables, source, destination):
+        """Copy the data from a table into another table."""
+        # Retrieve database rows
+        rows = self.get_database_rows(tables, source)
+
+        # Retrieve database columns
+        cols = self.get_database_columns(tables, source)
+
+        # Validate rows and columns
+        for r in list(rows.keys()):
+            assert r in tables, r
+        for c in list(cols.keys()):
+            assert c in tables, c
+
+        # Change database to destination
+        self.change_db(destination)
+
+        # Get insert queries
+        insert_queries = self._set_database_rows_insert_queries(rows, cols)
+
+        # Execute insert queries
+        self._set_database_rows_execute_queries(insert_queries)
+
+    def _copy_table_data_optimized(self, source, destination, table):
+        """Select rows from a source database and insert them into a destination db in one query"""
+        self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
     def _get_database_rows_select_queries(self, source, tables):
         """Create select queries for all of the tables from a source database."""
@@ -147,7 +157,7 @@ class CloneDatabase:
 
 
 class Clone(CloneDatabase):
-    def copy_database(self, source, destination, optimized=False, one_query=False):
+    def copy_database(self, source, destination, optimized=False, one_query=True):
         """
         Copy a database's content and structure.
 
