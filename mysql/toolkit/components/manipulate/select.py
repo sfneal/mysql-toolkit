@@ -173,7 +173,7 @@ class Select:
         if return_type is dict:
             # Pack each row into a dictionary
             cols = self.get_columns(table) if cols is '*' else cols
-            if isinstance(values[0], (set, list, tuple)):
+            if len(values) > 0 and isinstance(values[0], (set, list, tuple)):
                 return [dict(zip(cols, row)) for row in values]
             else:
                 return dict(zip(cols, values))
