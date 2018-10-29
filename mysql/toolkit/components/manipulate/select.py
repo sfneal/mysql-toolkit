@@ -22,7 +22,7 @@ class Select:
         """Query distinct values from a table."""
         return self.select(table, cols, execute, select_type='SELECT DISTINCT')
 
-    def select(self, table, cols, execute=True, select_type='SELECT'):
+    def select(self, table, cols, execute=True, select_type='SELECT', return_type=list):
         """Query every row and only certain columns from a table."""
         # Validate query type
         select_type = select_type.upper()
@@ -30,10 +30,18 @@ class Select:
 
         # Concatenate statement
         statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
-        if execute:  # Execute commands
-            return self.fetch(statement)
-        else:  # Return command
+        if not execute:
+            # Return command
             return statement
+
+        # Retrieve values
+        values = self.fetch(statement)
+        if return_type is dict:
+            # Pack each row into a dictionary
+            cols = self.get_columns(table) if cols is '*' else cols
+            return [dict(zip(cols, row)) for row in values]
+        else:
+            return values
 
     def select_join(self, table1, table2, cols, table1_col, table2_col=None, join_type=None):
         """

@@ -179,6 +179,15 @@ class TestManipulateSelect(unittest.TestCase):
         for i in rows:
             self.assertEqual(len(i), 3)
 
+    @Timer.decorator
+    def test_select_return_dict(self):
+        self.sql.change_db('testing_models')
+        cols = ['email', 'jobTitle']
+        rows = self.sql.select('employees', cols, return_type=dict)
+        self.assertEqual(len(rows), 23)
+        for row in rows:
+            self.assertEqual(type(row), dict)
+
 
 if __name__ == '__main__':
     unittest.main()
