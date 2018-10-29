@@ -10,9 +10,10 @@ class Connector:
     Handles opening and closing a connection to a database source, fetching results
     from a query, executing a query and batch executing multiple queries.
     """
-    def __init__(self, config, enable_printing):
+    def __init__(self, config, enable_printing, auto_reconnect=True):
         self._config = config
         self.enable_printing = enable_printing
+        self._auto_reconnect = auto_reconnect
         self._cursor = None
         self._cnx = None
         self._connect(config)
@@ -43,11 +44,7 @@ class Connector:
 
     def fetch(self, statement, commit=True):
         """Execute a SQL query and attempt to disconnect and reconnect if failure occurs."""
-        try:
-            return self._fetch(statement, commit)
-        except InterfaceError:
-            self.reconnect()
-            return self._fetch(statement, commit)
+        return self._fetch(statement, commit)
 
     def execute(self, command):
         """Execute a single SQL query without returning a result."""
@@ -120,22 +117,33 @@ class Connector:
         Recursively disconnect and reconnect to the database
         if an error occurs.
         """
-        attempts = 0
-        while attempts < max_attempts:
-            try:
-                # Execute statement
-                self._cursor.execute(statement)
-                fetch = self._cursor.fetchall()
-                rows = self._fetch_rows(fetch)
-                if commit:
-                    self._commit()
+        if self._auto_reconnect:
+            attempts = 0
+            while attempts < max_attempts:
+                try:
+                    # Execute statement
+                    self._cursor.execute(statement)
+                    fetch = self._cursor.fetchall()
+                    rows = self._fetch_rows(fetch)
+                    if commit:
+                        self._commit()
 
-                # Return a single item if the list only has one item
-                return rows[0] if len(rows) == 1 else rows
-            except Exception as e:
-                if attempts >= max_attempts:
-                    raise e
-                else:
-                    attempts += 1
-                    self.reconnect()
-                    continue
+                    # Return a single item if the list only has one item
+                    return rows[0] if len(rows) == 1 else rows
+                except Exception as e:
+                    if attempts >= max_attempts:
+                        raise e
+                    else:
+                        attempts += 1
+                        self.reconnect()
+                        continue
+        else:
+            # Execute statement
+            self._cursor.execute(statement)
+            fetch = self._cursor.fetchall()
+            rows = self._fetch_rows(fetch)
+            if commit:
+                self._commit()
+
+            # Return a single item if the list only has one item
+            return rows[0] if len(rows) == 1 else rows
