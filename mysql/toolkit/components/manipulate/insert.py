@@ -57,7 +57,7 @@ class Insert:
         # Execute statement
         if execute:
             self.executemany(statement, values)
-            self._printer('\tMySQL row successfully inserted')
+            self._printer('\tMySQL row successfully inserted into {0}'.format(table))
 
         # Only return statement
         else:
