@@ -51,5 +51,5 @@ class Alter:
         statement = 'CREATE TABLE {0} ({1}{2})'.format(name, '\n', cols)
         self.execute(statement)
         if add_pk:
-            self.set_primary_keys_all()
+            self.set_primary_key_auto()
         return True
