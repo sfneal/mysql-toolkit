@@ -56,7 +56,8 @@ class Insert:
 
         # Execute statement
         if execute:
-            self.executemany(statement, values)
+            self._cursor.executemany(statement, values)
+            self._commit()
             self._printer('\tMySQL row successfully inserted into {0}'.format(table))
 
         # Only return statement
