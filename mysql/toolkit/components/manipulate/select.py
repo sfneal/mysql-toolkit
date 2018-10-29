@@ -89,15 +89,12 @@ class Select:
         :return: Queried rows
         """
         # Unpack WHERE clause dictionary into tuple
-        if len(where) == 3:
-            where_col, operator, where_val = where
+        if isinstance(where, (list, set)):
+            # Multiple WHERE clause's (separate with AND)
+            clauses = [self._where_clause(clause) for clause in where]
+            where_statement = ' AND '.join(clauses)
         else:
-            where_col, where_val = where
-            operator = '='
-        assert operator in SELECT_WHERE_OPERATORS
-
-        # Concatenate WHERE clause (ex: **first_name='John'**)
-        where_statement = "{0}{1}'{2}'".format(where_col, operator, where_val)
+            where_statement = self._where_clause(where)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2}".format(join_cols(cols), wrap(table), where_statement)
@@ -146,6 +143,25 @@ class Select:
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
         return self.fetch(statement)
+
+    @staticmethod
+    def _where_clause(where):
+        """
+        Unpack a where clause tuple and concatenate a MySQL WHERE statement.
+
+        :param where: 2 or 3 part tuple containing a where_column and a where_value (optional operator)
+        :return: WHERE clause statement
+        """
+        assert isinstance(where, tuple)
+        if len(where) == 3:
+            where_col, operator, where_val = where
+        else:
+            where_col, where_val = where
+            operator = '='
+        assert operator in SELECT_WHERE_OPERATORS
+
+        # Concatenate WHERE clause (ex: **first_name='John'**)
+        return "{0}{1}'{2}'".format(where_col, operator, where_val)
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""
