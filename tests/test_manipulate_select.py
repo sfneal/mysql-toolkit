@@ -132,6 +132,13 @@ class TestManipulateSelect(unittest.TestCase):
         self.assertEqual(len(rows), 68)
 
     @Timer.decorator
+    def test_select_where_multi_clause(self):
+        self.sql.change_db('testing_models')
+        rows = self.sql.select_where('customers', 'customerName', [('country', 'USA'), ('postalCdde', 97562)])
+        print(rows)
+        self.assertEqual(len(rows), 68)
+
+    @Timer.decorator
     def test_select_join_left(self):
         self.sql.change_db('testing_models')
         cols = [
