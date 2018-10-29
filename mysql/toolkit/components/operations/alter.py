@@ -29,6 +29,7 @@ class Alter:
 
     def create_table(self, name, data, columns=None, add_pk=True):
         """Generate and execute a create table query by parsing a 2D dataset"""
+        # TODO: Issue occurs when bool values exist in data
         # Remove if the table exists
         if name in self.tables:
             self.drop(name)
@@ -50,5 +51,5 @@ class Alter:
         statement = 'CREATE TABLE {0} ({1}{2})'.format(name, '\n', cols)
         self.execute(statement)
         if add_pk:
-            self.set_primary_keys_all()
+            self.set_primary_key_auto()
         return True

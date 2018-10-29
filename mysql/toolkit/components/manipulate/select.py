@@ -8,6 +8,7 @@ JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
 
 
 class Select:
+    # TODO: Add params to allow for return values in dict form
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
         # Determine if a row per query limit should be set
@@ -21,7 +22,7 @@ class Select:
         """Query distinct values from a table."""
         return self.select(table, cols, execute, select_type='SELECT DISTINCT')
 
-    def select(self, table, cols, execute=True, select_type='SELECT'):
+    def select(self, table, cols, execute=True, select_type='SELECT', return_type=list):
         """Query every row and only certain columns from a table."""
         # Validate query type
         select_type = select_type.upper()
@@ -29,10 +30,13 @@ class Select:
 
         # Concatenate statement
         statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
-        if execute:  # Execute commands
-            return self.fetch(statement)
-        else:  # Return command
+        if not execute:
+            # Return command
             return statement
+
+        # Retrieve values
+        values = self.fetch(statement)
+        return self._return_rows(table, cols, values, return_type)
 
     def select_join(self, table1, table2, cols, table1_col, table2_col=None, join_type=None):
         """
@@ -72,7 +76,7 @@ class Select:
         """Run a select query with an offset and limit parameter."""
         return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
-    def select_where(self, table, cols, where):
+    def select_where(self, table, cols, where, return_type=list):
         """
         Query certain rows from a table where a particular value is found.
 
@@ -85,22 +89,21 @@ class Select:
         :param where: WHERE clause, accepts either a two or three part tuple
             two-part: (where_column, where_value)
             three-part: (where_column, comparison_operator, where_value)
+        :param return_type: Type, type to return values in
         :return: Queried rows
         """
         # Unpack WHERE clause dictionary into tuple
-        if len(where) == 3:
-            where_col, operator, where_val = where
+        if isinstance(where, (list, set)):
+            # Multiple WHERE clause's (separate with AND)
+            clauses = [self._where_clause(clause) for clause in where]
+            where_statement = ' AND '.join(clauses)
         else:
-            where_col, where_val = where
-            operator = '='
-        assert operator in SELECT_WHERE_OPERATORS
-
-        # Concatenate WHERE clause (ex: **first_name='John'**)
-        where_statement = "{0}{1}'{2}'".format(where_col, operator, where_val)
+            where_statement = self._where_clause(where)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2}".format(join_cols(cols), wrap(table), where_statement)
-        return self.fetch(statement)
+        values = self.fetch(statement)
+        return self._return_rows(table, cols, values, return_type)
 
     def select_where_between(self, table, cols, where_col, between):
         """
@@ -145,6 +148,37 @@ class Select:
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
         return self.fetch(statement)
+
+    @staticmethod
+    def _where_clause(where):
+        """
+        Unpack a where clause tuple and concatenate a MySQL WHERE statement.
+
+        :param where: 2 or 3 part tuple containing a where_column and a where_value (optional operator)
+        :return: WHERE clause statement
+        """
+        assert isinstance(where, tuple)
+        if len(where) == 3:
+            where_col, operator, where_val = where
+        else:
+            where_col, where_val = where
+            operator = '='
+        assert operator in SELECT_WHERE_OPERATORS
+
+        # Concatenate WHERE clause (ex: **first_name='John'**)
+        return "{0}{1}'{2}'".format(where_col, operator, where_val)
+
+    def _return_rows(self, table, cols, values, return_type):
+        """Return fetched rows in the desired type."""
+        if return_type is dict:
+            # Pack each row into a dictionary
+            cols = self.get_columns(table) if cols is '*' else cols
+            if len(values) > 0 and isinstance(values[0], (set, list, tuple)):
+                return [dict(zip(cols, row)) for row in values]
+            else:
+                return dict(zip(cols, values))
+        else:
+            return values
 
     def _select_batched(self, table, cols, num_rows, limit, queries_per_batch=3, execute=True):
         """Run select queries in small batches and return joined resutls."""

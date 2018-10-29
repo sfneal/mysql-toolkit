@@ -2,13 +2,13 @@ from mysql.toolkit.components import Connector, Manipulate, Structure, Operation
 
 
 class MySQL(Connector, Manipulate, Structure, Operations):
-    def __init__(self, config, enable_printing=True):
+    def __init__(self, config, enable_printing=True, auto_reconnect=True):
         """
         Connect to MySQL database and execute queries
         :param config: MySQL server configuration settings
         """
         # Initialize inherited classes
-        Connector.__init__(self, config, enable_printing)
+        Connector.__init__(self, config, enable_printing, auto_reconnect)
 
     def __enter__(self):
         return self

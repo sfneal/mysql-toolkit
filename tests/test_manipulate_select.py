@@ -132,6 +132,12 @@ class TestManipulateSelect(unittest.TestCase):
         self.assertEqual(len(rows), 68)
 
     @Timer.decorator
+    def test_select_where_multi_clause(self):
+        self.sql.change_db('testing_models')
+        rows = self.sql.select_where('customers', 'customerName', [('country', 'USA'), ('postalCdde', 97562)])
+        self.assertEqual(len(rows), 2)
+
+    @Timer.decorator
     def test_select_join_left(self):
         self.sql.change_db('testing_models')
         cols = [
@@ -172,6 +178,15 @@ class TestManipulateSelect(unittest.TestCase):
         self.assertEqual(len(rows), 100)
         for i in rows:
             self.assertEqual(len(i), 3)
+
+    @Timer.decorator
+    def test_select_return_dict(self):
+        self.sql.change_db('testing_models')
+        cols = ['email', 'jobTitle']
+        rows = self.sql.select('employees', cols, return_type=dict)
+        self.assertEqual(len(rows), 23)
+        for row in rows:
+            self.assertEqual(type(row), dict)
 
 
 if __name__ == '__main__':
