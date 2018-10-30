@@ -177,6 +177,8 @@ class Select:
                 return [dict(zip(cols, row)) for row in values]
             else:
                 return dict(zip(cols, values))
+        elif return_type is tuple:
+            return [tuple(row) for row in values]
         else:
             return values
 
