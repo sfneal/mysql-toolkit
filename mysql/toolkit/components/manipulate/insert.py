@@ -70,10 +70,6 @@ class Insert:
 
         If only one row is found, self.insert method will be used.
         """
-        # Valid that at least one row is to be inserted
-        if len(values) < 2:
-            return False
-
         # Make values a list of lists if it is a flat list
         if not isinstance(values[0], (list, set, tuple)):
             values = []
