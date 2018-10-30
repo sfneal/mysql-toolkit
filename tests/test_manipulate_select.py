@@ -134,7 +134,7 @@ class TestManipulateSelect(unittest.TestCase):
     @Timer.decorator
     def test_select_where_multi_clause(self):
         self.sql.change_db('testing_models')
-        rows = self.sql.select_where('customers', 'customerName', [('country', 'USA'), ('postalCdde', 97562)])
+        rows = self.sql.select_where('customers', 'customerName', [('country', 'USA'), ('postalCode', 97562)])
         self.assertEqual(len(rows), 2)
 
     @Timer.decorator
