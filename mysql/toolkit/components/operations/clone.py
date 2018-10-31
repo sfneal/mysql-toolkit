@@ -194,8 +194,13 @@ class Clone(CloneDatabase):
             print('\n')
             _enable_printing = self.enable_printing
             self.enable_printing = False
-            for table in tqdm(tables, total=len(tables), desc='Copying {0} table (onequery)'.format(source)):
+
+            # Copy tables structure
+            for table in tqdm(tables, total=len(tables), desc='Copying {0} table structures'.format(source)):
                 self.execute('CREATE TABLE {0}.{1} LIKE {2}.{1}'.format(destination, wrap(table), source))
+
+            # Copy tables data
+            for table in tqdm(tables, total=len(tables), desc='Copying {0} table data'.format(source)):
                 self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
             self.enable_printing = _enable_printing
 
