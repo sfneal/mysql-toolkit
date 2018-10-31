@@ -101,8 +101,9 @@ class Schema:
         else:
             null_ = 'NULL' if null else 'NOT NULL'
 
-        default = 'DEFAULT {0}'.format(null_ if default is None else default)
+        default = 'DEFAULT {0}'.format(default if default else null_)
 
-        query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name), data_type,
-                                                                           null_, default)
+        query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name),
+                                                                    data_type, null_, default)
         self.execute(query)
+
