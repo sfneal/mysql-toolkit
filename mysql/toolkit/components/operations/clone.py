@@ -2,6 +2,8 @@ from looptools import Timer
 from tqdm import tqdm
 from mysql.toolkit.utils import wrap
 # TODO: Organize methods into database and table classes
+# TODO: Fix issue where primary and foreign keys are not being copied
+# TODO: New functionality to allow for dumping to file
 
 
 class CloneDatabase:
