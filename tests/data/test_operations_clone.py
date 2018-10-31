@@ -20,7 +20,7 @@ class TestOperationsClone(unittest.TestCase):
             "raise_on_warnings": True,
             "user": "stephen_testing"
         }
-        cls.sql = MySQL(config, auto_reconnect=False)
+        cls.sql = MySQL(config, auto_reconnect=True)
         cls.src, cls.dst = 'testing_employees', 'testing_models'
 
     @classmethod
