@@ -67,12 +67,14 @@ class Schema:
     def drop_index(self, table, column):
         """Drop an index from a table."""
         self.execute('ALTER TABLE {0} DROP INDEX {1}'.format(wrap(table), column))
+        self._printer('\tDropped index from column {0}'.format(column))
 
     def add_comment(self, table, column, comment):
         """Add a comment to an existing column in a table."""
         col_def = self.get_column_definition(table, column)
         query = "ALTER TABLE {0} MODIFY COLUMN {1} {2} COMMENT '{3}'".format(table, column, col_def, comment)
         self.execute(query)
+        self._printer('\tAdded comment to column {0}'.format(column))
         return True
 
     def add_auto_increment(self, table, name):
@@ -82,6 +84,7 @@ class Schema:
 
         # Concatenate and execute modify statement
         self.execute("ALTER TABLE {0} MODIFY {1}".format(table, definition))
+        self._printer('\tAdded AUTO_INCREMENT to column {0}'.format(name))
         return True
 
     def modify_column(self, table, name, new_name=None, data_type=None, null=None, default=None):
@@ -93,7 +96,7 @@ class Schema:
 
         # Set data type
         if not data_type:
-            data_type = data_type
+            data_type = existing_def['Type']
 
         # Set NULL
         if null is None:
@@ -103,7 +106,8 @@ class Schema:
 
         default = 'DEFAULT {0}'.format(default if default else null_)
 
-        query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name),
-                                                                    data_type, null_, default)
+        query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name), data_type,
+                                                                           null_, default)
         self.execute(query)
+        self._printer('\tModified column {0}'.format(name))
 
