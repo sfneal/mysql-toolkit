@@ -2,7 +2,6 @@ import os
 import shutil
 import unittest
 from looptools import Timer
-from differentiate import diff
 from mysql.toolkit import MySQL
 from tests import config
 
