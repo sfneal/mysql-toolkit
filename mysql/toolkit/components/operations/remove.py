@@ -18,7 +18,7 @@ class Remove:
         """
         statement = "TRUNCATE TABLE {0}".format(wrap(table))
         self.execute(statement)
-        self._printer('\tMySQL table ' + str(table) + ' successfully truncated')
+        self._printer('\tTruncated table {0}'.format(table))
 
     def truncate_database(self, database=None):
         """Drop all tables in a database."""
