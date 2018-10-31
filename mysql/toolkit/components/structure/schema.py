@@ -84,31 +84,25 @@ class Schema:
         self.execute("ALTER TABLE {0} MODIFY {1}".format(table, definition))
         return True
 
-    def modify_column(self, table, name, data_type=None, after_col=None, null=None, primary_key=None):
+    def modify_column(self, table, name, new_name=None, data_type=None, null=None, default=None):
         """Modify an existing column."""
         existing_def = self.get_schema_dict(table)[name]
-        col_names = self.get_columns(table)
-        column_index = col_names.index(name)
+
+        # Set column name
+        new_name = new_name if new_name is not None else name
 
         # Set data type
         if not data_type:
             data_type = data_type
 
-        # Set after column
-        if not after_col:
-            after_col = col_names[column_index - 1]
-        location = 'AFTER {0}'.format(after_col) if after_col else 'FIRST'
-
         # Set NULL
-        if not null:
+        if null is None:
             null_ = 'NULL' if existing_def['Null'].lower() == 'yes' else 'NOT NULL'
         else:
             null_ = 'NULL' if null else 'NOT NULL'
 
-        comment = "COMMENT 'Column auto created by mysql-toolkit'"
-        if not primary_key:
-            primary_key = True if existing_def['Key'] else False
-        pk = 'AUTO_INCREMENT PRIMARY KEY {0}'.format(comment) if primary_key else ''
-        query = 'ALTER TABLE {0} MODIFY COLUMN {1} {2} {3} {4} {5}'.format(wrap(table), name, data_type, null_, pk,
-                                                                           location)
+        default = 'DEFAULT {0}'.format(null_ if default is None else default)
+
+        query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name), data_type,
+                                                                           null_, default)
         self.execute(query)
