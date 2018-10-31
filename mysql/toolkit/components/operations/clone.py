@@ -123,20 +123,20 @@ class CloneDatabase(CloneData):
 
         # Copy database data by executing INSERT and SELECT commands in a single query
         if optimized:
-            self._copy_database_data_optimized(source, destination, tables)
+            self._copy_database_data_serverside(source, destination, tables)
 
         # Generate and execute SELECT and INSERT commands
         else:
-            self._copy_database_data(tables, source, destination)
+            self._copy_database_data_clientside(tables, source, destination)
 
         self.enable_printing = True
 
-    def _copy_database_data_optimized(self, source, destination, tables):
+    def _copy_database_data_serverside(self, source, destination, tables):
         """Select rows from a source database and insert them into a destination db in one query"""
         for table in tqdm(tables, total=len(tables), desc='Copying table data (optimized)'):
             self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
-    def _copy_database_data(self, tables, source, destination):
+    def _copy_database_data_clientside(self, tables, source, destination):
         """Copy the data from a table into another table."""
         # Retrieve database rows
         rows = self.get_database_rows(tables, source)
