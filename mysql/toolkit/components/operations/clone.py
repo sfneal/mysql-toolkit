@@ -6,15 +6,87 @@ from mysql.toolkit.utils import wrap
 # TODO: New functionality to allow for dumping to file
 
 
-class CloneDatabase:
+class CloneData:
+    def get_database_rows(self, tables=None, database=None):
+        """Retrieve a dictionary of table keys and list of rows values for every table."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+
+        # Get database select queries
+        commands = self._get_select_commands(source, tables)
+
+        # Execute select commands
+        return self._execute_select_commands(source, commands)
+
+    def _get_select_commands(self, source, tables):
+        """
+        Create select queries for all of the tables from a source database.
+
+        :param source: Source database name
+        :param tables: Iterable of table names
+        :return: Dictionary of table keys, command values
+        """
+        # Create dictionary of select queries
+        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
+                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
+
+        # Convert command strings into lists of commands
+        for tbl, command in row_queries.items():
+            if isinstance(command, str):
+                row_queries[tbl] = [command]
+
+        # Pack commands into list of tuples
+        return [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
+
+    def _execute_select_commands(self, source, commands):
+        """Execute select queries for all of the tables from a source database."""
+        rows = {}
+        for tbl, command in tqdm(commands, total=len(commands), desc='Executing {0} select queries'.format(source)):
+            # Add key to dictionary
+            if tbl not in rows:
+                rows[tbl] = []
+            rows[tbl].extend(self.fetch(command, commit=True))
+        self._commit()
+        return rows
+
+    def get_database_columns(self, tables=None, database=None):
+        """Retrieve a dictionary of columns."""
+        # Get table data and columns from source database
+        source = database if database else self.database
+        tables = tables if tables else self.tables
+        return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
+                                                           desc='Getting {0} columns'.format(source))}
+
+    def _get_insert_commands(self, rows, cols):
+        """Retrieve dictionary of insert statements to be executed."""
+        # Get insert queries
+        insert_queries = {}
+        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
+            insert_queries[table] = {}
+            _rows = rows.pop(table)
+            _cols = cols.pop(table)
+
+            if len(_rows) > 1:
+                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
+            elif len(_rows) == 1:
+                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
+        return insert_queries
+
+    def _execute_insert_commands(self, insert_queries):
+        # Insert data into destination database
+        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
+                          desc='Inserting rows into tables'):
+            query = insert_queries.pop(table)
+            if 'insert_many' in query:
+                stmt, params = query['insert_many']
+                self.executemany(stmt, params)
+            elif 'insert' in query:
+                self.execute(query['insert'])
+
+
+class CloneDatabase(CloneData):
     """Extension of Database class for particular use cases."""
-    def copy_database_slow(self, source, destination, optimized=False):
-        # Copy table structures
-        self.copy_database_structure(source, destination)
-
-        # Copy table data
-        self.copy_database_data(source, destination, optimized)
-
     def copy_database_structure(self, source, destination, tables=None):
         """Copy multiple tables from one database to another."""
         # Change database to source
@@ -49,37 +121,22 @@ class CloneDatabase:
         self.change_db(source)
         tables = self.tables
 
-        if not optimized:
-            self._copy_database_tables_data(tables, source, destination)
-
         # Copy database data by executing INSERT and SELECT commands in a single query
+        if optimized:
+            self._copy_database_data_optimized(source, destination, tables)
+
+        # Generate and execute SELECT and INSERT commands
         else:
-            for table in tqdm(tables, total=len(tables), desc='Copying table data (optimized)'):
-                self._copy_table_data_optimized(source, destination, table)
+            self._copy_database_data(tables, source, destination)
 
         self.enable_printing = True
 
-    def get_database_rows(self, tables=None, database=None):
-        """Retrieve a dictionary of table keys and list of rows values for every table."""
-        # Get table data and columns from source database
-        source = database if database else self.database
-        tables = tables if tables else self.tables
+    def _copy_database_data_optimized(self, source, destination, tables):
+        """Select rows from a source database and insert them into a destination db in one query"""
+        for table in tqdm(tables, total=len(tables), desc='Copying table data (optimized)'):
+            self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
 
-        # Get database select queries
-        commands = self._get_database_rows_select_queries(source, tables)
-
-        # Execute select commands
-        return self._get_database_rows_execute_queries(source, commands)
-
-    def get_database_columns(self, tables=None, database=None):
-        """Retrieve a dictionary of columns."""
-        # Get table data and columns from source database
-        source = database if database else self.database
-        tables = tables if tables else self.tables
-        return {tbl: self.get_columns(tbl) for tbl in tqdm(tables, total=len(tables),
-                                                           desc='Getting {0} columns'.format(source))}
-
-    def _copy_database_tables_data(self, tables, source, destination):
+    def _copy_database_data(self, tables, source, destination):
         """Copy the data from a table into another table."""
         # Retrieve database rows
         rows = self.get_database_rows(tables, source)
@@ -89,77 +146,22 @@ class CloneDatabase:
 
         # Validate rows and columns
         for r in list(rows.keys()):
-            assert r in tables, r
+            assert r in tables
         for c in list(cols.keys()):
-            assert c in tables, c
+            assert c in tables
 
         # Change database to destination
         self.change_db(destination)
 
         # Get insert queries
-        insert_queries = self._set_database_rows_insert_queries(rows, cols)
+        insert_queries = self._get_insert_commands(rows, cols)
 
         # Execute insert queries
-        self._set_database_rows_execute_queries(insert_queries)
-
-    def _copy_table_data_optimized(self, source, destination, table):
-        """Select rows from a source database and insert them into a destination db in one query"""
-        self.execute('INSERT INTO {0}.{1} SELECT * FROM {2}.{1}'.format(destination, wrap(table), source))
-
-    def _get_database_rows_select_queries(self, source, tables):
-        """Create select queries for all of the tables from a source database."""
-        # Create dictionary of select queries
-        row_queries = {tbl: self.select_all(tbl, execute=False) for tbl in
-                       tqdm(tables, total=len(tables), desc='Getting {0} select queries'.format(source))}
-
-        # Convert command strings into lists of commands
-        for tbl, command in row_queries.items():
-            if isinstance(command, str):
-                row_queries[tbl] = [command]
-
-        # Pack commands into list of tuples
-        return [(tbl, cmd) for tbl, cmds in row_queries.items() for cmd in cmds]
-
-    def _get_database_rows_execute_queries(self, source, commands):
-        """Execute select queries for all of the tables from a source database."""
-        rows = {}
-        for tbl, command in tqdm(commands, total=len(commands), desc='Executing {0} select queries'.format(source)):
-            # Add key to dictionary
-            if tbl not in rows:
-                rows[tbl] = []
-            rows[tbl].extend(self.fetch(command, commit=True))
-        self._commit()
-        return rows
-
-    def _set_database_rows_insert_queries(self, rows, cols):
-        """Retrieve dictionary of insert statements to be executed."""
-        # Get insert queries
-        insert_queries = {}
-        for table in tqdm(list(rows.keys()), total=len(list(rows.keys())), desc='Getting insert rows queries'):
-            insert_queries[table] = {}
-            _rows = rows.pop(table)
-            _cols = cols.pop(table)
-
-            if len(_rows) > 1:
-                insert_queries[table]['insert_many'] = self.insert_many(table, _cols, _rows, execute=False)
-            elif len(_rows) == 1:
-                insert_queries[table]['insert'] = self.insert(table, _cols, _rows, execute=False)
-        return insert_queries
-
-    def _set_database_rows_execute_queries(self, insert_queries):
-        # Insert data into destination database
-        for table in tqdm(list(insert_queries.keys()), total=len(list(insert_queries.keys())),
-                          desc='Inserting rows into tables'):
-            query = insert_queries.pop(table)
-            if 'insert_many' in query:
-                stmt, params = query['insert_many']
-                self.executemany(stmt, params)
-            elif 'insert' in query:
-                self.execute(query['insert'])
+        self._execute_insert_commands(insert_queries)
 
 
 class Clone(CloneDatabase):
-    def copy_database(self, source, destination, optimized=False, one_query=True):
+    def copy_database(self, source, destination):
         """
         Copy a database's content and structure.
 
@@ -173,9 +175,6 @@ class Clone(CloneDatabase):
 
         :param source: Source database
         :param destination: Destination database
-        :param optimized: Use optimized method
-        :param one_query: Use one_query method
-        :return:
         """
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
         with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
@@ -186,10 +185,15 @@ class Clone(CloneDatabase):
             else:
                 self.create_database(destination)
 
-            if not one_query:
-                self.copy_database_slow(source, destination, optimized)
-            else:
-                self._copy_tables_onequery(source, destination)
+            # Copy database structure and data
+            self._copy_tables_onequery(source, destination)
+
+    def copy_database_slow(self, source, destination, optimized=False):
+        # Copy table structures
+        self.copy_database_structure(source, destination)
+
+        # Copy table data
+        self.copy_database_data(source, destination, optimized)
 
     def _copy_tables_onequery(self, source, destination, tables=None, primary_keys=True):
         """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
