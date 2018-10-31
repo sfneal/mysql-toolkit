@@ -186,7 +186,7 @@ class Clone(CloneDatabase):
                 self.create_database(destination)
 
             # Copy database structure and data
-            self._copy_tables_onequery(source, destination)
+            self._copy_database_onequery(source, destination)
 
     def copy_database_slow(self, source, destination, optimized=False):
         # Copy table structures
@@ -195,7 +195,7 @@ class Clone(CloneDatabase):
         # Copy table data
         self.copy_database_data(source, destination, optimized)
 
-    def _copy_tables_onequery(self, source, destination, tables=None, primary_keys=True):
+    def _copy_database_onequery(self, source, destination, tables=None, primary_keys=True):
         """Copy all tables in a DB by executing CREATE TABLE, SELECT and INSERT INTO statements all in one query."""
         # Change database to source
         self.change_db(source)
