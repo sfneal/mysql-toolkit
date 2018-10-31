@@ -64,6 +64,10 @@ class Schema:
             self._printer("\tCan't DROP '{0}'; check that column/key exists in '{1}'".format(name, table))
         return name
 
+    def drop_index(self, table, column):
+        """Drop an index from a table."""
+        self.execute('ALTER TABLE {0} DROP INDEX {1}'.format(wrap(table), column))
+
     def add_comment(self, table, column, comment):
         """Add a comment to an existing column in a table."""
         col_def = self.get_column_definition(table, column)
@@ -107,5 +111,4 @@ class Schema:
         pk = 'AUTO_INCREMENT PRIMARY KEY {0}'.format(comment) if primary_key else ''
         query = 'ALTER TABLE {0} MODIFY COLUMN {1} {2} {3} {4} {5}'.format(wrap(table), name, data_type, null_, pk,
                                                                            location)
-        print(query)
         self.execute(query)
