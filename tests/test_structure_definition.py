@@ -4,6 +4,10 @@ from tests import config
 from looptools import Timer
 
 
+def printer(title, data, sep='-' * 100):
+    print('\n{title}:\n{sep}\n{data}\n{sep}\n'.format(title=title.upper(), sep=sep, data=data))
+
+
 class TestStructureDefinition(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -17,6 +21,7 @@ class TestStructureDefinition(unittest.TestCase):
     def test_get_table_definition(self):
         table = 'customers'
         td = self.sql.get_table_definition(table)
+        printer(title='TABLE DEFINITION', data=td)
         self.assertEqual(781, len(td))
 
     @Timer.decorator
@@ -32,6 +37,7 @@ class TestStructureDefinition(unittest.TestCase):
                        '`MSRP` decimal(10, 2) NOT NULL']
         table = 'products'
         td = self.sql.get_column_definition_all(table)
+        printer('Column definition', td)
         for i in range(0, len(td)):
             self.assertEqual(definitions[i], td[i])
         self.assertEqual(len(td), 9)
