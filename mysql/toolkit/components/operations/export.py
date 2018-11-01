@@ -48,7 +48,8 @@ class Export:
         if drop_statement:
             statements.append('\nDROP TABLE IF EXISTS {0};'.format(wrap(table)))
         statements.append('{0};\n'.format(create_statement))
-        statements.append('{0};'.format(insert_statement(table, self.get_columns(table), data)))
+        if len(data) > 0:
+            statements.append('{0};'.format(insert_statement(table, self.get_columns(table), data)))
         return '\n'.join(statements)
 
     def dump_database(self, file_path, database=None, tables=None):
