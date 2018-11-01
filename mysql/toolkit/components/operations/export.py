@@ -1,11 +1,32 @@
 from textwrap import wrap, fill
 from tqdm import tqdm
+from decimal import Decimal
+from json import dumps
+
+from mysql.connector.conversion import MySQLConverterBase
 from mysql.toolkit.utils import cols_str, wrap
+from mysql.toolkit.commands.dump import write_text
 
 
 def insert_statement(table, columns, values):
     """Generate an insert statement string for dumping to text file or MySQL execution."""
-    vals = '\n\t'.join([str(tuple([col if col is not None else 'NULL' for col in row])) for row in values])
+    rows = []
+    for row in values:
+        new_row = []
+        for col in row:
+            if col is None:
+                new_col = 'NULL'
+            elif isinstance(col, (int, float, Decimal)):
+                new_col = str(MySQLConverterBase().to_mysql(col))
+            else:
+                string = str(MySQLConverterBase().to_mysql(col))
+                if "'" in string:
+                    new_col = '"' + string + '"'
+                else:
+                    new_col = "'" + string + "'"
+            new_row.append(new_col)
+        rows.append(', '.join(new_row))
+    vals = '(' + '),\n\t('.join(rows) + ')'
     statement = "INSERT INTO\n\t{0} ({1}) \nVALUES\n\t{2}".format(wrap(table), cols_str(columns), vals)
     return statement
 
@@ -28,7 +49,7 @@ class Export:
         statements.append('{0};'.format(insert_statement(table, self.get_columns(table), data)))
         return '\n'.join(statements)
 
-    def dump_database(self, database=None, tables=None):
+    def dump_database(self, file_path, database=None, tables=None):
         """
         Export the table structure and data for tables in a database.
 
@@ -43,7 +64,18 @@ class Export:
         if not tables:
             tables = self.tables
 
-        # Retrieve dump statements
+        # Retrieve and join dump statements
         statements = [self.dump_table(table) for table in tqdm(tables, total=len(tables), desc='Generating dump files')]
-        return '\n'.join(statements)
+        dump = 'SET FOREIGN_KEY_CHECKS=0;' + '\n'.join(statements) + '\nSET FOREIGN_KEY_CHECKS=1;'
+
+        # Write dump statements to sql file
+        file_path = file_path if file_path.endswith('.sql') else file_path + '.sql'
+        write_text(dump, file_path)
+        return file_path
+
+    def import_script(self, script_path):
+        """Load a SQL script to memory and then execute all commands."""
+        with open('dump.sql', 'r') as dump:
+            s = dump.read()
+        self.sql.execute(s)
 

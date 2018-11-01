@@ -1,5 +1,3 @@
-import os
-import shutil
 import unittest
 from looptools import Timer
 from mysql.toolkit import MySQL
@@ -16,12 +14,9 @@ class TestOperationsCreate(unittest.TestCase):
         cls.sql.disconnect()
 
     @Timer.decorator
-    def test_dump_table(self):
-        ct = self.sql.dump_table('employees')
-
-    @Timer.decorator
     def test_dump_db(self):
-        ct = self.sql.dump_database()
+        ct = self.sql.dump_database('dump.sql')
+        print(ct)
 
 
 if __name__ == '__main__':
