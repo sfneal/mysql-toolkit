@@ -3,6 +3,14 @@ def wrap(item):
     return '`' + str(item) + '`'
 
 
+def cols_str(columns):
+    """Concatenate list of columns into a string."""
+    cols = ""
+    for c in columns:
+        cols = cols + c + ', '
+    return cols[:-2]
+
+
 def get_col_val_str(columns, query_type='insert'):
     cols = ""
     vals = ""
