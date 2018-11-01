@@ -15,7 +15,7 @@ class TestOperationsCreate(unittest.TestCase):
 
     @Timer.decorator
     def test_dump_db(self):
-        ct = self.sql.dump_database('dump.sql')
+        ct = self.sql.dump_database('data/dump.sql')
         print(ct)
 
 
