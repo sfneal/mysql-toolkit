@@ -16,8 +16,12 @@ class TestOperationsCreate(unittest.TestCase):
         cls.sql.disconnect()
 
     @Timer.decorator
-    def test_export_table(self):
-        ct = self.sql.export_table('employees')
+    def test_dump_table(self):
+        ct = self.sql.dump_table('employees')
+
+    @Timer.decorator
+    def test_dump_db(self):
+        ct = self.sql.dump_database()
 
 
 if __name__ == '__main__':
