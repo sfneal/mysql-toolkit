@@ -97,4 +97,4 @@ class Insert:
 
         # Only return statement
         else:
-            return statement, values
+            return statement
