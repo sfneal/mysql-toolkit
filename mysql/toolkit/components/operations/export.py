@@ -72,10 +72,3 @@ class Export:
         file_path = file_path if file_path.endswith('.sql') else file_path + '.sql'
         write_text(dump, file_path)
         return file_path
-
-    def import_script(self, script_path):
-        """Load a SQL script to memory and then execute all commands."""
-        with open('dump.sql', 'r') as dump:
-            s = dump.read()
-        self.sql.execute(s)
-
