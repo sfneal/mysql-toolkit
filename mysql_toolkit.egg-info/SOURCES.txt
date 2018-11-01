@@ -20,6 +20,7 @@ mysql/toolkit/components/operations/__init__.py
 mysql/toolkit/components/operations/alter.py
 mysql/toolkit/components/operations/clone.py
 mysql/toolkit/components/operations/compare.py
+mysql/toolkit/components/operations/export.py
 mysql/toolkit/components/operations/remove.py
 mysql/toolkit/components/structure/__init__.py
 mysql/toolkit/components/structure/definition.py

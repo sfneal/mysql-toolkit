@@ -69,13 +69,13 @@ def dump_commands(commands, directory=None, sub_dir=None):
     timer = Timer()
     if MULTIPROCESS:
         pool = Pool(cpu_count())
-        pool.map(write_text, command_filepath)
+        pool.map(write_text_tup, command_filepath)
         pool.close()
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (multiprocessing)\n\t\tDirectory : {0}'.format(dump_dir))
     else:
         for tup in command_filepath:
-            write_text(tup)
+            write_text_tup(tup)
         print('\tDumped ', len(command_filepath), 'commands\n\t\tTime      : {0}'.format(timer.end),
               '\n\t\tMethod    : (sequential)\n\t\tDirectory : {0}'.format(dump_dir))
 
@@ -83,7 +83,14 @@ def dump_commands(commands, directory=None, sub_dir=None):
     return return_dir
 
 
-def write_text(tup):
+def write_text(_command, txt_file):
+    """Dump SQL command to a text file."""
+    command = _command.strip()
+    with open(txt_file, 'w') as txt:
+        txt.writelines(command)
+
+
+def write_text_tup(tup):
     """
     Dump SQL command to a text file.
 
@@ -91,9 +98,7 @@ def write_text(tup):
     """
     # Unpack tuple, clean command and dump to text file
     _command, txt_file = tup
-    command = _command.strip()
-    with open(txt_file, 'w') as txt:
-        txt.writelines(command)
+    write_text(_command, txt_file)
 
 
 def get_commands_from_dir(directory, zip_backup=True, remove_dir=True):
