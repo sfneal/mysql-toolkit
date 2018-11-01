@@ -10,6 +10,8 @@ from mysql.toolkit.commands.dump import write_text
 
 def insert_statement(table, columns, values):
     """Generate an insert statement string for dumping to text file or MySQL execution."""
+    if not all(isinstance(r, (list, set, tuple)) for r in values):
+        values = [[r] for r in values]
     rows = []
     for row in values:
         new_row = []
@@ -57,7 +59,7 @@ class Export:
         is the source.  If no tables are provided, all tables will be dumped.
         """
         # Change database if needed
-        if database and database != self.database:
+        if database:
             self.change_db(database)
 
         # Set table
