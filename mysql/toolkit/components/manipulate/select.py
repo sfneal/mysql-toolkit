@@ -129,8 +129,8 @@ class Select:
         Query rows from a table where a specific pattern is found in a column.
 
         MySQL syntax assumptions:
-            (%) The percent sign represents zero, one, or multiple characters.
-            (_) The underscore represents a single character.
+            % The percent sign represents zero, one, or multiple characters.
+            _ The underscore represents a single character.
 
         :param table: Name of the table
         :param cols: List, tuple or set of columns or string with single column name
