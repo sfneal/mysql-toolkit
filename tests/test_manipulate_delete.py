@@ -32,12 +32,10 @@ class TestManipulateDelete(unittest.TestCase):
     def tearDown(self):
         table = 'departments'
         self.sql.truncate(table)
-        for i in self.original_data:
-            print(i)
         self.sql.insert_many(table, self.sql.get_columns(table), self.original_data)
 
     @Timer.decorator
-    def test_update(self):
+    def test_delete(self):
         table = 'departments'
         where = ('dept_no', 'd002')
 
@@ -48,6 +46,19 @@ class TestManipulateDelete(unittest.TestCase):
 
         self.assertEqual(len(changed_rows), 1)
         self.assertEqual(len(self.sql.select_all(table)), 8)
+
+    @Timer.decorator
+    def test_delete_many(self):
+        table = 'departments'
+        wheres = [('dept_no', 'd002'), ('dept_no', 'd003')]
+
+        existing_rows = self.sql.select_all(table)
+        self.sql.delete_many(table, wheres)
+        new_rows = self.sql.select_all(table)
+        changed_rows = diff(existing_rows, new_rows)
+
+        self.assertEqual(len(changed_rows), 2)
+        self.assertEqual(len(self.sql.select_all(table)), 7)
 
 
 if __name__ == '__main__':
