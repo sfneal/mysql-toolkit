@@ -129,7 +129,7 @@ class TestManipulateSelect(unittest.TestCase):
         self.sql.change_db('testing_models')
         rows = self.sql.select_where_like('customers', ['customerName'], 'customerName', start=None, end=None,
                                           anywhere=None, index=(None, None), length=20)
-        self.assertEqual(len(rows), 68)
+        self.assertEqual(len(rows), 69)
 
     @Timer.decorator
     def test_select_where_multi_clause(self):
