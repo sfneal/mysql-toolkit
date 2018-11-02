@@ -3,6 +3,21 @@ from mysql.toolkit.utils import wrap
 
 
 class Delete:
+    def delete_except(self, table, column, exceptions):
+        """
+        Delete all rows from a table expect for rows where exception values are found.
+
+        :param table: Name of the table
+        :param column: Column for value comparison
+        :param exceptions: List of values to not be deleted, values must be from column
+        """
+        # Existing rows
+        existing = self.select(table, column)
+
+        # Remove all that are not in keepers list
+        to_remove = set(existing) - set(exceptions)
+        self.delete_many(table, column=column, values=to_remove)
+
     def delete_many(self, table, where_tuples=None, column=None, values=None):
         """
         Delete multiple rows from a table.
