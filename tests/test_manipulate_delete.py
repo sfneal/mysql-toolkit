@@ -60,6 +60,18 @@ class TestManipulateDelete(unittest.TestCase):
         self.assertEqual(len(changed_rows), 2)
         self.assertEqual(len(self.sql.select_all(table)), 7)
 
+    @Timer.decorator
+    def test_delete_many_singlecol(self):
+        table = 'departments'
+
+        existing_rows = self.sql.select_all(table)
+        self.sql.delete_many(table, column='dept_no', values=['d002', 'd003'])
+        new_rows = self.sql.select_all(table)
+        changed_rows = diff(existing_rows, new_rows)
+
+        self.assertEqual(len(changed_rows), 2)
+        self.assertEqual(len(self.sql.select_all(table)), 7)
+
 
 if __name__ == '__main__':
     unittest.main()
