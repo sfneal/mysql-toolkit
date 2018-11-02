@@ -33,48 +33,56 @@ class Remove:
             self._printer('\t' + str(len(tables)), 'tables truncated from', database)
         return tables
 
-    def drop(self, table):
+    def drop_empty_tables(self):
+        """Drop all empty tables in a database."""
+        # Count number of rows in each table
+        counts = self.count_rows_all()
+
+        # Loop through each table key and validate that rows count is not 0
+        to_drop = [table for table, count in counts.items() if count < 1]
+
+        # Drop table if it contains no rows
+        self.drop(to_drop)
+        return to_drop
+
+    def drop(self, table, if_exists=True, check_foreign_keys=True):
         """
         Drop a table from a database.
 
         Accepts either a string representing a table name or a list of strings
         representing a table names.
+
+        :param table: Name of the table
+        :param if_exists: Bool, drop table conditionally if it exists
+        :param check_foreign_keys: Bool, disable foreign key checks before dropping
+        :return: Table name
         """
-        existing_tables = self.tables
-        if isinstance(table, (list, set, tuple)):
-            for t in table:
-                self._drop(t, existing_tables)
-        else:
-            self._drop(table, existing_tables)
-        return table
-
-    def _drop(self, table, existing_tables=None):
-        """Private method for executing table drop commands."""
-        # Retrieve list of existing tables for comparison
-        existing_tables = existing_tables if existing_tables else self.tables
-
-        # Only drop table if it exists
-        if table in existing_tables:
-            # Set to avoid foreign key errorrs
+        # Set to avoid foreign key errors
+        if check_foreign_keys:
             self.execute('SET FOREIGN_KEY_CHECKS = 0')
 
-            query = 'DROP TABLE {0}'.format(wrap(table))
-            self.execute(query)
+        # Multiple tables or single table
+        if isinstance(table, (list, set, tuple)):
+            for t in table:
+                self._drop(t, if_exists)
+        else:
+            self._drop(table, if_exists)
 
-            # Set again
+        # Set again
+        if check_foreign_keys:
             self.execute('SET FOREIGN_KEY_CHECKS = 1')
-            self._printer('\tDropped table {0}'.format(table))
+        return table
 
-    def drop_empty_tables(self):
-        """Drop all empty tables in a database."""
-        # Count number of rows in each table
-        counts = self.count_rows_all()
-        drops = []
+    def _drop(self, table, if_exists=True):
+        """Private method for executing table drop commands."""
+        # Only drop table if it exists
+        if if_exists:
+            query = 'DROP TABLE IF EXISTS {0}'.format(wrap(table))
 
-        # Loop through each table key and validate that rows count is not 0
-        for table, count in counts.items():
-            if count < 1:
-                # Drop table if it contains no rows
-                self.drop(table)
-                drops.append(table)
-        return drops
+        # Attempt and drop table without validation, raises error on failure
+        else:
+            query = 'DROP TABLE {0}'.format(wrap(table))
+
+        # Execute query
+        self.execute(query)
+        self._printer('\tDropped table {0}'.format(table))
