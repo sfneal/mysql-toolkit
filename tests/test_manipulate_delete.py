@@ -32,7 +32,9 @@ class TestManipulateDelete(unittest.TestCase):
     def tearDown(self):
         table = 'departments'
         self.sql.truncate(table)
-        self.sql.insert(table, self.sql.get_columns(table), self.original_data)
+        for i in self.original_data:
+            print(i)
+        self.sql.insert_many(table, self.sql.get_columns(table), self.original_data)
 
     @Timer.decorator
     def test_update(self):
