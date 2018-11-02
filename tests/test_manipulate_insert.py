@@ -28,13 +28,13 @@ class TestManipulateInsert(unittest.TestCase):
     def tearDownClass(cls):
         table = 'departments'
         cls.sql.truncate(table)
-        cls.sql.insert(table, cls.sql.get_columns(table), cls.original_data)
+        cls.sql.insert_many(table, cls.sql.get_columns(table), cls.original_data)
         cls.sql.disconnect()
 
     def tearDown(self):
         table = 'departments'
         self.sql.truncate(table)
-        self.sql.insert(table, self.sql.get_columns(table), self.original_data)
+        self.sql.insert_many(table, self.sql.get_columns(table), self.original_data)
 
     @Timer.decorator
     def test_insert_uniques(self):
@@ -54,13 +54,10 @@ class TestManipulateInsert(unittest.TestCase):
     def test_insert(self):
         table = 'departments'
         cols = ['dept_no', 'dept_name']
-        vals = [
-            ['d010', 'Information Technology'],
-            ['d011', 'Software Development'],
-        ]
+        vals = ['d010', 'Information Technology']
 
         self.sql.insert(table, cols, vals)
-        self.assertEqual(len(self.sql.select_all(table)), 11)
+        self.assertEqual(len(self.sql.select_all(table)), 10)
 
     @Timer.decorator
     def test_insert_many(self):
