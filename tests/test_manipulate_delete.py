@@ -72,6 +72,18 @@ class TestManipulateDelete(unittest.TestCase):
         self.assertEqual(len(changed_rows), 2)
         self.assertEqual(len(self.sql.select_all(table)), 7)
 
+    @Timer.decorator
+    def test_delete_except(self):
+        table = 'departments'
+
+        existing_rows = self.sql.select_all(table)
+        self.sql.delete_except(table, column='dept_no', exceptions=['d002', 'd003'])
+        new_rows = self.sql.select_all(table)
+        changed_rows = diff(existing_rows, new_rows)
+
+        self.assertEqual(len(changed_rows), 7)
+        self.assertEqual(len(self.sql.select_all(table)), 2)
+
 
 if __name__ == '__main__':
     unittest.main()
