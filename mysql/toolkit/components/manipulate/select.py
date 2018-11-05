@@ -100,9 +100,6 @@ class Select:
         # Unpack WHERE clause dictionary into tuple
         where_statement = where_clause(where)
 
-        # Set column values
-        cols = self.get_columns if cols is '*' else cols
-
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
 
