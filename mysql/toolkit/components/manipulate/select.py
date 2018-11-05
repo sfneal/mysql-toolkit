@@ -9,7 +9,6 @@ JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
 
 
 class Select:
-    # TODO: Add params to allow for return values in dict form
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
         # Determine if a row per query limit should be set
@@ -81,7 +80,7 @@ class Select:
         """Run a select query with an offset and limit parameter."""
         return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
-    def select_where(self, table, cols, where, return_type=list):
+    def select_where(self, table, cols, where, order_by=None, return_type=list):
         """
         Query certain rows from a table where a particular value is found.
 
@@ -94,6 +93,7 @@ class Select:
         :param where: WHERE clause, accepts either a two or three part tuple
             two-part: (where_column, where_value)
             three-part: (where_column, comparison_operator, where_value)
+        :param order_by: Column to order by
         :param return_type: Type, type to return values in
         :return: Queried rows
         """
@@ -105,6 +105,10 @@ class Select:
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
+
+        # Add order by clause if specified
+        statement = order_clause(statement, order_by)
+
         values = self.fetch(statement)
         return self._return_rows(table, cols, values, return_type)
 
