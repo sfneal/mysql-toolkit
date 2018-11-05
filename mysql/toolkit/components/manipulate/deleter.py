@@ -41,7 +41,7 @@ class Delete:
         """Delete existing rows from a table."""
         if where:
             where_statement = self._where_clause(where)
-            query = "DELETE FROM {0} WHERE {1}".format(wrap(table), where_statement)
+            query = "DELETE FROM {0} {1}".format(wrap(table), where_statement)
             self._printer('\tDeleted {0} row where {1}'.format(wrap(table), where_statement))
         else:
             query = 'DELETE FROM {0}'.format(wrap(table))
