@@ -11,6 +11,7 @@ class Update:
         :param values: updated values
         :param where: tuple, (where_column, where_value)
         """
+        # TODO: Replace with call to _where_clause function
         # Unpack WHERE clause dictionary into tuple
         where_col, where_val = where
 
