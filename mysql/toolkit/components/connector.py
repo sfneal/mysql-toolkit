@@ -1,6 +1,5 @@
 from mysql.connector import connect, Error
 from mysql.connector import errorcode
-from mysql.connector.errors import InterfaceError
 
 
 class Connector:
