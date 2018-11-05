@@ -1,36 +1,36 @@
 SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ')
 
 
-def null_convert(where_val):
+def null_convert(value):
     """
     Determine if a where clauses's where_val is checking for 'NULL' or 'NOT NULL' values.
 
-    :param where_val: Value from a where clause
+    :param value: Value from a where clause
     :return: Transformed where value if null check passes, else same as input
     """
     # not None, True
-    if isinstance(where_val, bool) and where_val is True:
+    if isinstance(value, bool) and value is True:
         return 'NOT NULL'
 
     # 'not null', 'NOT NULL', 'Not Null'
-    elif isinstance(where_val, str) and where_val.lower() == 'not null':
+    elif isinstance(value, str) and value.lower() == 'not null':
         return 'NOT NULL'
 
     # False
-    elif isinstance(where_val, bool) and where_val is False:
+    elif isinstance(value, bool) and value is False:
         return 'NULL'
 
     # None
-    elif where_val is None:
+    elif value is None:
         return 'NULL'
 
     # 'null', 'NULL', 'Null'
-    elif isinstance(where_val, str) and where_val.lower() == 'null':
+    elif isinstance(value, str) and value.lower() == 'null':
         return 'NULL'
 
     # Add quotation wrapper around value
     else:
-        return "'{0}'".format(where_val)
+        return "'{0}'".format(value)
 
 
 def _where_clause(where, multi=False):
