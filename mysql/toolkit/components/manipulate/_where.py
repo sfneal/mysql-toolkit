@@ -33,7 +33,7 @@ def null_convert(where_val):
         return "'{0}'".format(where_val)
 
 
-def where_clause(where, multi=False):
+def _where_clause(where, multi=False):
     """
     Unpack a where clause tuple and concatenate a MySQL WHERE statement.
 
@@ -69,3 +69,13 @@ def where_clause(where, multi=False):
         return "{0}{1}{2}".format(where_col, operator, where_val)
     else:
         return "WHERE {0}{1}{2}".format(where_col, operator, where_val)
+
+
+def where_clause(where):
+    """Wrapper function that handles iterables and calls _where_clause."""
+    if isinstance(where, (list, set)):
+        # Multiple WHERE clause's (separate with AND)
+        clauses = [_where_clause(clause, multi=True) for clause in where]
+        return 'WHERE {0}'.format(' AND '.join(clauses))
+    else:
+        return _where_clause(where)

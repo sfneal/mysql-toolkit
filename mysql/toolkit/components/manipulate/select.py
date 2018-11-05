@@ -93,12 +93,7 @@ class Select:
         :return: Queried rows
         """
         # Unpack WHERE clause dictionary into tuple
-        if isinstance(where, (list, set)):
-            # Multiple WHERE clause's (separate with AND)
-            clauses = [where_clause(clause, multi=True) for clause in where]
-            where_statement = 'WHERE {0}'.format(' AND '.join(clauses))
-        else:
-            where_statement = where_clause(where)
+        where_statement = where_clause(where)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
