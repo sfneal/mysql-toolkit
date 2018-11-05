@@ -12,13 +12,12 @@ class Update:
         :param values: updated values
         :param where: tuple, (where_column, where_value)
         """
-        # TODO: Replace with call to _where_clause function
         # Unpack WHERE clause dictionary into tuple
         where_statement = where_clause(where)
 
         # Create column string from list of values
-        columns = [columns] if isinstance(columns, (int, str)) else columns
-        values = [values] if isinstance(values, (int, str)) else values
+        columns = [columns] if not isinstance(values, (list, tuple, set)) else columns
+        values = [values] if not isinstance(values, (list, tuple, set)) else values
         cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
