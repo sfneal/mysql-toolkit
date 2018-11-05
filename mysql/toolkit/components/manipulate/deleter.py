@@ -42,7 +42,7 @@ class Delete:
         if where:
             where_statement = self._where_clause(where)
             query = "DELETE FROM {0} {1}".format(wrap(table), where_statement)
-            self._printer('\tDeleted {0} row where {1}'.format(wrap(table), where_statement))
+            self._printer('\tDeleted {0} row {1}'.format(wrap(table), where_statement))
         else:
             query = 'DELETE FROM {0}'.format(wrap(table))
             self._printer('\tDeleted {0} rows'.format(wrap(table)))
