@@ -210,6 +210,14 @@ class TestManipulateSelect(unittest.TestCase):
         self.assertEqual(73, len(rows1))
         self.assertEqual(73, len(rows2))
 
+    @Timer.decorator
+    def test_select_order(self):
+        tbl = 'departments'
+        cols = '*'
+        rows = self.sql.select(tbl, cols, order_by='dept_name')
+        for r in rows:
+            print(r)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,6 @@
 from mysql.toolkit.utils import join_cols, wrap
 from mysql.toolkit.components.manipulate._where import where_clause
+from mysql.toolkit.components.manipulate._order import order_clause
 
 
 MAX_ROWS_PER_QUERY = 50000
@@ -22,7 +23,7 @@ class Select:
         """Query distinct values from a table."""
         return self.select(table, cols, execute, select_type='SELECT DISTINCT')
 
-    def select(self, table, cols, execute=True, select_type='SELECT', return_type=list):
+    def select(self, table, cols, execute=True, order_by=None, select_type='SELECT', return_type=list):
         """Query every row and only certain columns from a table."""
         # Validate query type
         select_type = select_type.upper()
@@ -30,8 +31,12 @@ class Select:
 
         # Concatenate statement
         statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
+
+        # Add order by clause if specified
+        statement = order_clause(statement, order_by)
+
+        # Return command if execute is not enabled
         if not execute:
-            # Return command
             return statement
 
         # Retrieve values
@@ -94,6 +99,9 @@ class Select:
         """
         # Unpack WHERE clause dictionary into tuple
         where_statement = where_clause(where)
+
+        # Set column values
+        cols = self.get_columns if cols is '*' else cols
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
