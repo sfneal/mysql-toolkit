@@ -145,9 +145,9 @@ class Select:
         return self.fetch(statement)
 
     @staticmethod
-    def _where_clause(where, multi=False):
+    def _where_clause(where):
         """Wrapper method for where_clause function."""
-        return where_clause(where, multi)
+        return where_clause(where)
 
     def _return_rows(self, table, cols, values, return_type):
         """Return fetched rows in the desired type."""
