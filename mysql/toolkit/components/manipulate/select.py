@@ -7,7 +7,7 @@ SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ')
 JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
 
 
-def _where_clause_nulls(where_val):
+def null_convert(where_val):
     """
     Determine if a where clauses's where_val is checking for 'NULL' or 'NOT NULL' values.
 
@@ -39,7 +39,7 @@ def _where_clause_nulls(where_val):
         return "'{0}'".format(where_val)
 
 
-def _where_clause(where, multi=False):
+def where_clause(where, multi=False):
     """
     Unpack a where clause tuple and concatenate a MySQL WHERE statement.
 
@@ -47,7 +47,7 @@ def _where_clause(where, multi=False):
     'WHERE' prefix.
 
     :param where: 2 or 3 part tuple containing a where_column and a where_value (optional operator)
-    :multi where: Bool, set to True if concatenating multiple where clauses
+    :param multi: Bool, set to True if concatenating multiple where clauses
     :return: WHERE clause statement
     """
     assert isinstance(where, tuple)
@@ -63,7 +63,7 @@ def _where_clause(where, multi=False):
         operator = '='
 
     # Check if where_val is signifying 'NULL' or 'NOT NULL'
-    where_val = _where_clause_nulls(where_val)
+    where_val = null_convert(where_val)
     if where_val in ('NULL', 'NOT NULL'):
         operator = ' is '
 
@@ -165,10 +165,10 @@ class Select:
         # Unpack WHERE clause dictionary into tuple
         if isinstance(where, (list, set)):
             # Multiple WHERE clause's (separate with AND)
-            clauses = [_where_clause(clause, multi=True) for clause in where]
+            clauses = [where_clause(clause, multi=True) for clause in where]
             where_statement = 'WHERE {0}'.format(' AND '.join(clauses))
         else:
-            where_statement = _where_clause(where)
+            where_statement = where_clause(where)
 
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
@@ -218,6 +218,11 @@ class Select:
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
         return self.fetch(statement)
+
+    @staticmethod
+    def _where_clause(where, multi=False):
+        """Wrapper method for where_clause function."""
+        return where_clause(where, multi)
 
     def _return_rows(self, table, cols, values, return_type):
         """Return fetched rows in the desired type."""
