@@ -188,6 +188,28 @@ class TestManipulateSelect(unittest.TestCase):
         for row in rows:
             self.assertEqual(type(row), dict)
 
+    @Timer.decorator
+    def test_select_where_not_null(self):
+        self.sql.change_db('testing_models')
+        tbl = 'customers'
+        cols = ['addressLine1', 'city', 'state']
+        rows1 = self.sql.select_where(tbl, cols, ('state', not None))
+        rows2 = self.sql.select_where(tbl, cols, ('state', True))
+
+        self.assertEqual(49, len(rows1))
+        self.assertEqual(49, len(rows2))
+
+    @Timer.decorator
+    def test_select_where_null(self):
+        self.sql.change_db('testing_models')
+        tbl = 'customers'
+        cols = ['addressLine1', 'city', 'state']
+        rows1 = self.sql.select_where(tbl, cols, ('state', None))
+        rows2 = self.sql.select_where(tbl, cols, ('state', False))
+
+        self.assertEqual(73, len(rows1))
+        self.assertEqual(73, len(rows2))
+
 
 if __name__ == '__main__':
     unittest.main()

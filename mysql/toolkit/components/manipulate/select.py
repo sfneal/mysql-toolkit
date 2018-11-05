@@ -3,8 +3,78 @@ from mysql.toolkit.utils import join_cols, wrap
 
 MAX_ROWS_PER_QUERY = 50000
 SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
-SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=')
+SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ')
 JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
+
+
+def _where_clause_nulls(where_val):
+    """
+    Determine if a where clauses's where_val is checking for 'NULL' or 'NOT NULL' values.
+
+    :param where_val: Value from a where clause
+    :return: Transformed where value if null check passes, else same as input
+    """
+    # not None, True
+    if isinstance(where_val, bool) and where_val is True:
+        return 'NOT NULL'
+
+    # 'not null', 'NOT NULL', 'Not Null'
+    elif isinstance(where_val, str) and where_val.lower() == 'not null':
+        return 'NOT NULL'
+
+    # False
+    elif isinstance(where_val, bool) and where_val is False:
+        return 'NULL'
+
+    # None
+    elif where_val is None:
+        return 'NULL'
+
+    # 'null', 'NULL', 'Null'
+    elif isinstance(where_val, str) and where_val.lower() == 'null':
+        return 'NULL'
+
+    # Add quotation wrapper around value
+    else:
+        return "'{0}'".format(where_val)
+
+
+def _where_clause(where, multi=False):
+    """
+    Unpack a where clause tuple and concatenate a MySQL WHERE statement.
+
+    Set multi to true if concatenating multiple where clauses.  Returns statement without
+    'WHERE' prefix.
+
+    :param where: 2 or 3 part tuple containing a where_column and a where_value (optional operator)
+    :multi where: Bool, set to True if concatenating multiple where clauses
+    :return: WHERE clause statement
+    """
+    assert isinstance(where, tuple)
+    # Three part tuple (column, operator, value)
+    if len(where) == 3:
+        # Unpack tuple and verify operator
+        where_col, operator, where_val = where
+
+    # Two part tuple (column, value)
+    else:
+        # Unpack tuple
+        where_col, where_val = where
+        operator = '='
+
+    # Check if where_val is signifying 'NULL' or 'NOT NULL'
+    where_val = _where_clause_nulls(where_val)
+    if where_val in ('NULL', 'NOT NULL'):
+        operator = ' is '
+
+    # Validate operator
+    assert operator in SELECT_WHERE_OPERATORS
+
+    # Concatenate WHERE clause (ex: **first_name='John'**)
+    if multi:
+        return "{0}{1}{2}".format(where_col, operator, where_val)
+    else:
+        return "WHERE {0}{1}{2}".format(where_col, operator, where_val)
 
 
 class Select:
@@ -95,13 +165,13 @@ class Select:
         # Unpack WHERE clause dictionary into tuple
         if isinstance(where, (list, set)):
             # Multiple WHERE clause's (separate with AND)
-            clauses = [self._where_clause(clause) for clause in where]
-            where_statement = ' AND '.join(clauses)
+            clauses = [_where_clause(clause, multi=True) for clause in where]
+            where_statement = 'WHERE {0}'.format(' AND '.join(clauses))
         else:
-            where_statement = self._where_clause(where)
+            where_statement = _where_clause(where)
 
         # Concatenate full statement and execute
-        statement = "SELECT {0} FROM {1} WHERE {2}".format(join_cols(cols), wrap(table), where_statement)
+        statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
         values = self.fetch(statement)
         return self._return_rows(table, cols, values, return_type)
 
@@ -148,25 +218,6 @@ class Select:
         # Concatenate full statement and execute
         statement = "SELECT {0} FROM {1} WHERE {2} LIKE '{3}'".format(join_cols(cols), wrap(table), where_col, pattern)
         return self.fetch(statement)
-
-    @staticmethod
-    def _where_clause(where):
-        """
-        Unpack a where clause tuple and concatenate a MySQL WHERE statement.
-
-        :param where: 2 or 3 part tuple containing a where_column and a where_value (optional operator)
-        :return: WHERE clause statement
-        """
-        assert isinstance(where, tuple)
-        if len(where) == 3:
-            where_col, operator, where_val = where
-        else:
-            where_col, where_val = where
-            operator = '='
-        assert operator in SELECT_WHERE_OPERATORS
-
-        # Concatenate WHERE clause (ex: **first_name='John'**)
-        return "{0}{1}'{2}'".format(where_col, operator, where_val)
 
     def _return_rows(self, table, cols, values, return_type):
         """Return fetched rows in the desired type."""
