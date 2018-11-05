@@ -13,6 +13,7 @@ mysql/toolkit/commands/split.py
 mysql/toolkit/components/__init__.py
 mysql/toolkit/components/connector.py
 mysql/toolkit/components/manipulate/__init__.py
+mysql/toolkit/components/manipulate/_where.py
 mysql/toolkit/components/manipulate/deleter.py
 mysql/toolkit/components/manipulate/insert.py
 mysql/toolkit/components/manipulate/select.py
