@@ -1,4 +1,5 @@
 from mysql.toolkit.utils import get_col_val_str, wrap
+from mysql.toolkit.components.manipulate._where import where_clause
 
 
 class Update:
@@ -13,7 +14,7 @@ class Update:
         """
         # TODO: Replace with call to _where_clause function
         # Unpack WHERE clause dictionary into tuple
-        where_col, where_val = where
+        where_statement = where_clause(where)
 
         # Create column string from list of values
         columns = [columns] if isinstance(columns, (int, str)) else columns
@@ -21,7 +22,7 @@ class Update:
         cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
-        statement = "UPDATE {0} SET {1} WHERE {2}='{3}'".format(wrap(table), cols, where_col, where_val)
+        statement = "UPDATE {0} SET {1} {2}".format(wrap(table), cols, where_statement)
 
         # Execute statement
         self._cursor.execute(statement, values)
