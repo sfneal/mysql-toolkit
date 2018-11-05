@@ -16,6 +16,8 @@ class Update:
         where_col, where_val = where
 
         # Create column string from list of values
+        columns = [columns] if isinstance(columns, (int, str)) else columns
+        values = [values] if isinstance(values, (int, str)) else values
         cols = get_col_val_str(columns, query_type='update')
 
         # Concatenate statement
