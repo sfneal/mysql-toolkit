@@ -127,8 +127,11 @@ class Connector:
                     if commit:
                         self._commit()
 
-                    # Return a single item if the list only has one item
-                    return rows[0] if len(rows) == 1 else rows
+                    if len(rows) == 0:
+                        return None
+                    else:
+                        # Return a single item if the list only has one item
+                        return rows[0] if len(rows) == 1 else rows
                 except Exception as e:
                     if attempts >= max_attempts:
                         raise e
