@@ -35,11 +35,8 @@ class Remove:
 
     def drop_empty_tables(self):
         """Drop all empty tables in a database."""
-        # Count number of rows in each table
-        counts = self.count_rows_all()
-
         # Loop through each table key and validate that rows count is not 0
-        to_drop = [table for table, count in counts.items() if count < 1]
+        to_drop = [table for table, count in self.count_rows_all().items() if count < 1]
 
         # Drop table if it contains no rows
         self.drop(to_drop)
