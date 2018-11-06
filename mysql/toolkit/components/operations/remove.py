@@ -18,7 +18,7 @@ class Remove:
         """
         statement = "TRUNCATE TABLE {0}".format(wrap(table))
         self.execute(statement)
-        self._printer('\tTruncated table {0}'.format(table))
+        self._printer('\tTruncated table {0}'.format(wrap(table)))
 
     def truncate_database(self, database=None):
         """Drop all tables in a database."""
@@ -85,4 +85,4 @@ class Remove:
 
         # Execute query
         self.execute(query)
-        self._printer('\tDropped table {0}'.format(table))
+        self._printer('\tDropped table {0}'.format(wrap(table)))
