@@ -52,7 +52,7 @@ class Schema:
         query = 'ALTER TABLE {0} ADD COLUMN {1} {2} {3} {4} {5}'.format(wrap(table), name, data_type, null_, pk,
                                                                         location)
         self.execute(query)
-        self._printer("\tAdded column '{0}' to '{1}' {2}".format(name, table, '(Primary Key)' if primary_key else ''))
+        self._printer("\tAdded column '{0}' to {1} {2}".format(name, wrap(table), '(Primary Key)' if primary_key else ''))
         return name
 
     def drop_column(self, table, name):
@@ -61,7 +61,7 @@ class Schema:
             self.execute('ALTER TABLE {0} DROP COLUMN {1}'.format(wrap(table), name))
             self._printer('\tDropped column {0} from {1}'.format(name, table))
         except ProgrammingError:
-            self._printer("\tCan't DROP '{0}'; check that column/key exists in '{1}'".format(name, table))
+            self._printer("\tCan't DROP '{0}'; check that column/key exists in {1}".format(name, wrap(table)))
         return name
 
     def drop_index(self, table, column):
@@ -84,11 +84,12 @@ class Schema:
 
         # Concatenate and execute modify statement
         self.execute("ALTER TABLE {0} MODIFY {1}".format(table, definition))
-        self._printer('\tAdded AUTO_INCREMENT to column {0}'.format(name))
+        self._printer("\tAdded AUTO_INCREMENT to column '{0}' in table {1}".format(name, wrap(table)))
         return True
 
     def modify_column(self, table, name, new_name=None, data_type=None, null=None, default=None):
         """Modify an existing column."""
+        # TODO: Expand functionality of method to do things such as auto_increment, add comments
         existing_def = self.get_schema_dict(table)[name]
 
         # Set column name
@@ -107,7 +108,7 @@ class Schema:
         default = 'DEFAULT {0}'.format(default if default else null_)
 
         query = 'ALTER TABLE {0} CHANGE {1} {2} {3} {4} {5}'.format(wrap(table), wrap(name), wrap(new_name), data_type,
-                                                                           null_, default)
+                                                                    null_, default)
         self.execute(query)
-        self._printer('\tModified column {0}'.format(name))
+        self._printer("\tModified column '{0}' in table {1}".format(name, wrap(table)))
 
