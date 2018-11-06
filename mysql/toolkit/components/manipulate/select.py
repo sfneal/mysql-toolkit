@@ -24,6 +24,7 @@ class Select:
 
     def select(self, table, cols, execute=True, order_by=None, select_type='SELECT', return_type=list):
         """Query every row and only certain columns from a table."""
+        # TODO: Expand functionality to include distinct, all, where, limit, etc parameters
         # Validate query type
         select_type = select_type.upper()
         assert select_type in SELECT_QUERY_TYPES
