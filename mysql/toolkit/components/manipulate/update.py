@@ -39,6 +39,7 @@ class Update:
         :param where_index: Row index of value to be used for where comparison
         :return:
         """
+        # TODO: Fix this garbage parameter pattern
         for row in values:
             wi = row.pop(where_index)
             self.update(table, columns, row, (where_col, wi))
