@@ -12,6 +12,7 @@ class Update:
         :param values: updated values
         :param where: tuple, (where_column, where_value)
         """
+        # TODO: Add ability to pass dictionary of (column: value) values
         # Unpack WHERE clause dictionary into tuple
         where_statement = where_clause(where)
 
