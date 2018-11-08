@@ -39,7 +39,7 @@ def set_dump_directory(base=None, sub_dir=None):
         sub_dir = sub_dir.rsplit('.', 1)[0]
 
     # Create a directory to save fail SQL scripts
-    # TODO: Replace with function that recursively creates directories until path exists
+    # TODO: Replace make_nested_dir function
     if not os.path.exists(base):
         os.mkdir(base)
     dump_dir = os.path.join(base, sub_dir) if sub_dir else base
