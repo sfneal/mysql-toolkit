@@ -1,4 +1,4 @@
-SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ')
+SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ')
 
 
 def null_convert(value):
@@ -27,6 +27,10 @@ def null_convert(value):
     # 'null', 'NULL', 'Null'
     elif isinstance(value, str) and value.lower() == 'null':
         return 'NULL'
+
+    # List of values
+    elif isinstance(value, (list, set, tuple)):
+        return value
 
     # Add quotation wrapper around value
     else:
@@ -60,15 +64,17 @@ def _where_clause(where, multi=False):
     where_val = null_convert(where_val)
     if where_val in ('NULL', 'NOT NULL'):
         operator = ' is '
+    elif isinstance(where_val, (list, tuple, set)):
+        operator = ' in '
 
     # Validate operator
     assert operator in SELECT_WHERE_OPERATORS
 
     # Concatenate WHERE clause (ex: **first_name='John'**)
     if multi:
-        return "{0}{1}{2}".format(where_col, operator, where_val)
+        return "{0}{1}{2}".format(where_col, operator.upper(), where_val)
     else:
-        return "WHERE {0}{1}{2}".format(where_col, operator, where_val)
+        return "WHERE {0}{1}{2}".format(where_col, operator.upper(), where_val)
 
 
 def where_clause(where):
