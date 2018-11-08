@@ -169,7 +169,10 @@ class Select:
             else:
                 return dict(zip(cols, values))
         elif return_type is tuple:
-            return [tuple(row) for row in values]
+            if isinstance(values[0], (list, tuple, set)):
+                return [tuple(row) for row in values]
+            else:
+                return [tuple(values)]
         else:
             return values
 
