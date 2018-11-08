@@ -70,6 +70,10 @@ def _where_clause(where, multi=False):
         where_val = str(tuple(where_val))
 
     # Validate operator
+    if 'is' in operator:
+        operator = ' is '
+    elif 'in' in operator:
+        operator = ' in '
     assert operator in SELECT_WHERE_OPERATORS
 
     # Concatenate WHERE clause (ex: **first_name='John'**)
