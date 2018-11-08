@@ -1,3 +1,4 @@
+# TODO: Fix assertion to allow for 'is' and 'in'
 SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ')
 
 
