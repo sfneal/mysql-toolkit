@@ -17,6 +17,18 @@ except ImportError:
     pass
 
 
+def make_nested_dir(dirs):
+    """Recursively make directories until full path exists."""
+    full_directory = os.path.join(*dirs)
+    directory = None
+    while not os.path.exists(full_directory) and len(dirs) > 0:
+        current = dirs.pop(0)
+        directory = os.path.join(directory, current) if directory else current
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+    return full_directory
+
+
 def set_dump_directory(base=None, sub_dir=None):
     """Create directory for dumping SQL commands."""
     # Set current timestamp
@@ -120,3 +132,7 @@ def get_commands_from_dir(directory, zip_backup=True, remove_dir=True):
     if remove_dir:
         shutil.rmtree(directory)
     return commands
+
+
+if __name__ == '__main__':
+    make_nested_dir(['base', 'test', 'this'])
