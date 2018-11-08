@@ -173,6 +173,8 @@ class Select:
                 return [tuple(row) for row in values]
             except IndexError:
                 return [tuple(values)]
+            except TypeError:
+                return [tuple(values)]
         else:
             return values
 
