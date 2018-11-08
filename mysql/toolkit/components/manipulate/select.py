@@ -169,9 +169,9 @@ class Select:
             else:
                 return dict(zip(cols, values))
         elif return_type is tuple:
-            if isinstance(values[0], (list, tuple, set)):
+            try:
                 return [tuple(row) for row in values]
-            else:
+            except IndexError:
                 return [tuple(values)]
         else:
             return values
