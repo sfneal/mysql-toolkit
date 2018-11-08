@@ -67,6 +67,7 @@ def _where_clause(where, multi=False):
         operator = ' is '
     elif isinstance(where_val, (list, tuple, set)):
         operator = ' in '
+        where_val = str(tuple(where_val))
 
     # Validate operator
     assert operator in SELECT_WHERE_OPERATORS
