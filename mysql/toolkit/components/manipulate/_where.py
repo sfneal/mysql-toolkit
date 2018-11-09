@@ -52,12 +52,10 @@ def _where_clause(where, multi=False):
     assert isinstance(where, tuple)
     # Three part tuple (column, operator, value)
     if len(where) == 3:
-        # Unpack tuple and verify operator
         where_col, operator, where_val = where
 
     # Two part tuple (column, value)
     else:
-        # Unpack tuple
         where_col, where_val = where
         operator = '='
 
@@ -65,15 +63,20 @@ def _where_clause(where, multi=False):
     where_val = null_convert(where_val)
     if where_val in ('NULL', 'NOT NULL'):
         operator = ' is '
+
+    # Check if where_val is an iterable, signfying IN clause
     elif isinstance(where_val, (list, tuple, set)):
-        operator = ' in '
-        where_val = str(tuple(where_val))
+        # Confirm that where_val contains more than one item
+        if len(where_val) > 1:
+            operator = ' in '
+            where_val = str(tuple(where_val))
+
+        # where_val has one item, use '=' operator
+        else:
+            operator = '='
+            where_val = null_convert(where_val[0])
 
     # Validate operator
-    if 'is' in operator:
-        operator = ' is '
-    elif 'in' in operator:
-        operator = ' in '
     assert operator in SELECT_WHERE_OPERATORS
 
     # Concatenate WHERE clause (ex: **first_name='John'**)
