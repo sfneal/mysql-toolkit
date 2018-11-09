@@ -49,6 +49,7 @@ class Insert:
 
     def insert(self, table, columns, values, execute=True):
         """Insert a single row into a table."""
+        # TODO: Cant accept lists?
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
         statement = "INSERT INTO {0} ({1}) VALUES ({2})".format(wrap(table), cols, vals)
