@@ -32,7 +32,7 @@ def _order_unpack(order_by):
         return order_by
 
 
-def order_clause(statement, order):
+def order_clause_append(statement, order):
     """
     Append an order by clauses to an existing SQL statement.
 

@@ -1,6 +1,6 @@
 from mysql.toolkit.utils import join_cols, wrap
 from mysql.toolkit.components.manipulate._where import where_clause
-from mysql.toolkit.components.manipulate._order import order_clause
+from mysql.toolkit.components.manipulate._order import order_clause_append
 
 
 MAX_ROWS_PER_QUERY = 50000
@@ -33,7 +33,7 @@ class Select:
         statement = '{0} {1} FROM {2}'.format(select_type, join_cols(cols), wrap(table))
 
         # Add order by clause if specified
-        statement = order_clause(statement, order_by)
+        statement = order_clause_append(statement, order_by)
 
         # Return command if execute is not enabled
         if not execute:
@@ -105,7 +105,7 @@ class Select:
         statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
 
         # Add order by clause if specified
-        statement = order_clause(statement, order_by)
+        statement = order_clause_append(statement, order_by)
 
         values = self.fetch(statement)
         return self._return_rows(table, cols, values, return_type)
