@@ -58,7 +58,7 @@ class Insert:
         if execute:
             self._cursor.execute(statement, values)
             self._commit()
-            self._printer('\tMySQL row successfully inserted into {0}'.format(table))
+            self._printer('\tINSERTED row into {0}'.format(table))
 
         # Only return statement
         else:
@@ -93,7 +93,7 @@ class Insert:
             # Execute statement
             self._cursor.executemany(statement, values)
             self._commit()
-            self._printer('\tMySQL rows (' + str(len(values)) + ') successfully INSERTED')
+            self._printer('\tINSERTED (' + str(len(values)) + ') rows into table ' + wrap(str(table)))
 
         # Only return statement
         else:
