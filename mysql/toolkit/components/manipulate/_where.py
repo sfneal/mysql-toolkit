@@ -1,4 +1,4 @@
-from mysql.toolkit.utils import join_cols, wrap
+from mysql.toolkit.utils import wrap
 # TODO: Fix assertion to allow for 'is' and 'in'
 SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ')
 
