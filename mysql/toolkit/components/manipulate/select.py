@@ -8,6 +8,13 @@ SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
 JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
 
 
+def get_join_type(join_type):
+    """Retrieve the proper JOIN clause for a MySQL query."""
+    jt = join_type.lower().split(' ', 1)[0].upper() + ' JOIN' if join_type else 'LEFT JOIN'
+    assert jt in JOIN_QUERY_TYPES
+    return jt
+
+
 class Select:
     def select_all(self, table, limit=MAX_ROWS_PER_QUERY, execute=True):
         """Query all rows and columns from a table."""
@@ -67,9 +74,47 @@ class Select:
             cols = join_cols(['{0}.{1}'.format(table1, col) for col in cols])
 
         # Validate join_type and table2_col
-        join_type = join_type.lower().split(' ', 1)[0].upper() + ' JOIN' if join_type else 'LEFT JOIN'
-        assert join_type in JOIN_QUERY_TYPES
+        join_type = get_join_type(join_type)
         table2_col = table2_col if table2_col else table1_col
+
+        # Concatenate and return statement
+        statement = '''
+        SELECT {columns}
+        FROM {table1}
+        {join_type} {table2} ON {table1}.{table1_col} = {table2}.{table2_col}
+        '''.format(table1=wrap(table1), table2=wrap(table2), columns=cols, table1_col=table1_col, table2_col=table2_col,
+                   join_type=join_type)
+
+        # Conditionally append WHERE clause, do nothing otherwise
+        statement = where_clause_append(statement, where)
+
+        # Conditionally append ORDER clause, do nothing otherwise
+        statement = order_clause_append(statement, order_by)
+        return self.fetch(statement)
+
+    def select_join2(self, cols, on=((None, None), (None, None)), join_type=None, where=None, order_by=None):
+        """
+        Execute a SELECT query with JOIN, WHERE, and ORDER BY clauses.
+
+        :param cols: Column tuples
+            List of tuples: Each tuple in list of columns represents (table_name, column_name)
+        :param on: Columns for ON clause, columns that reference each other
+            Tuple of tuples - ((tbl_name, col_name), (tbl_name, col_name))
+        :param join_type: Type of join query
+        :param where: Optional WHERE clause
+        :param order_by: Optional ORDER BY clause
+        :return: Queried rows
+        """
+        # Join each tuple into a table.column string
+        cols = join_cols(['{0}.{1}'.format(wrap(tbl), col) for tbl, col in cols])
+
+        # Validate join_type and table2_col
+        join_type = get_join_type(join_type)
+
+        # Set on clause values
+        on_tbl1, on_tbl2 = on
+        table1, table1_col = on_tbl1
+        table2, table2_col = on_tbl2
 
         # Concatenate and return statement
         statement = '''

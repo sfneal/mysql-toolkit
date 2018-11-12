@@ -1,3 +1,4 @@
+from mysql.toolkit.utils import join_cols, wrap
 # TODO: Fix assertion to allow for 'is' and 'in'
 SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ')
 
@@ -29,7 +30,7 @@ def null_convert(value):
     elif isinstance(value, str) and value.lower() == 'null':
         return 'NULL'
 
-    # List of values
+    # List or set of values
     elif isinstance(value, (list, set, tuple)):
         return value
 
@@ -59,6 +60,11 @@ def _where_clause(where, multi=False):
         where_col, where_val = where
         operator = '='
 
+    # Tuple with (table_name, column_name) values
+    if isinstance(where_col, tuple):
+        tbl, col = where_col
+        where_col = "{0}.{1}".format(wrap(tbl), col)
+
     # Check if where_val is signifying 'NULL' or 'NOT NULL'
     where_val = null_convert(where_val)
     if where_val in ('NULL', 'NOT NULL'):
@@ -77,6 +83,7 @@ def _where_clause(where, multi=False):
             where_val = null_convert(where_val[0])
 
     # Validate operator
+    operator = ' {0} '.format(operator) if operator in ('in', 'is') else operator
     assert operator in SELECT_WHERE_OPERATORS
 
     # Concatenate WHERE clause (ex: **first_name='John'**)

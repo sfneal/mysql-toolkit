@@ -152,6 +152,22 @@ class TestManipulateSelect(unittest.TestCase):
             self.assertEqual(len(i), 3)
 
     @Timer.decorator
+    def test_select2_join_left_where(self):
+        self.sql.change_db('testing_models')
+        cols = [
+            ('employees', 'employeeNumber'),
+            ('employees', 'email'),
+            ('employees', 'jobTitle'),
+            ('customers', 'customerName'),
+        ]
+        on = (('customers', 'salesRepEmployeeNumber'), ('employees', 'employeeNumber'))
+        where = (('employees', 'employeeNumber'), 'in', (1002, 1702))
+        rows = self.sql.select_join2(cols, on, where=where)
+        self.assertEqual(len(rows), 6)
+        for i in rows:
+            self.assertEqual(len(i), 4)
+
+    @Timer.decorator
     def test_select_join_right(self):
         self.sql.change_db('testing_models')
         cols = [
