@@ -1,5 +1,5 @@
 from mysql.toolkit.utils import join_cols, wrap
-from mysql.toolkit.components.manipulate._where import where_clause
+from mysql.toolkit.components.manipulate._where import where_clause, where_clause_append
 from mysql.toolkit.components.manipulate._order import order_clause_append
 
 
@@ -43,7 +43,8 @@ class Select:
         values = self.fetch(statement)
         return self._return_rows(table, cols, values, return_type)
 
-    def select_join(self, table1, table2, cols, table1_col, table2_col=None, join_type=None):
+    def select_join(self, table1, table2, cols, table1_col, table2_col=None, join_type=None, where=None,
+                    order_by=None):
         """
         Left join all rows and columns from two tables where a common value is shared.
 
@@ -55,6 +56,8 @@ class Select:
         :param table1_col: Column from table #1 to use as key
         :param table2_col: Column from table #2 to use as key
         :param join_type: Type of join query
+        :param where: Optional WHERE clause
+        :param order_by: Optional ORDER BY clause
         :return: Queried rows
         """
         # Check if cols is a list of tuples
@@ -75,6 +78,12 @@ class Select:
         {join_type} {table2} ON {table1}.{table1_col} = {table2}.{table2_col}
         '''.format(table1=wrap(table1), table2=wrap(table2), columns=cols, table1_col=table1_col, table2_col=table2_col,
                    join_type=join_type)
+
+        # Conditionally append WHERE clause, do nothing otherwise
+        statement = where_clause_append(statement, where)
+
+        # Conditionally append ORDER clause, do nothing otherwise
+        statement = order_clause_append(statement, order_by)
         return self.fetch(statement)
 
     def select_limit(self, table, cols='*', offset=0, limit=MAX_ROWS_PER_QUERY):
