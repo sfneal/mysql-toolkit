@@ -35,7 +35,7 @@ class TestOperationsRemove(unittest.TestCase):
     @Timer.decorator
     def test_truncate_database(self):
         self.sql.truncate_database()
-        self.assertEqual(len(self.sql.tables), 0)
+        self.assertEqual(self.sql.tables, None)
 
     @Timer.decorator
     def test_drop(self):
