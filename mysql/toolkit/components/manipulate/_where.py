@@ -94,3 +94,14 @@ def where_clause(where):
         return 'WHERE {0}'.format(' AND '.join(clauses))
     else:
         return _where_clause(where)
+
+
+def where_clause_append(statement, where=None):
+    """
+    Append an WHERE BY clause(s) to an existing SQL statement.
+
+    If no column is specified in where param, original statement is returned.
+    """
+    if where:
+        statement += ' ' + where_clause(where)
+    return statement

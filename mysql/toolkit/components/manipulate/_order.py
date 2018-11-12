@@ -41,7 +41,7 @@ def order_clause(order):
     return 'ORDER BY {0}'.format(cols)
 
 
-def order_clause_append(statement, order):
+def order_clause_append(statement, order=None):
     """
     Append an order by clauses to an existing SQL statement.
 
