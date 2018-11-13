@@ -188,6 +188,7 @@ class Clone(CloneDatabase):
             # Copy database structure and data
             self.change_db(source)
             tables = self.tables
+            self.change_db(destination)
 
             # Change database to destination
             self.change_db(destination)
