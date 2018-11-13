@@ -30,9 +30,13 @@ def null_convert(value):
     elif isinstance(value, str) and value.lower() == 'null':
         return 'NULL'
 
-    # List or set of values
-    elif isinstance(value, (list, set, tuple)):
+    # List or tuple of values
+    elif isinstance(value, (list, tuple)):
         return value
+
+    # Set or tuple of values
+    elif isinstance(value, set):
+        return list(value)
 
     # Add quotation wrapper around value
     else:
