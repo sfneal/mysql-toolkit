@@ -6,6 +6,7 @@ from mysql.toolkit.components.manipulate._order import order_clause_append
 MAX_ROWS_PER_QUERY = 50000
 SELECT_QUERY_TYPES = ('SELECT', 'SELECT DISTINCT')
 JOIN_QUERY_TYPES = ('INNER JOIN', 'LEFT JOIN', 'RIGHT JOIN')
+# TODO: Add functionality to return rows in dictionary form with pk keys, instead of lists of dicts
 
 
 def get_join_type(join_type):
