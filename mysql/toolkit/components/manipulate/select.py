@@ -136,7 +136,7 @@ class Select:
         """Run a select query with an offset and limit parameter."""
         return self.fetch(self._select_limit_statement(table, cols, offset, limit))
 
-    def select_where(self, table, cols, where, order_by=None, return_type=list):
+    def select_where(self, table, cols, where, order_by=None, return_type=list, distinct=False):
         """
         Query certain rows from a table where a particular value is found.
 
@@ -151,13 +151,17 @@ class Select:
             three-part: (where_column, comparison_operator, where_value)
         :param order_by: Column to order by
         :param return_type: Type, type to return values in
+        :param distinct: Bool, executes a SELECT DISTINCT query when set to True
         :return: Queried rows
         """
         # Unpack WHERE clause dictionary into tuple
         where_statement = where_clause(where)
 
         # Concatenate full statement and execute
-        statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
+        if distinct:
+            statement = "SELECT DISTINCT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
+        else:
+            statement = "SELECT {0} FROM {1} {2}".format(join_cols(cols), wrap(table), where_statement)
 
         # Add order by clause if specified
         statement = order_clause_append(statement, order_by)
