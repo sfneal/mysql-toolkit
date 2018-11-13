@@ -58,7 +58,7 @@ class Insert:
         if execute:
             self._cursor.execute(statement, values)
             self._commit()
-            self._printer('\tINSERTED row into {0}'.format(table))
+            self._printer('\tINSERTED row into {0}'.format(wrap(table)))
 
         # Only return statement
         else:
