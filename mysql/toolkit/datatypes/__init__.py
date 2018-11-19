@@ -95,11 +95,18 @@ def sql_column_type(column_data, prefer_varchar=False, prefer_int=False):
     except ValueError:
         max_len_decimal = None
 
-    # Return VARCHAR or INT type if flag is on
-    if prefer_varchar and most_frequent != 'VARCHAR' and 'text' in most_frequent.lower():
+    # Column data contains only NULL/None values
+    if most_frequent is None:
         most_frequent = 'VARCHAR'
+    # Return VARCHAR type if flag is on and determined type is text like
+    elif prefer_varchar and most_frequent != 'VARCHAR' and 'text' in most_frequent.lower():
+        most_frequent = 'VARCHAR'
+    # Return INT type if flag is on and determined type is integer like
     elif prefer_int and most_frequent != 'INT' and 'int' in most_frequent.lower():
         most_frequent = 'INT'
+
+    if max_len is None:
+        max_len = 11
 
     # Return MySQL datatype in proper format, only include length if it is set
     if max_len and max_len_decimal:
