@@ -72,6 +72,7 @@ class Remove:
 
     def _drop(self, table, if_exists=True):
         """Private method for executing table drop commands."""
+        # TODO: Test if_exists param, doesn't seem to be effective
         # Only drop table if it exists
         if if_exists:
             query = 'DROP TABLE IF EXISTS {0}'.format(wrap(table))
