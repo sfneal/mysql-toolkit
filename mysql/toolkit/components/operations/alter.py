@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from mysql.toolkit.utils import wrap
 from mysql.toolkit.datatypes import sql_column_type
 
@@ -27,7 +28,7 @@ class Alter:
         statement = "CREATE DATABASE {0} DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci".format(wrap(name))
         return self.execute(statement)
 
-    def create_table(self, name, data, columns=None, add_pk=True):
+    def create_table(self, name, data, columns=None, insert_data=True, add_pk=True):
         """Generate and execute a create table query by parsing a 2D dataset"""
         # TODO: Issue occurs when bool values exist in data
         # Remove if the table exists
@@ -43,13 +44,22 @@ class Alter:
             assert len(row) == len(columns)
 
         # Create dictionary of column types
+        # TODO: add progress bar
         col_types = {columns[i]: sql_column_type([d[i] for d in data], prefer_int=True, prefer_varchar=True)
-                     for i in range(0, len(columns))}
+                     for i in tqdm(range(0, len(columns)), total=len(columns),
+                                   desc='Getting datatypes for {0} table'.format(wrap(name)))}
 
         # Join column types into SQL string
         cols = ''.join(['\t{0} {1},\n'.format(name, type_) for name, type_ in col_types.items()])[:-2] + '\n'
         statement = 'CREATE TABLE {0} ({1}{2})'.format(name, '\n', cols)
         self.execute(statement)
+
+        # Insert rows into table
+        if insert_data:
+            self.insert_many(name, columns, data)
+
+        # Automatically add primary key
         if add_pk:
-            self.set_primary_keys_auto()
+            self.set_primary_key_auto('team')
+        self._printer('\tCreated table {0}'.format(wrap(name)))
         return True
