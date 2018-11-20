@@ -176,6 +176,7 @@ class Clone(CloneDatabase):
         :param source: Source database
         :param destination: Destination database
         """
+        # TODO: Add ability to exclude or include tables
         print('\tCopying database {0} structure and data to database {1}'.format(source, destination))
         with Timer('\nSuccess! Copied database {0} to {1} in '.format(source, destination)):
             # Create destination database if it does not exist
@@ -188,7 +189,6 @@ class Clone(CloneDatabase):
             # Copy database structure and data
             self.change_db(source)
             tables = self.tables
-            self.change_db(destination)
 
             # Change database to destination
             self.change_db(destination)
