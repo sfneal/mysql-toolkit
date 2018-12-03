@@ -1,3 +1,4 @@
+from tqdm import tqdm
 from differentiate import diff
 from mysql.toolkit.utils import get_col_val_str, wrap
 from mysql.toolkit.components.manipulate.select import MAX_ROWS_PER_QUERY
@@ -72,29 +73,32 @@ class Insert:
         """
         # Make values a list of lists if it is a flat list
         if not isinstance(values[0], (list, set, tuple)):
-            values = []
-            for v in values:
-                if v is not None and len(v) > 0:
-                    values.append([v])
-                else:
-                    values.append([None])
+            # List of values is long enough to enable a progress bar
+            if len(values) >= values:
+                loop = tqdm(values, total=len(values), desc='Validating datatypes')
+            else:
+                loop = values
+
+            # Remove None and empty values from values
+            values = [[v] if v is not None and len(v) > 0 else [None] for v in loop]
 
         # Concatenate statement
         cols, vals = get_col_val_str(columns)
         statement = 'INSERT INTO {0} ({1}) VALUES ({2})'.format(wrap(table), cols, vals)
 
-        if execute and len(values) > limit:
+        # Only return statement
+        if not execute:
+            return statement
+
+        elif execute and len(values) > limit:
+            # Execute multiple statements
             while len(values) > 0:
                 vals = [values.pop(0) for i in range(0, min(limit, len(values)))]
                 self._cursor.executemany(statement, vals)
                 self._commit()
 
-        elif execute:
+        else:
             # Execute statement
             self._cursor.executemany(statement, values)
             self._commit()
-            self._printer('\tINSERTED (' + str(len(values)) + ') rows into table ' + wrap(str(table)))
-
-        # Only return statement
-        else:
-            return statement
+        self._printer('\tINSERTED (' + str(len(values)) + ') rows into table ' + wrap(str(table)))
