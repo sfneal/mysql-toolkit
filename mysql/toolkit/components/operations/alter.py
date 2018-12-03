@@ -29,9 +29,13 @@ class Alter:
         return self.execute(statement)
 
     def create_table(self, name, data, columns=None, insert_data=True, add_pk=True):
-        """Generate and execute a create table query by parsing a 2D dataset"""
+        """Generate and execute a create table query by parsing a 2D dataset then insert data."""
         # TODO: Issue occurs when bool values exist in data
         # Remove if the table exists
+
+        # TODO: improve disconnect/reconnect
+        self.disconnect()
+
         if name in self.tables:
             self.drop(name)
 
@@ -45,13 +49,16 @@ class Alter:
 
         # Create dictionary of column types
         # TODO: add progress bar
+        # TODO: add pool processing
         col_types = {columns[i]: sql_column_type([d[i] for d in data], prefer_int=True, prefer_varchar=True)
                      for i in tqdm(range(0, len(columns)), total=len(columns),
                                    desc='Getting datatypes for {0} table'.format(wrap(name)))}
 
         # Join column types into SQL string
-        cols = ''.join(['\t{0} {1},\n'.format(name, type_) for name, type_ in col_types.items()])[:-2] + '\n'
+        cols = ''.join(['\t{0} {1},\n'.format(name, type_) for name, type_ in
+                        tqdm(col_types.items(), total=len(col_types.items()), desc='Joining columns')])[:-2] + '\n'
         statement = 'CREATE TABLE {0} ({1}{2})'.format(name, '\n', cols)
+        self.reconnect()
         self.execute(statement)
 
         # Insert rows into table

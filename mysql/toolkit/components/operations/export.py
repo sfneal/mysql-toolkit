@@ -41,6 +41,7 @@ def sql_file_comment(comment):
 class Export:
     def dump_table(self, table, drop_statement=True):
         """Export a table structure and data to SQL file for backup or later import."""
+        # TODO: Add functionality to allow for dumping to file not just generating a statement
         create_statement = self.get_table_definition(table)
         data = self.select_all(table)
         statements = ['\n', sql_file_comment(''),
@@ -48,7 +49,7 @@ class Export:
         if drop_statement:
             statements.append('\nDROP TABLE IF EXISTS {0};'.format(wrap(table)))
         statements.append('{0};\n'.format(create_statement))
-        if len(data) > 0:
+        if data and len(data) > 0:
             statements.append('{0};'.format(insert_statement(table, self.get_columns(table), data)))
         return '\n'.join(statements)
 
@@ -59,6 +60,8 @@ class Export:
         If not database is specified, it is assumed the currently connected database
         is the source.  If no tables are provided, all tables will be dumped.
         """
+        # TODO: Add parameters to allow for writing to multiple files
+        # TODO: Add functionality to create directory if it doesn't exist
         # Change database if needed
         if database:
             self.change_db(database)

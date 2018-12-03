@@ -3,6 +3,9 @@ from mysql.toolkit.datatypes.text import Text
 from mysql.toolkit.datatypes.numeric import Numeric
 from mysql.toolkit.datatypes.dates import Dates
 
+# TODO: add __all__
+# TODO: add pool processing
+
 
 class ValueType(Text, Numeric, Dates):
     def __init__(self, data):

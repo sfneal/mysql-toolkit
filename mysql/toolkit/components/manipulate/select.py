@@ -123,7 +123,7 @@ class Select:
         FROM {table1}
         {join_type} {table2} ON {table1}.{table1_col} = {table2}.{table2_col}
         '''.format(table1=wrap(table1), table2=wrap(table2), columns=cols, table1_col=table1_col, table2_col=table2_col,
-                   join_type=join_type)
+                   join_type=join_type).strip()
 
         # Conditionally append WHERE clause, do nothing otherwise
         statement = where_clause_append(statement, where)
