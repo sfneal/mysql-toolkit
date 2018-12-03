@@ -49,6 +49,8 @@ class Export:
         if drop_statement:
             statements.append('\nDROP TABLE IF EXISTS {0};'.format(wrap(table)))
         statements.append('{0};\n'.format(create_statement))
+
+        # Dump data if data exists
         if data and len(data) > 0:
             statements.append('{0};'.format(insert_statement(table, self.get_columns(table), data)))
         return '\n'.join(statements)
