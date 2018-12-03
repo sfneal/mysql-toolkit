@@ -26,9 +26,9 @@ class Select:
         else:
             return self.select(table, '*', execute=execute)
 
-    def select_distinct(self, table, cols='*', execute=True):
+    def select_distinct(self, table, cols='*', execute=True, order_by=None,):
         """Query distinct values from a table."""
-        return self.select(table, cols, execute, select_type='SELECT DISTINCT')
+        return self.select(table, cols, execute, order_by, select_type='SELECT DISTINCT')
 
     def select(self, table, cols, execute=True, order_by=None, select_type='SELECT', return_type=list):
         """Query every row and only certain columns from a table."""
