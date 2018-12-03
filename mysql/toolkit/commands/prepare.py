@@ -111,7 +111,7 @@ class PrepareSQL:
     @staticmethod
     def _get_next_occurrence(haystack, offset, needles):
         """
-        Find next occurence of one of the needles in the haystack
+        Find next occurrence of one of the needles in the haystack
 
         :return: tuple of (index, needle found)
              or: None if no needle was found"""
