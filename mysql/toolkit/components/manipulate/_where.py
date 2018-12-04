@@ -102,6 +102,7 @@ def where_clause(where):
     if isinstance(where, (list, set)):
         # Multiple WHERE clause's (separate with AND)
         clauses = [_where_clause(clause, multi=True) for clause in where]
+        # TODO: Add parameter to allow for 'AND' or 'OR'
         return 'WHERE {0}'.format(' AND '.join(clauses))
     else:
         return _where_clause(where)
