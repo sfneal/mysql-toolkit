@@ -1,6 +1,6 @@
 dirutility>=0.5.6
 mysql-connector>=2.2.9
 differentiate>=1.2.1
-sqlparse>=3.0.0
+sqlparse>=0.3.0
 looptools>=1.1.2
 tqdm
