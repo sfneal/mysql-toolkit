@@ -75,7 +75,7 @@ def _where_clause(where, multi=False):
     # Check if where_val is signifying 'NULL' or 'NOT NULL'
     where_val = null_convert(where_val)
     if where_val in ('NULL', 'NOT NULL'):
-        operator = ' is '
+        operator = 'is'
 
     # Check if where_val is an iterable, signfying IN clause
     elif isinstance(where_val, (list, tuple, set)):
@@ -89,9 +89,9 @@ def _where_clause(where, multi=False):
             where_val = null_convert(where_val[0])
 
     # Validate operator
-    if operator.strip().lower() in ('in', 'is', 'is not', 'not in'):
+    if any(operator.lower().strip() == i for i in ('in', 'is', 'is not', 'not in')):
         operator = ' {0} '.format(operator)
-    assert operator in SELECT_WHERE_OPERATORS
+    assert operator in SELECT_WHERE_OPERATORS, '"{0}" not in valid operators'.format(operator)
 
     # Concatenate WHERE clause (ex: **first_name='John'**)
     if multi:

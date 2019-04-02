@@ -70,7 +70,7 @@ class TestDataTypesColumns(unittest.TestCase):
         column = self.sql.select_limit('dept_emp', ['from_date'], limit=500)
 
         dt = sql_column_type(column)
-        self.assertEqual('DATE', dt)
+        self.assertTrue('date' in dt.lower())
 
 
 if __name__ == '__main__':
