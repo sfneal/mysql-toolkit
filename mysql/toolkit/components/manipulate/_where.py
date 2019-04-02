@@ -1,6 +1,6 @@
 from mysql.toolkit.utils import wrap
 # TODO: Fix assertion to allow for 'is' and 'in'
-SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ')
+SELECT_WHERE_OPERATORS = ('=', '<>', '<', '>', '!=', '<=', '>=', ' is ', ' in ', ' not in ', ' is not ')
 
 
 def null_convert(value):
@@ -40,7 +40,10 @@ def null_convert(value):
 
     # Add quotation wrapper around value
     else:
-        return "'{0}'".format(value)
+        if "'" in str(value):
+            return '"{0}"'.format(value)
+        else:
+            return "'{0}'".format(value)
 
 
 def _where_clause(where, multi=False):
@@ -78,7 +81,6 @@ def _where_clause(where, multi=False):
     elif isinstance(where_val, (list, tuple, set)):
         # Confirm that where_val contains more than one item
         if len(where_val) > 1:
-            operator = ' in '
             where_val = str(tuple(where_val))
 
         # where_val has one item, use '=' operator
@@ -87,7 +89,8 @@ def _where_clause(where, multi=False):
             where_val = null_convert(where_val[0])
 
     # Validate operator
-    operator = ' {0} '.format(operator) if operator in ('in', 'is') else operator
+    if operator.strip().lower() in ('in', 'is', 'is not', 'not in'):
+        operator = ' {0} '.format(operator)
     assert operator in SELECT_WHERE_OPERATORS
 
     # Concatenate WHERE clause (ex: **first_name='John'**)
