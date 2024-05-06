@@ -3,4 +3,4 @@ dirutility==0.3.4
 looptools==1.1.1
 mysql-connector==2.1.6
 sqlparse==0.5.0
-tqdm==4.26.0
+tqdm==4.66.3
